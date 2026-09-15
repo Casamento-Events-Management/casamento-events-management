@@ -1,0 +1,1 @@
+# Sanity Schema Generation Skill
