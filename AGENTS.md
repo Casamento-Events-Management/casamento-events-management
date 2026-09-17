@@ -17,7 +17,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **CMS**: Sanity.io (`next-sanity` v9+)
 - **Database & Auth**: Supabase (`@supabase/ssr`)
 - **Email**: Resend / React-Email (Fallback: EmailJS)
-- **Validation**: Zod schemas for all forms, environment variables, and API payloads
+- **Validation**: Zod schemas for all forms, environment variables, and API payloads. schemas live in lib/schemas/ or co-located per feature.
 - **Icons**: Lucide React
 
 ---
@@ -57,7 +57,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## 5. Agent Workflow Rules
 - Always inspect existing reusable primitives in `components/ui` before creating new UI components.
-- Execute `pnpm lint` and `pnpm typecheck` after every multi-file edit to ensure zero type or lint regressions.
+- Execute `npm lint` and `npm typecheck` after every multi-file edit to ensure zero type or lint regressions.
 - Keep Git commit messages atomic using conventional standards: `feat:`, `fix:`, `refactor:`, `chore:`.
 
 ---
