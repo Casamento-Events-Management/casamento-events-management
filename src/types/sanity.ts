@@ -40,6 +40,8 @@ export interface SanityAssetRef {
     /** The `asset` reference string, e.g. "image-abc123-1920x1080-jpg". */
     _ref: string;
     _type: 'reference';
+    /** The resolved CDN URL, projected via GROQ (e.g., `asset->url`) */
+    url?: string;
 }
 
 // ---------------------------------------------------------------------------
