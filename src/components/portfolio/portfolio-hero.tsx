@@ -14,18 +14,8 @@ export function PortfolioHero({
     return (
         <section className="relative overflow-hidden bg-[#F7F3E8] py-16 md:py-20">
             <div className="max-w-7xl mx-auto px-6 sm:px-8 text-center">
-                {/* Main Heading with font-serif and Padding Top */}
                 <h1 className="pt-16 sm:pt-10 md:pt-26 text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-semibold tracking-tight text-[#3A4F1C] mb-6 leading-tight">
-                    {categoryTitle ? (
-                        <>
-                            <span className="text-[#BC6F07]">
-                                {categoryTitle}
-                            </span>{' '}
-                            Portfolio
-                        </>
-                    ) : (
-                        title
-                    )}
+                    {categoryTitle ? `${categoryTitle} Portfolio` : title}
                 </h1>
 
                 {/* Subtitle / Description */}
