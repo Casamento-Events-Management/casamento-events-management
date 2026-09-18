@@ -172,6 +172,16 @@ export interface SanityVideoSource {
 }
 
 /**
+ * External video streaming platforms supported by the site.
+ */
+export type ExternalVideoProvider = 'cloudflare' | 'youtube' | 'vimeo';
+
+/**
+ * Centralized union of all supported video providers, including native Sanity CDN uploads.
+ */
+export type VideoProvider = 'sanity' | ExternalVideoProvider;
+
+/**
  * A video hosted on an external CDN or platform.
  *
  * Supported providers:
@@ -187,7 +197,7 @@ export interface ExternalVideoSource {
     _type: 'external';
     /** Full URL to the video stream or embed endpoint. */
     url: string;
-    provider?: 'cloudflare' | 'youtube' | 'vimeo';
+    provider?: ExternalVideoProvider;
 }
 
 /**
@@ -207,3 +217,4 @@ export interface ExternalVideoSource {
  * ```
  */
 export type VideoSource = SanityVideoSource | ExternalVideoSource;
+

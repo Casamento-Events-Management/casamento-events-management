@@ -20,6 +20,8 @@ export type {
     SanityFileWithPriority,
     SanityVideoSource,
     ExternalVideoSource,
+    ExternalVideoProvider,
+    VideoProvider,
     VideoSource,
     WithPriority,
 } from './sanity';
@@ -39,3 +41,16 @@ export type {
     UpcomingEvent,
     HomePageContent,
 } from './home';
+
+// Portfolio types
+export type {
+    SanityPortfolioCategory,
+    SanityPortfolioItem,
+    PortfolioCategory,
+    PortfolioItem,
+    ActiveCategoryFilter,
+    PortfolioModalState,
+    PortfolioPageData,
+    PortfolioPageProps,
+} from './portfolio';
+
