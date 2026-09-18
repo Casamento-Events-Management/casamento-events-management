@@ -61,7 +61,6 @@ export interface HeroSection {
      */
     showreelMobileVideo?: VideoSource;
 
-
     /**
      * Poster / thumbnail image displayed over the hero before the user plays
      * the showreel. Required.
