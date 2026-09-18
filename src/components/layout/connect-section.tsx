@@ -116,9 +116,14 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
           <p className="text-sm text-[#F7F3E8]/80 font-light mb-6">
             Schedule a personal consultation with our event director to discuss your vision and date availability.
           </p>
-          <Button href="/book-now" size="lg" variant="primary">
-            Book Consultation
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button href="/book-now" size="lg" variant="primary">
+              Book Consultation
+            </Button>
+            <Button href="/portfolio" size="lg" variant="secondary" className="border-[#F7F3E8]/40 text-[#F7F3E8] hover:bg-[#F7F3E8]/10">
+              Explore Portfolio
+            </Button>
+          </div>
         </div>
       </div>
     </section>
