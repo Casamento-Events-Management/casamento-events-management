@@ -7,8 +7,8 @@
 
 'use client';
 
-import React, { useState, useTransition } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import React, { useState, useEffect, useTransition, Suspense } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { PortfolioFilterBar } from './portfolio-filter-bar';
 import { PortfolioCard } from './portfolio-card';
 import { PortfolioModal } from './portfolio-modal';
@@ -20,17 +20,51 @@ interface PortfolioViewProps {
     activeCategory: ActiveCategoryFilter;
 }
 
-export function PortfolioView({
+function PortfolioViewContent({
     categories,
     items,
     activeCategory: initialActiveCategory,
 }: PortfolioViewProps) {
     const router = useRouter();
     const pathname = usePathname();
+    const searchParams = useSearchParams();
     const [, startTransition] = useTransition();
 
     const [activeCategory, setActiveCategory] = useState<ActiveCategoryFilter>(initialActiveCategory);
     const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
+
+    const itemParam = searchParams.get('item');
+
+    // Auto-open modal when accessing shared URL with ?item= parameter
+    useEffect(() => {
+        if (itemParam) {
+            const match = items.find((i) => i.slug === itemParam || i.id === itemParam);
+            if (match) {
+                setSelectedItem(match);
+            }
+        }
+    }, [itemParam, items]);
+
+    const handleOpenModal = (item: PortfolioItem) => {
+        setSelectedItem(item);
+        if (typeof window !== 'undefined') {
+            const newParams = new URLSearchParams(window.location.search);
+            newParams.set('item', item.slug);
+            const newUrl = `${pathname}?${newParams.toString()}`;
+            window.history.replaceState(null, '', newUrl);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setSelectedItem(null);
+        if (typeof window !== 'undefined') {
+            const newParams = new URLSearchParams(window.location.search);
+            newParams.delete('item');
+            const queryStr = newParams.toString();
+            const newUrl = queryStr ? `${pathname}?${queryStr}` : pathname;
+            window.history.replaceState(null, '', newUrl);
+        }
+    };
 
     // Filter items based on active category state
     const filteredItems = activeCategory === 'all'
@@ -66,7 +100,7 @@ export function PortfolioView({
                             key={item.id}
                             item={item}
                             priority={index < 4}
-                            onSelect={(selected) => setSelectedItem(selected)}
+                            onSelect={handleOpenModal}
                         />
                     ))}
                 </div>
@@ -80,8 +114,24 @@ export function PortfolioView({
             <PortfolioModal
                 item={selectedItem}
                 isOpen={Boolean(selectedItem)}
-                onClose={() => setSelectedItem(null)}
+                onClose={handleCloseModal}
             />
         </div>
     );
 }
+
+export function PortfolioView(props: PortfolioViewProps) {
+    return (
+        <Suspense fallback={
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+                <div className="animate-pulse flex flex-col items-center space-y-4">
+                    <div className="h-8 bg-[#3A4F1C]/10 rounded w-1/3"></div>
+                    <div className="h-64 bg-[#3A4F1C]/10 rounded w-full"></div>
+                </div>
+            </div>
+        }>
+            <PortfolioViewContent {...props} />
+        </Suspense>
+    );
+}
+

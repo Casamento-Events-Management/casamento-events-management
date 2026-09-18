@@ -23,17 +23,32 @@ export interface SharePayload {
 }
 
 /**
- * Returns canonical share URL. Prefers window location if not on localhost.
+ * Returns canonical share URL.
+ * Uses window.location.origin when in browser (so copying link on localhost returns localhost URL),
+ * but can force public domain for external social media crawlers (FB, Twitter) that require internet-accessible URLs.
  */
-export function getCanonicalShareUrl(payload: SharePayload): string {
+export function getCanonicalShareUrl(payload: SharePayload, options?: { forcePublicDomain?: boolean }): string {
     const rawUrl = payload.url;
     if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
-        if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        if (!options?.forcePublicDomain) {
             return rawUrl;
         }
     }
 
     const cleanPath = rawUrl.startsWith('/') ? rawUrl : `/${rawUrl}`;
+
+    if (options?.forcePublicDomain) {
+        return `https://casamentoevents.com${cleanPath}`;
+    }
+
+    if (typeof window !== 'undefined') {
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        if (isLocalhost) {
+            return `${window.location.origin}${cleanPath}`;
+        }
+        return `${window.location.origin}${cleanPath}`;
+    }
+
     return `https://casamentoevents.com${cleanPath}`;
 }
 
@@ -68,7 +83,7 @@ export async function copyShareLinkToClipboard(payload: SharePayload): Promise<b
  * Triggers Facebook Sharer pop-up dialog with pre-filled quote text and hashtag.
  */
 export function shareToFacebook(payload: SharePayload): void {
-    const shareUrl = getCanonicalShareUrl(payload);
+    const shareUrl = getCanonicalShareUrl(payload, { forcePublicDomain: true });
     const quoteText = `✨ ${payload.title} — ${payload.description || 'Masterpieces in Motion by Casamento Events Management.'}`;
     const hashtag = '#CasamentoEvents';
     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(quoteText)}&hashtag=${encodeURIComponent(hashtag)}`;
@@ -79,7 +94,7 @@ export function shareToFacebook(payload: SharePayload): void {
  * Triggers X (Twitter) Tweet Intent composer with pre-filled text and hashtags.
  */
 export function shareToTwitter(payload: SharePayload): void {
-    const shareUrl = getCanonicalShareUrl(payload);
+    const shareUrl = getCanonicalShareUrl(payload, { forcePublicDomain: true });
     const text = `✨ ${payload.title}${payload.location ? ' in ' + payload.location : ''} by Casamento Events`;
     const categoryTag = payload.categorySlug ? payload.categorySlug.replace(/-/g, '') : 'wedding';
     const url = `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}&hashtags=${encodeURIComponent(`CasamentoEvents,${categoryTag}`)}`;
@@ -105,7 +120,7 @@ export async function shareToInstagram(payload: SharePayload): Promise<void> {
  * Copies rich caption payload to clipboard & opens TikTok share.
  */
 export async function shareToTikTok(payload: SharePayload): Promise<void> {
-    const shareUrl = getCanonicalShareUrl(payload);
+    const shareUrl = getCanonicalShareUrl(payload, { forcePublicDomain: true });
     const caption = getFormattedShareCaption(payload);
     try {
         await navigator.clipboard.writeText(`${caption}\n\n${shareUrl}`);
