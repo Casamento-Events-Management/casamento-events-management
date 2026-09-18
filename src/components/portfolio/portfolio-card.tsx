@@ -59,7 +59,7 @@ export function PortfolioCard({ item, onSelect, priority = false }: PortfolioCar
                     />
 
                     {/* Subtle Overlay Gradient on Hover */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#2A3A14]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#2A3A14]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer" />
 
                     {/* Interactive Play or Zoom Icon Badge */}
                     <div className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">

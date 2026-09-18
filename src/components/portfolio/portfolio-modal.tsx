@@ -9,8 +9,10 @@
 
 import React, { useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { X, Calendar, MapPin, User, Tag, Share2, Sparkles, Film, Image as ImageIcon } from 'lucide-react';
+import { X, Calendar, MapPin, User, Tag, Sparkles, Film, Image as ImageIcon } from 'lucide-react';
 import type { PortfolioItem } from '@/types';
+import { ShareDropdown } from '@/components/ui/share-dropdown';
+import type { SharePayload } from '@/lib/utils/shareUtils';
 
 interface PortfolioModalProps {
     item: PortfolioItem | null;
@@ -43,6 +45,16 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
     }, [isOpen, onClose]);
 
     if (!isOpen || !item) return null;
+
+    const sharePayload: SharePayload = {
+        title: item.title,
+        description: item.description,
+        url: `/portfolio/${item.category.slug}?item=${item.slug}`,
+        categorySlug: item.category.slug,
+        location: item.location,
+        clientName: item.clientName,
+        hashtags: item.tags,
+    };
 
     const renderMediaContent = () => {
         // 1. Image Media Showcase
@@ -102,8 +114,6 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                 embedUrl = `${embedUrl}${separator}autoplay=1`;
             }
 
-            // Notice: YouTube/Vimeo have built-in native player controls.
-            // We do NOT render external custom overlay video controls.
             return (
                 <div className="relative aspect-video w-full bg-[#0C1206]">
                     <iframe
@@ -124,19 +134,6 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
         );
     };
 
-    const handleShare = () => {
-        if (navigator.share) {
-            navigator.share({
-                title: item.title,
-                text: item.description,
-                url: window.location.href,
-            }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(window.location.href);
-            alert('Portfolio link copied to clipboard!');
-        }
-    };
-
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-8 bg-[#0C1206]/90 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
@@ -154,10 +151,10 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
             {/* Modal Dialog Container */}
             <div
                 ref={dialogRef}
-                className="relative z-10 w-full max-w-4xl max-h-[92vh] sm:max-h-[88vh] flex flex-col rounded-2xl bg-[#141C0C] border border-[#3A4F1C]/40 shadow-2xl overflow-hidden text-[#F7F3E8]"
+                className="relative z-10 w-full max-w-4xl max-h-[92vh] sm:max-h-[88vh] flex flex-col rounded-2xl bg-[#141C0C] border border-[#3A4F1C]/40 shadow-2xl text-[#F7F3E8]"
             >
                 {/* Header Bar */}
-                <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#3A4F1C]/40 bg-[#0C1206]/80 backdrop-blur-md shrink-0">
+                <div className="relative z-30 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#3A4F1C]/40 bg-[#0C1206]/90 backdrop-blur-md rounded-t-2xl shrink-0">
                     <div className="flex items-center gap-2 truncate pr-2">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2A3A14] border border-[#3A4F1C]/60 text-[#BC6F07] text-xs font-semibold shrink-0">
                             {item.mediaType === 'video' ? (
@@ -175,20 +172,15 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                         )}
                     </div>
 
-                    {/* Touch-Friendly Action Buttons (Minimum 44px hit area) */}
+                    {/* Touch-Friendly Action Buttons */}
                     <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                        <button
-                            type="button"
-                            onClick={handleShare}
-                            className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl text-[#EFEAD8]/80 hover:text-[#F7F3E8] hover:bg-[#2A3A14] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07]"
-                            aria-label="Share project link"
-                        >
-                            <Share2 className="w-5 h-5" />
-                        </button>
+                        {/* Reusable Share Dropdown Component */}
+                        <ShareDropdown payload={sharePayload} align="right" />
+
                         <button
                             type="button"
                             onClick={onClose}
-                            className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl text-[#EFEAD8]/80 hover:text-[#F7F3E8] hover:bg-[#2A3A14] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07]"
+                            className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl text-[#EFEAD8]/80 hover:text-[#F7F3E8] hover:bg-[#2A3A14] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07] cursor-pointer"
                             aria-label="Close dialog"
                         >
                             <X className="w-5 h-5" />
@@ -197,7 +189,7 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                 </div>
 
                 {/* Main Scrollable Body */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto rounded-b-2xl">
                     {/* Media Display Container */}
                     <div className="w-full bg-black">
                         {renderMediaContent()}
@@ -215,7 +207,7 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                                 {item.clientName && (
                                     <span className="flex items-center gap-2">
                                         <User className="w-4 h-4 text-[#BC6F07] shrink-0" />
-                                        <span>Client: <strong className="text-[#F7F3E8] font-semibold">{item.clientName}</strong></span>
+                                        <span><strong className="text-[#F7F3E8] font-semibold">{item.clientName}</strong></span>
                                     </span>
                                 )}
                                 {item.location && (
@@ -227,7 +219,7 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                                 {item.eventDate && (
                                     <span className="flex items-center gap-2">
                                         <Calendar className="w-4 h-4 text-[#BC6F07] shrink-0" />
-                                        <span>{new Date(item.eventDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
+                                        <span>{new Date(item.eventDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                                     </span>
                                 )}
                             </div>
