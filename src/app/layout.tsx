@@ -38,8 +38,15 @@ export const metadata: Metadata = {
         alt: 'Casamento Events Icon',
       },
     ],
-    locale: 'en_US',
+    locale: 'en_PH',
     type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Casamento Events | Unforgettable Celebrations', // to be finalize
+    description:
+      'Casamento Events Management specializes in luxury weddings, grand debutante galas, corporate milestones, and bespoke celebration planning.',
+    images: ['/icon.jpg'],
   },
 };
 

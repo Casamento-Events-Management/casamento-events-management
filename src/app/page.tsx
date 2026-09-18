@@ -16,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: 'Casamento Events | Unforgettable Celebrations',
       description: content.hero.brandline,
+      locale: 'en_PH',
       images: [
         {
           url: content.hero.showreelThumbnail.asset.url || '',
@@ -24,6 +25,12 @@ export async function generateMetadata(): Promise<Metadata> {
           alt: content.hero.showreelThumbnail.alt || 'Casamento Events Hero',
         },
       ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Casamento Events | Unforgettable Celebrations', // to be finalize
+      description: content.hero.brandline,
+      images: [content.hero.showreelThumbnail.asset.url || ''],
     },
   };
 }
