@@ -23,22 +23,41 @@ export function PortfolioJsonLd({
         '@context': 'https://schema.org',
         '@type': 'ItemList',
         itemListElement: items.map((item, index) => {
-            const videoUrl = item.video._type === 'external'
-                ? item.video.url
-                : item.video.asset.url;
+            if (item.mediaType === 'video' && item.video) {
+                const videoUrl = item.video._type === 'external'
+                    ? item.video.url
+                    : item.video.asset.url;
+
+                return {
+                    '@type': 'ListItem',
+                    position: index + 1,
+                    item: {
+                        '@type': 'VideoObject',
+                        name: item.title,
+                        description: item.description || item.title,
+                        thumbnailUrl: [item.thumbnail.url],
+                        uploadDate: item.eventDate || item.createdAt || '2025-01-01',
+                        contentUrl: videoUrl,
+                        embedUrl: videoUrl,
+                        publisher: {
+                            '@type': 'Organization',
+                            name: 'Casamento Events Management',
+                            url: siteUrl,
+                        },
+                    },
+                };
+            }
 
             return {
                 '@type': 'ListItem',
                 position: index + 1,
                 item: {
-                    '@type': 'VideoObject',
+                    '@type': 'VisualArtwork',
                     name: item.title,
                     description: item.description || item.title,
-                    thumbnailUrl: [item.thumbnail.url],
-                    uploadDate: item.eventDate || '2025-01-01',
-                    contentUrl: videoUrl,
-                    embedUrl: videoUrl,
-                    publisher: {
+                    image: item.thumbnail.url,
+                    dateCreated: item.eventDate || item.createdAt || '2025-01-01',
+                    creator: {
                         '@type': 'Organization',
                         name: 'Casamento Events Management',
                         url: siteUrl,

@@ -29,10 +29,14 @@ export async function getPortfolioCategoryBySlug(slug: string): Promise<Portfoli
 }
 
 /**
- * Fetches portfolio items, optionally filtered by category slug.
- * Items are ordered by `featured desc`, then `priority desc`.
+ * Fetches portfolio items, optionally filtered by category slug and paginated.
+ * Items are ordered by `featured desc`, `priority desc`, then `createdAt desc`.
  */
-export async function getPortfolioItems(categorySlug?: string): Promise<PortfolioItem[]> {
+export async function getPortfolioItems(
+    categorySlug?: string,
+    offset = 0,
+    limit?: number
+): Promise<PortfolioItem[]> {
     const items: PortfolioItem[] = JSON.parse(JSON.stringify(MOCK_PORTFOLIO_ITEMS));
     
     // Filter by category if specified and not 'all'
@@ -40,13 +44,24 @@ export async function getPortfolioItems(categorySlug?: string): Promise<Portfoli
         ? items.filter((item) => item.category.slug === categorySlug)
         : items;
 
-    // Apply sorting rule: order(featured desc, priority desc)
-    return filtered.sort((a, b) => {
+    // Apply 3-tier sorting rule: order(featured desc, priority desc, createdAt desc)
+    const sorted = filtered.sort((a, b) => {
         if (a.featured !== b.featured) {
             return a.featured ? -1 : 1;
         }
-        return (b.priority ?? 0) - (a.priority ?? 0);
+        if ((b.priority ?? 0) !== (a.priority ?? 0)) {
+            return (b.priority ?? 0) - (a.priority ?? 0);
+        }
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA;
     });
+
+    if (typeof limit === 'number' && limit > 0) {
+        return sorted.slice(offset, offset + limit);
+    }
+
+    return sorted.slice(offset);
 }
 
 /**

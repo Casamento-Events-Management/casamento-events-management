@@ -5,7 +5,7 @@
 'use client';
 
 import React from 'react';
-import { ChevronDown, Filter } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import type { PortfolioCategory, ActiveCategoryFilter } from '@/types';
 
 interface PortfolioFilterBarProps {

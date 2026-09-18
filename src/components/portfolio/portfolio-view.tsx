@@ -50,7 +50,7 @@ export function PortfolioView({
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 py-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
             {/* Category Filter Tabs */}
             <PortfolioFilterBar
                 categories={categories}
@@ -58,21 +58,21 @@ export function PortfolioView({
                 onSelectCategory={handleSelectCategory}
             />
 
-            {/* Portfolio Grid */}
+            {/* Portfolio Masonry Layout (Display Whole Item) */}
             {filteredItems.length > 0 ? (
-                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                <div className="mt-8 columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6">
                     {filteredItems.map((item, index) => (
                         <PortfolioCard
                             key={item.id}
                             item={item}
-                            priority={index < 6}
+                            priority={index < 4}
                             onSelect={(selected) => setSelectedItem(selected)}
                         />
                     ))}
                 </div>
             ) : (
-                <div className="mt-12 py-16 text-center rounded-2xl bg-[#F7F3E8] border border-[#3A4F1C]/20 shadow-xs">
-                    <p className="text-[#3A4F1C]/70 text-lg">No portfolio films found in this category yet.</p>
+                <div className="mt-12 py-16 text-center rounded-2xl bg-[#EFEAD8]/60 border border-[#3A4F1C]/15 shadow-xs">
+                    <p className="text-[#3A4F1C]/80 text-base sm:text-lg font-medium">No portfolio showcase found in this category yet.</p>
                 </div>
             )}
 

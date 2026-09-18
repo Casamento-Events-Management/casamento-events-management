@@ -27,6 +27,8 @@ export interface SanityPortfolioCategory extends SanityDocument {
     priority: number;
 }
 
+export type PortfolioMediaType = 'image' | 'video';
+
 /**
  * Sanity Portfolio Item Document shape (`_type: 'portfolioItem'`)
  */
@@ -35,18 +37,19 @@ export interface SanityPortfolioItem extends SanityDocument {
     title: string;
     slug: SanitySlug;
     category: SanityPortfolioCategory;
+    mediaType?: PortfolioMediaType;
     tags?: string[];
     /**
-     * Click-to-play poster thumbnail image.
-     * Enforces LCP optimization and satisfies Google VideoObject schema requirements.
+     * Thumbnail / Full image asset for display.
+     * Enforces LCP optimization and satisfies Google schema requirements.
      */
     thumbnail: SanityImageWithPriority;
     /**
-     * Discriminated video source:
+     * Discriminated video source (only present when mediaType === 'video'):
      * - `SanityVideoSource` for direct Sanity CDN video files
      * - `ExternalVideoSource` for YouTube, Vimeo, or Cloudflare Stream URLs
      */
-    video: VideoSource;
+    video?: VideoSource;
     description?: string;
     eventDate?: string;
     location?: string;
@@ -82,6 +85,7 @@ export interface PortfolioItem {
     id: string;
     title: string;
     slug: string;
+    mediaType: PortfolioMediaType;
     category: {
         title: string;
         slug: string;
@@ -91,14 +95,18 @@ export interface PortfolioItem {
         url: string;
         alt: string;
         caption?: string;
+        width?: number;
+        height?: number;
+        aspectRatio?: number;
     };
-    video: VideoSource;
+    video?: VideoSource;
     description?: string;
     eventDate?: string;
     location?: string;
     clientName?: string;
     featured: boolean;
     priority: number;
+    createdAt?: string;
 }
 
 /**

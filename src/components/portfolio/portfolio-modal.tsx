@@ -8,7 +8,8 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { X, Calendar, MapPin, User, Tag, Share2, Sparkles } from 'lucide-react';
+import Image from 'next/image';
+import { X, Calendar, MapPin, User, Tag, Share2, Sparkles, Film, Image as ImageIcon } from 'lucide-react';
 import type { PortfolioItem } from '@/types';
 
 interface PortfolioModalProps {
@@ -43,28 +44,56 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
 
     if (!isOpen || !item) return null;
 
-    // Resolve Video Embed URL or Source
-    const videoSource = item.video;
-
-    const renderVideoPlayer = () => {
-        if (videoSource._type === 'sanity') {
+    const renderMediaContent = () => {
+        // 1. Image Media Showcase
+        if (item.mediaType === 'image') {
             return (
-                <video
-                    controls
-                    autoPlay
-                    playsInline
-                    className="w-full h-full object-contain bg-black"
-                >
-                    <source src={videoSource.asset.url} type={videoSource.mimeType || 'video/mp4'} />
-                    Your browser does not support the video tag.
-                </video>
+                <div className="relative w-full max-h-[60vh] sm:max-h-[70vh] flex items-center justify-center bg-[#0C1206] p-2 sm:p-4">
+                    <Image
+                        src={item.thumbnail.url}
+                        alt={item.thumbnail.alt || item.title}
+                        width={item.thumbnail.width || 1200}
+                        height={item.thumbnail.height || 900}
+                        className="max-h-[55vh] sm:max-h-[65vh] w-auto h-auto object-contain rounded-lg shadow-lg"
+                        priority
+                    />
+                </div>
             );
         }
 
+        // 2. Video Media Showcase
+        const videoSource = item.video;
+        if (!videoSource) {
+            return (
+                <div className="w-full aspect-video flex items-center justify-center bg-[#0C1206] text-[#EFEAD8]/60 text-sm">
+                    <span>Video preview unavailable</span>
+                </div>
+            );
+        }
+
+        // Native Sanity CDN Video
+        if (videoSource._type === 'sanity') {
+            return (
+                <div className="relative aspect-video w-full bg-[#0C1206]">
+                    <video
+                        controls
+                        autoPlay
+                        playsInline
+                        poster={item.thumbnail.url}
+                        className="w-full h-full object-contain bg-black"
+                    >
+                        <source src={videoSource.asset.url} type={videoSource.mimeType || 'video/mp4'} />
+                        Your browser does not support HTML5 video streaming.
+                    </video>
+                </div>
+            );
+        }
+
+        // External Video Embed (YouTube / Vimeo / Cloudflare Stream)
         if (videoSource._type === 'external') {
             let embedUrl = videoSource.url;
             
-            // Format YouTube or Vimeo embed parameters if missing
+            // Format YouTube or Vimeo autoplay parameters
             if (videoSource.provider === 'youtube' && !embedUrl.includes('autoplay=')) {
                 const separator = embedUrl.includes('?') ? '&' : '?';
                 embedUrl = `${embedUrl}${separator}autoplay=1&rel=0`;
@@ -73,20 +102,24 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                 embedUrl = `${embedUrl}${separator}autoplay=1`;
             }
 
+            // Notice: YouTube/Vimeo have built-in native player controls.
+            // We do NOT render external custom overlay video controls.
             return (
-                <iframe
-                    src={embedUrl}
-                    title={item.title}
-                    className="w-full h-full border-0 bg-black"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                />
+                <div className="relative aspect-video w-full bg-[#0C1206]">
+                    <iframe
+                        src={embedUrl}
+                        title={item.title}
+                        className="w-full h-full border-0 bg-black"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                    />
+                </div>
             );
         }
 
         return (
-            <div className="w-full h-full flex items-center justify-center bg-slate-950 text-slate-400">
-                <span>Video unavailable</span>
+            <div className="w-full aspect-video flex items-center justify-center bg-[#0C1206] text-[#EFEAD8]/60 text-sm">
+                <span>Unsupported media format</span>
             </div>
         );
     };
@@ -106,42 +139,48 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 bg-slate-950/90 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-8 bg-[#0C1206]/90 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
             role="dialog"
             aria-modal="true"
             aria-labelledby="modal-title"
         >
-            {/* Backdrop Overlay Click Handler */}
+            {/* Backdrop Click Handler */}
             <div
                 className="absolute inset-0"
                 onClick={onClose}
                 aria-hidden="true"
             />
 
-            {/* Modal Container */}
+            {/* Modal Dialog Container */}
             <div
                 ref={dialogRef}
-                className="relative z-10 w-full max-w-5xl max-h-[90vh] flex flex-col rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden text-slate-100"
+                className="relative z-10 w-full max-w-4xl max-h-[92vh] sm:max-h-[88vh] flex flex-col rounded-2xl bg-[#141C0C] border border-[#3A4F1C]/40 shadow-2xl overflow-hidden text-[#F7F3E8]"
             >
-                {/* Header Close Bar */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-slate-950/60">
-                    <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
+                {/* Header Bar */}
+                <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#3A4F1C]/40 bg-[#0C1206]/80 backdrop-blur-md shrink-0">
+                    <div className="flex items-center gap-2 truncate pr-2">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2A3A14] border border-[#3A4F1C]/60 text-[#BC6F07] text-xs font-semibold shrink-0">
+                            {item.mediaType === 'video' ? (
+                                <Film className="w-3.5 h-3.5 text-[#BC6F07]" />
+                            ) : (
+                                <ImageIcon className="w-3.5 h-3.5 text-[#BC6F07]" />
+                            )}
                             {item.category.title}
                         </span>
                         {item.featured && (
-                            <span className="flex items-center gap-1 text-xs text-amber-400">
-                                <Sparkles className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline-flex items-center gap-1 text-xs text-[#BC6F07] font-medium shrink-0">
+                                <Sparkles className="w-3.5 h-3.5 fill-current" />
                                 <span>Featured Project</span>
                             </span>
                         )}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    {/* Touch-Friendly Action Buttons (Minimum 44px hit area) */}
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                         <button
                             type="button"
                             onClick={handleShare}
-                            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                            className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl text-[#EFEAD8]/80 hover:text-[#F7F3E8] hover:bg-[#2A3A14] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07]"
                             aria-label="Share project link"
                         >
                             <Share2 className="w-5 h-5" />
@@ -149,7 +188,7 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                            className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl text-[#EFEAD8]/80 hover:text-[#F7F3E8] hover:bg-[#2A3A14] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07]"
                             aria-label="Close dialog"
                         >
                             <X className="w-5 h-5" />
@@ -157,37 +196,37 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                     </div>
                 </div>
 
-                {/* Main Scrollable Content */}
+                {/* Main Scrollable Body */}
                 <div className="flex-1 overflow-y-auto">
-                    {/* Video Player Container (Aspect 16:9) */}
-                    <div className="relative aspect-video w-full bg-black shadow-inner">
-                        {renderVideoPlayer()}
+                    {/* Media Display Container */}
+                    <div className="w-full bg-black">
+                        {renderMediaContent()}
                     </div>
 
-                    {/* Project Metadata & Description */}
-                    <div className="p-6 md:p-8 space-y-6">
+                    {/* Project Metadata Details */}
+                    <div className="p-5 sm:p-8 space-y-6">
                         <div>
-                            <h2 id="modal-title" className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
+                            <h2 id="modal-title" className="text-xl sm:text-2xl md:text-3xl font-bold text-[#F7F3E8] tracking-tight leading-tight">
                                 {item.title}
                             </h2>
 
-                            {/* Meta Badges Row */}
-                            <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-slate-400">
+                            {/* Meta Badges Grid/Row */}
+                            <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2.5 text-xs sm:text-sm text-[#EFEAD8]/80">
                                 {item.clientName && (
-                                    <span className="flex items-center gap-1.5">
-                                        <User className="w-4 h-4 text-amber-400" />
-                                        <span>Client: <strong className="text-slate-200">{item.clientName}</strong></span>
+                                    <span className="flex items-center gap-2">
+                                        <User className="w-4 h-4 text-[#BC6F07] shrink-0" />
+                                        <span>Client: <strong className="text-[#F7F3E8] font-semibold">{item.clientName}</strong></span>
                                     </span>
                                 )}
                                 {item.location && (
-                                    <span className="flex items-center gap-1.5">
-                                        <MapPin className="w-4 h-4 text-amber-400" />
+                                    <span className="flex items-center gap-2">
+                                        <MapPin className="w-4 h-4 text-[#BC6F07] shrink-0" />
                                         <span>{item.location}</span>
                                     </span>
                                 )}
                                 {item.eventDate && (
-                                    <span className="flex items-center gap-1.5">
-                                        <Calendar className="w-4 h-4 text-amber-400" />
+                                    <span className="flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-[#BC6F07] shrink-0" />
                                         <span>{new Date(item.eventDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</span>
                                     </span>
                                 )}
@@ -196,19 +235,19 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
 
                         {/* Description Text */}
                         {item.description && (
-                            <div className="prose prose-invert max-w-none text-slate-300 leading-relaxed">
+                            <div className="pt-2 border-t border-[#3A4F1C]/30 text-sm sm:text-base text-[#EFEAD8]/90 leading-relaxed font-sans">
                                 <p>{item.description}</p>
                             </div>
                         )}
 
-                        {/* Tags */}
+                        {/* Tag Pills */}
                         {item.tags && item.tags.length > 0 && (
-                            <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center gap-2">
-                                <Tag className="w-4 h-4 text-slate-400 mr-1" />
+                            <div className="pt-4 border-t border-[#3A4F1C]/30 flex flex-wrap items-center gap-2">
+                                <Tag className="w-4 h-4 text-[#BC6F07] mr-1 shrink-0" />
                                 {item.tags.map((tag) => (
                                     <span
                                         key={tag}
-                                        className="px-3 py-1 rounded-full bg-slate-800 border border-slate-700/60 text-slate-300 text-xs font-medium"
+                                        className="px-3 py-1 rounded-full bg-[#2A3A14]/80 border border-[#3A4F1C]/60 text-[#EFEAD8] text-xs font-medium"
                                     >
                                         #{tag}
                                     </span>
