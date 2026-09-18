@@ -16,18 +16,12 @@ export const homeMockData: HomePageContent = {
     hero: {
         brandline: 'Crafting unforgettable celebrations that last a lifetime.',
         showreelVideo: {
-            _type: 'sanity',
-            asset: {
-                _ref: 'file-mockShowreelVideo1-mp4',
-                _type: 'reference',
-                url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
-            },
-            mimeType: 'video/mp4'
-        },
-        showreelMobileVideo: {
             _type: 'external',
-            url: 'https://www.youtube.com/embed/5qap5aO4i9A?autoplay=1'
+            url: 'https://www.youtube.com/watch?v=LXb3EKWsInQ', // Wedding cinematic showreel (dev simulation)
+            provider: 'youtube'
         },
+
+
 
         showreelThumbnail: {
             _type: 'image',

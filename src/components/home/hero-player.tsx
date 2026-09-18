@@ -1,46 +1,121 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
-import { Play, X } from 'lucide-react';
-import type { HeroSection } from '@/types';
+import { Play, Pause, Volume2, VolumeX, X } from 'lucide-react';
+import type { HeroSection, VideoSource } from '@/types';
 import { Button } from '@/components/ui/button';
 
 interface HeroPlayerProps {
   hero: HeroSection;
 }
 
+function getVideoEmbedInfo(source?: VideoSource) {
+  if (!source) return { type: 'native' as const, url: '' };
+
+  if (source._type === 'sanity') {
+    return { type: 'native' as const, url: source.asset?.url || '' };
+  }
+
+  const rawUrl = source.url || '';
+
+  // Direct MP4 / WebM / MOV file URLs
+  if (
+    rawUrl.endsWith('.mp4') ||
+    rawUrl.endsWith('.webm') ||
+    rawUrl.endsWith('.mov') ||
+    rawUrl.includes('.mp4?') ||
+    rawUrl.includes('gtv-videos-bucket')
+  ) {
+    return { type: 'native' as const, url: rawUrl };
+  }
+
+  if (rawUrl.includes('youtube.com') || rawUrl.includes('youtu.be') || rawUrl.includes('youtube-nocookie.com')) {
+    let videoId = '';
+    if (rawUrl.includes('embed/')) {
+      videoId = rawUrl.split('embed/')[1]?.split('?')[0];
+    } else if (rawUrl.includes('watch?v=')) {
+      videoId = rawUrl.split('watch?v=')[1]?.split('&')[0];
+    } else if (rawUrl.includes('youtu.be/')) {
+      videoId = rawUrl.split('youtu.be/')[1]?.split('?')[0];
+    }
+
+    const embedUrl = videoId
+      ? `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&mute=0&controls=1&enablejsapi=1`
+      : rawUrl;
+
+    return { type: 'youtube' as const, url: embedUrl };
+  }
+
+  if (rawUrl.includes('vimeo.com')) {
+    let videoId = '';
+    if (rawUrl.includes('player.vimeo.com/video/')) {
+      videoId = rawUrl.split('player.vimeo.com/video/')[1]?.split('?')[0];
+    } else if (rawUrl.includes('vimeo.com/')) {
+      videoId = rawUrl.split('vimeo.com/')[1]?.split('?')[0];
+    }
+
+    const embedUrl = videoId
+      ? `https://player.vimeo.com/video/${videoId}?autoplay=1&muted=0`
+      : rawUrl;
+
+    return { type: 'vimeo' as const, url: embedUrl };
+  }
+
+  return { type: 'native' as const, url: rawUrl };
+}
+
+
 export function HeroPlayer({ hero }: HeroPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
 
-  // Close player when pressing ESC key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsPlaying(false);
-      }
-    };
-
-    if (isPlaying) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isPlaying]);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const selectedVideo = hero.showreelMobileVideo || hero.showreelVideo;
-  const rawVideoUrl =
-    selectedVideo._type === 'sanity'
-      ? (selectedVideo.asset?.url || '')
-      : selectedVideo.url;
+  const videoInfo = getVideoEmbedInfo(selectedVideo);
+  const audioUrl = hero.backgroundMusic?.asset?.url;
 
-  // Embedded YouTube showreel simulation URL
-  const embedShowreelUrl =
-    rawVideoUrl && (rawVideoUrl.includes('youtube.com') || rawVideoUrl.includes('youtu.be'))
-      ? rawVideoUrl.replace('watch?v=', 'embed/')
-      : 'https://www.youtube.com/embed/5qap5aO4i9A?autoplay=1';
+  const handleStartPlay = () => {
+    setIsPlaying(true);
+    setIsPaused(false);
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.play().catch((err) => console.log('Video play error:', err));
+      }
+      if (audioRef.current && audioUrl) {
+        audioRef.current.play().catch((err) => console.log('Audio play error:', err));
+      }
+    }, 100);
+  };
 
+  const handleTogglePause = () => {
+    if (isPaused) {
+      if (videoRef.current) videoRef.current.play();
+      if (audioRef.current && audioUrl) audioRef.current.play();
+      setIsPaused(false);
+    } else {
+      if (videoRef.current) videoRef.current.pause();
+      if (audioRef.current && audioUrl) audioRef.current.pause();
+      setIsPaused(true);
+    }
+  };
+
+  const toggleAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.muted = !isAudioMuted;
+    }
+    setIsAudioMuted(!isAudioMuted);
+  };
+
+  const handleResetShowreel = () => {
+    if (videoRef.current) videoRef.current.pause();
+    if (audioRef.current) audioRef.current.pause();
+    setIsPlaying(false);
+    setIsPaused(false);
+  };
 
   return (
     <div className="relative w-full h-[90vh] min-h-[550px] md:h-[90vh] md:min-h-[700px] flex items-center justify-center overflow-hidden bg-[#2A3A14]">
@@ -59,33 +134,62 @@ export function HeroPlayer({ hero }: HeroPlayerProps) {
         </div>
       )}
 
-      {/* 2. VIDEO PLAYBACK MODE (Click outside or ESC key exits playback) */}
+      {/* 2. FULL HERO BACKGROUND VIDEO PLAYBACK MODE */}
       {isPlaying && (
-        <div
-          onClick={() => setIsPlaying(false)}
-          className="absolute inset-0 z-30 bg-black flex items-center justify-center p-4"
-        >
-          {/* Close Button */}
-          <button
-            onClick={() => setIsPlaying(false)}
-            className="absolute top-4 right-4 z-40 p-2.5 rounded-full bg-black/60 text-white hover:text-[#BC6F07] hover:bg-black/80 transition-colors cursor-pointer"
-            aria-label="Close Showreel"
-          >
-            <X size={24} />
-          </button>
-
-          {/* YouTube Video Player Container */}
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden border border-white/20 shadow-2xl"
-          >
-            <iframe
-              src={embedShowreelUrl}
-              title="Casamento Events Showreel"
-              className="w-full h-full border-0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
+        <div className="absolute inset-0 z-10 bg-black flex items-center justify-center">
+        {videoInfo.type === 'native' ? (
+            <video
+              ref={videoRef}
+              src={videoInfo.url}
+              controls={false}
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
             />
+          ) : (
+            /* Full-bleed iframe: must be scaled beyond container to fill aspect-ratio mismatch */
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <iframe
+                src={videoInfo.url}
+                title="Casamento Events Showreel"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 min-w-full min-h-full w-auto h-auto border-0"
+                style={{ aspectRatio: '16/9', minWidth: '177.78vh', minHeight: '56.25vw' }}
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          )}
+
+
+          {audioUrl && (
+            <audio ref={audioRef} src={audioUrl} loop muted={isAudioMuted} />
+          )}
+
+          {/* Floating Controls Bar (Play/Pause, Mute/Unmute, Reset) */}
+          <div className="absolute bottom-6 right-6 z-30 flex items-center space-x-3 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 shadow-xl">
+            <button
+              onClick={handleTogglePause}
+              className="p-2 rounded-full text-white hover:text-[#BC6F07] transition-colors cursor-pointer"
+              title={isPaused ? 'Play Video' : 'Pause Video'}
+            >
+              {isPaused ? <Play size={20} fill="currentColor" /> : <Pause size={20} />}
+            </button>
+
+            <button
+              onClick={toggleAudio}
+              className="p-2 rounded-full text-white hover:text-[#BC6F07] transition-colors cursor-pointer"
+              title={isAudioMuted ? 'Unmute Sound' : 'Mute Sound'}
+            >
+              {isAudioMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+            </button>
+
+            <button
+              onClick={handleResetShowreel}
+              className="p-2 rounded-full text-white hover:text-red-400 transition-colors border-l border-white/20 pl-3 cursor-pointer"
+              title="Close Video & Return to Hero"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
       )}
@@ -100,10 +204,10 @@ export function HeroPlayer({ hero }: HeroPlayerProps) {
           {hero.brandline}
         </h1>
 
-        {/* Play Showreel Button (Reduced on Mobile) */}
+        {/* Play Showreel Button */}
         <div className="mb-6 sm:mb-10">
           <button
-            onClick={() => setIsPlaying(true)}
+            onClick={handleStartPlay}
             className="group inline-flex items-center gap-2 sm:gap-3 px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/40 backdrop-blur-md transition-all duration-300 transform hover:scale-105 cursor-pointer"
           >
             <span className="flex items-center justify-center w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#BC6F07] text-[#F7F3E8] shadow-md group-hover:bg-[#9E5B04] transition-colors">
@@ -116,7 +220,7 @@ export function HeroPlayer({ hero }: HeroPlayerProps) {
           </button>
         </div>
 
-        {/* CTA Buttons (MUST be in ONE line on mobile) */}
+        {/* CTA Buttons */}
         <div className="flex flex-row items-center justify-center gap-2 sm:gap-4 w-full max-w-sm sm:max-w-none mx-auto">
           {hero.ctaButtons.map((cta, index) => (
             <Button
@@ -134,4 +238,5 @@ export function HeroPlayer({ hero }: HeroPlayerProps) {
     </div>
   );
 }
+
 
