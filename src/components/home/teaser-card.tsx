@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Play, X } from 'lucide-react';
 import type { TeaserVideo } from '@/types';
@@ -12,11 +12,32 @@ interface TeaserCardProps {
 export function TeaserCard({ teaser }: TeaserCardProps) {
   const [isOpenModal, setIsOpenModal] = useState(false);
 
-  const isExternal = teaser.video._type === 'external';
-  const videoUrl =
+  // Close modal when pressing ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpenModal(false);
+      }
+    };
+
+    if (isOpenModal) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpenModal]);
+
+  const rawUrl =
     teaser.video._type === 'external'
       ? teaser.video.url
-      : (teaser.video.asset.url || '');
+      : (teaser.video.asset?.url || '');
+
+  // Default YouTube simulation URL if rawUrl is empty or local asset placeholder
+  const embedUrl =
+    rawUrl && (rawUrl.includes('youtube.com') || rawUrl.includes('youtu.be'))
+      ? rawUrl.replace('watch?v=', 'embed/')
+      : 'https://www.youtube.com/embed/5qap5aO4i9A?autoplay=1';
 
   return (
     <>
@@ -57,10 +78,16 @@ export function TeaserCard({ teaser }: TeaserCardProps) {
         </div>
       </div>
 
-      {/* Video Playback Modal */}
+      {/* Video Playback Modal (Supports ESC key and clicking outside backdrop to exit) */}
       {isOpenModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-6">
-          <div className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/20">
+        <div
+          onClick={() => setIsOpenModal(false)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-6"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/20"
+          >
             {/* Close Button */}
             <button
               onClick={() => setIsOpenModal(false)}
@@ -70,24 +97,15 @@ export function TeaserCard({ teaser }: TeaserCardProps) {
               <X size={24} />
             </button>
 
-            {/* Video Player */}
+            {/* Video Player Embed */}
             <div className="relative aspect-video w-full">
-              {isExternal ? (
-                <iframe
-                  src={videoUrl}
-                  title={teaser.title}
-                  className="w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <video
-                  src={videoUrl}
-                  controls
-                  autoPlay
-                  className="w-full h-full object-contain"
-                />
-              )}
+              <iframe
+                src={embedUrl}
+                title={teaser.title}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
 
             {/* Modal Caption */}
@@ -105,3 +123,4 @@ export function TeaserCard({ teaser }: TeaserCardProps) {
     </>
   );
 }
+

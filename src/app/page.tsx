@@ -5,7 +5,7 @@ import { HeroSectionComponent } from '@/components/home/hero-section';
 import { TeaserVideosSection } from '@/components/home/teaser-videos-section';
 import { UpcomingEventsSection } from '@/components/home/upcoming-events-section';
 import { PartnersSection } from '@/components/home/partners-section';
-import { ConnectSection } from '@/components/home/connect-section';
+import { ConnectSection } from '@/components/layout/connect-section';
 import { HomeJsonLd } from '@/components/home/home-json-ld';
 
 export async function generateMetadata(): Promise<Metadata> {

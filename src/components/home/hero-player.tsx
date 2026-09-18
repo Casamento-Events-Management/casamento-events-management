@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Play, Pause, Volume2, VolumeX, X } from 'lucide-react';
+import { Play, X } from 'lucide-react';
 import type { HeroSection } from '@/types';
 import { Button } from '@/components/ui/button';
 
@@ -12,48 +12,38 @@ interface HeroPlayerProps {
 
 export function HeroPlayer({ hero }: HeroPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isAudioMuted, setIsAudioMuted] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const videoUrl =
-    hero.showreelVideo._type === 'sanity'
-      ? (hero.showreelVideo.asset.url || '')
-      : hero.showreelVideo.url;
-
-  const audioUrl = hero.backgroundMusic?.asset.url;
-
-  const handleStartPlay = () => {
-    setIsPlaying(true);
-    setTimeout(() => {
-      if (videoRef.current) {
-        videoRef.current.play().catch((err) => console.log('Video play error:', err));
+  // Close player when pressing ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsPlaying(false);
       }
-      if (audioRef.current && audioUrl) {
-        audioRef.current.play().catch((err) => console.log('Audio play error:', err));
-      }
-    }, 100);
-  };
+    };
 
-  const handlePause = () => {
-    if (videoRef.current) {
-      videoRef.current.pause();
+    if (isPlaying) {
+      window.addEventListener('keydown', handleKeyDown);
     }
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
-    setIsPlaying(false);
-  };
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isPlaying]);
 
-  const toggleAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.muted = !isAudioMuted;
-      setIsAudioMuted(!isAudioMuted);
-    }
-  };
+  const selectedVideo = hero.showreelMobileVideo || hero.showreelVideo;
+  const rawVideoUrl =
+    selectedVideo._type === 'sanity'
+      ? (selectedVideo.asset?.url || '')
+      : selectedVideo.url;
+
+  // Embedded YouTube showreel simulation URL
+  const embedShowreelUrl =
+    rawVideoUrl && (rawVideoUrl.includes('youtube.com') || rawVideoUrl.includes('youtu.be'))
+      ? rawVideoUrl.replace('watch?v=', 'embed/')
+      : 'https://www.youtube.com/embed/5qap5aO4i9A?autoplay=1';
+
 
   return (
-    <div className="relative w-full h-[90vh] min-h-[700px] flex items-center justify-center overflow-hidden bg-[#2A3A14]">
+    <div className="relative w-full h-[90vh] min-h-[550px] md:h-[90vh] md:min-h-[700px] flex items-center justify-center overflow-hidden bg-[#2A3A14]">
       {/* 1. THUMBNAIL POSTER MODE (Default - NO autoplay) */}
       {!isPlaying && (
         <div className="absolute inset-0 z-10">
@@ -69,88 +59,72 @@ export function HeroPlayer({ hero }: HeroPlayerProps) {
         </div>
       )}
 
-      {/* 2. VIDEO PLAYBACK MODE */}
+      {/* 2. VIDEO PLAYBACK MODE (Click outside or ESC key exits playback) */}
       {isPlaying && (
-        <div className="absolute inset-0 z-10 bg-black flex items-center justify-center">
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            controls={false}
-            loop
-            playsInline
-            className="w-full h-full object-cover"
-          />
+        <div
+          onClick={() => setIsPlaying(false)}
+          className="absolute inset-0 z-30 bg-black flex items-center justify-center p-4"
+        >
+          {/* Close Button */}
+          <button
+            onClick={() => setIsPlaying(false)}
+            className="absolute top-4 right-4 z-40 p-2.5 rounded-full bg-black/60 text-white hover:text-[#BC6F07] hover:bg-black/80 transition-colors cursor-pointer"
+            aria-label="Close Showreel"
+          >
+            <X size={24} />
+          </button>
 
-          {audioUrl && (
-            <audio ref={audioRef} src={audioUrl} loop muted={isAudioMuted} />
-          )}
-
-          {/* Controls Bar when Video is Active */}
-          <div className="absolute bottom-6 right-6 z-30 flex items-center space-x-3 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
-            <button
-              onClick={handlePause}
-              className="p-2 rounded-full text-white hover:text-[#BC6F07] transition-colors"
-              title="Pause Video"
-            >
-              <Pause size={20} />
-            </button>
-
-            {audioUrl && (
-              <button
-                onClick={toggleAudio}
-                className="p-2 rounded-full text-white hover:text-[#BC6F07] transition-colors"
-                title={isAudioMuted ? 'Unmute Music' : 'Mute Music'}
-              >
-                {isAudioMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-              </button>
-            )}
-
-            <button
-              onClick={handlePause}
-              className="p-2 rounded-full text-white hover:text-red-400 transition-colors border-l border-white/20 pl-3"
-              title="Close Player"
-            >
-              <X size={20} />
-            </button>
+          {/* YouTube Video Player Container */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden border border-white/20 shadow-2xl"
+          >
+            <iframe
+              src={embedShowreelUrl}
+              title="Casamento Events Showreel"
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
           </div>
         </div>
       )}
 
       {/* 3. HERO OVERLAY CONTENT (Brandline, Play Trigger, CTAs) */}
-      <div className={`relative z-20 max-w-5xl mx-auto px-6 text-center text-white transition-opacity duration-500 ${isPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-        <div className="inline-block mb-4 px-4 py-1.5 rounded-full bg-[#BC6F07]/20 border border-[#BC6F07]/60 backdrop-blur-md">
-          <span className="text-xs font-semibold tracking-widest text-[#F7F3E8] uppercase">
-            Bespoke Event Management
-          </span>
-        </div>
-
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-normal tracking-tight text-[#F7F3E8] leading-tight mb-8 drop-shadow-md">
+      <div
+        className={`relative z-20 max-w-5xl mx-auto px-4 sm:px-6 text-center text-white transition-opacity duration-500 ${
+          isPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}
+      >
+        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-normal tracking-tight text-[#F7F3E8] leading-tight mb-6 sm:mb-8 drop-shadow-md">
           {hero.brandline}
         </h1>
 
-        {/* Play Showreel Button */}
-        <div className="mb-10">
+        {/* Play Showreel Button (Reduced on Mobile) */}
+        <div className="mb-6 sm:mb-10">
           <button
-            onClick={handleStartPlay}
-            className="group inline-flex items-center gap-3 px-6 py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/40 backdrop-blur-md transition-all duration-300 transform hover:scale-105 cursor-pointer"
+            onClick={() => setIsPlaying(true)}
+            className="group inline-flex items-center gap-2 sm:gap-3 px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/40 backdrop-blur-md transition-all duration-300 transform hover:scale-105 cursor-pointer"
           >
-            <span className="flex items-center justify-center w-10 h-10 rounded-full bg-[#BC6F07] text-[#F7F3E8] shadow-md group-hover:bg-[#9E5B04] transition-colors">
-              <Play size={18} className="ml-0.5" fill="currentColor" />
+            <span className="flex items-center justify-center w-7 h-7 sm:w-10 sm:h-10 rounded-full bg-[#BC6F07] text-[#F7F3E8] shadow-md group-hover:bg-[#9E5B04] transition-colors">
+              <Play size={14} className="ml-0.5 sm:hidden" fill="currentColor" />
+              <Play size={18} className="ml-0.5 hidden sm:inline-block" fill="currentColor" />
             </span>
-            <span className="text-sm font-medium tracking-wider uppercase text-white">
+            <span className="text-xs sm:text-sm font-medium tracking-wider uppercase text-white">
               Watch Showreel
             </span>
           </button>
         </div>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        {/* CTA Buttons (MUST be in ONE line on mobile) */}
+        <div className="flex flex-row items-center justify-center gap-2 sm:gap-4 w-full max-w-sm sm:max-w-none mx-auto">
           {hero.ctaButtons.map((cta, index) => (
             <Button
               key={cta.label}
               href={cta.href}
               variant={index === 0 ? 'primary' : 'secondary'}
-              size="lg"
+              size="md"
+              className="flex-1 sm:flex-initial text-[11px] xs:text-xs sm:text-sm px-3 sm:px-6 py-2.5 sm:py-3.5 whitespace-nowrap"
             >
               {cta.label}
             </Button>
@@ -160,3 +134,4 @@ export function HeroPlayer({ hero }: HeroPlayerProps) {
     </div>
   );
 }
+

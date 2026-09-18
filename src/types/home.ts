@@ -55,6 +55,14 @@ export interface HeroSection {
     showreelVideo: VideoSource;
 
     /**
+     * Optional vertical (9:16 portrait) mobile showreel video source.
+     * When provided, mobile devices can stream this vertical video version
+     * to eliminate horizontal cropping on mobile viewports.
+     */
+    showreelMobileVideo?: VideoSource;
+
+
+    /**
      * Poster / thumbnail image displayed over the hero before the user plays
      * the showreel. Required.
      *

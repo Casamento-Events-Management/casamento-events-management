@@ -24,6 +24,11 @@ export const homeMockData: HomePageContent = {
             },
             mimeType: 'video/mp4'
         },
+        showreelMobileVideo: {
+            _type: 'external',
+            url: 'https://www.youtube.com/embed/5qap5aO4i9A?autoplay=1'
+        },
+
         showreelThumbnail: {
             _type: 'image',
             asset: {
@@ -233,6 +238,10 @@ export const homeMockData: HomePageContent = {
         {
             platform: 'tiktok',
             url: 'https://tiktok.com/@casamentoevents'
+        },
+        {
+            platform: 'youtube',
+            url: 'https://www.youtube.com/@casamentoevents'
         }
     ]
 };
