@@ -7,9 +7,23 @@ Applies to UI/UX styling. See AGENTS.md for core tech stack, video/media policy,
 Minimalist & editorial. Generous whitespace, strong type-driven hierarchy over decorative elements.
 
 ## Color
-- Base: light/neutral (white / near-white / warm-gray)
-- Accent: black / near-black ONLY — no secondary brand or pop colors. Restyle browser/framework defaults (focus rings, links, form validation) to fit this palette.
-- Status colors: minimal, desaturated red/green for form errors/success states as small text/icon accents only.
+- Base: warm cream/beige (`#F7F3E8`) — site's dominant surface color. vibrant but
+  elegant feel without relying on saturated color.
+- Primary accent: deep olive green (`#3A4F1C`) — used for primary text
+  emphasis, nav/footer elements, and key UI accents (links, active states).
+- Secondary accent: warm gold (`#BC6F07`) — used SPARINGLY: small accents,
+  hover/focus highlights, dividers, icon accents, CTA button borders/hover
+  states. Not for large fills or backgrounds.
+- Both green and gold remain accents against the cream base — per approved
+  direction, this stays restrained/editorial, not decorative. Neither color
+  should dominate a section; cream carries the visual weight.
+- Text: near-black or deep olive (`#3A4F1C`) for body copy — avoid pure
+  black (`#000000`) now that the palette is warm-toned; pure black will
+  visually clash with cream/gold.
+- Status colors: minimal, desaturated red/green for form errors/success —
+  unchanged from prior direction, kept distinct from the brand green above
+  (use a clearly different, muted red/green pairing so success states don't
+  get confused with brand-green UI elements).
 
 ## Typography
 - Single sans-serif type family (Inter or Geist via `next/font`) across the entire site — no secondary font pairings.
@@ -30,4 +44,4 @@ Minimalist & editorial. Generous whitespace, strong type-driven hierarchy over d
 
 ## Mock Content Tone
 - Realistic client-voice copy matching Casamento Events. Do NOT use lorem ipsum.
-- Mark mock data at the source file level, not in visible UI text.
+- Mark mock data at the source file level, not in visible UI text.
