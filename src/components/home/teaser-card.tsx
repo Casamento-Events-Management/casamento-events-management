@@ -33,11 +33,38 @@ export function TeaserCard({ teaser }: TeaserCardProps) {
       ? teaser.video.url
       : (teaser.video.asset?.url || '');
 
-  // Default YouTube simulation URL if rawUrl is empty or local asset placeholder
-  const embedUrl =
-    rawUrl && (rawUrl.includes('youtube.com') || rawUrl.includes('youtu.be'))
-      ? rawUrl.replace('watch?v=', 'embed/')
-      : 'https://www.youtube.com/embed/5qap5aO4i9A?autoplay=1';
+  // Build a safe, privacy-enhanced embed URL (youtube-nocookie.com avoids PREF cookie rejections)
+  function toEmbedUrl(url: string): string {
+    if (!url) return 'https://www.youtube-nocookie.com/embed/5qap5aO4i9A?autoplay=1&controls=1&rel=0';
+
+    // Already a nocookie embed — use as-is
+    if (url.includes('youtube-nocookie.com')) return url;
+
+    // Standard youtube.com/embed/ → swap domain
+    if (url.includes('youtube.com/embed/')) {
+      return url.replace('youtube.com/embed/', 'youtube-nocookie.com/embed/');
+    }
+
+    // watch?v= format
+    if (url.includes('watch?v=')) {
+      const id = url.split('watch?v=')[1]?.split('&')[0] ?? '';
+      return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&controls=1&rel=0`;
+    }
+
+    // youtu.be short link
+    if (url.includes('youtu.be/')) {
+      const id = url.split('youtu.be/')[1]?.split('?')[0] ?? '';
+      return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&controls=1&rel=0`;
+    }
+
+    // Vimeo — leave as-is
+    if (url.includes('vimeo.com')) return url;
+
+    // Unknown — return unchanged
+    return url;
+  }
+
+  const embedUrl = toEmbedUrl(rawUrl);
 
   return (
     <>
@@ -103,7 +130,7 @@ export function TeaserCard({ teaser }: TeaserCardProps) {
                 src={embedUrl}
                 title={teaser.title}
                 className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allow="autoplay; picture-in-picture; fullscreen"
                 allowFullScreen
               />
             </div>

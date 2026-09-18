@@ -104,13 +104,9 @@ export const homeMockData: HomePageContent = {
             title: 'Corporate Gala Dinner',
             priority: 10,
             video: {
-                _type: 'sanity',
-                asset: {
-                    _ref: 'file-mockTeaser3-mp4',
-                    _type: 'reference',
-                    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4'
-                },
-                mimeType: 'video/mp4'
+                _type: 'external',
+                url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+                provider: 'youtube'
             },
             thumbnail: {
                 _type: 'image',
@@ -171,7 +167,7 @@ export const homeMockData: HomePageContent = {
                 asset: {
                     _ref: 'image-mockEvent3-800x600-jpg',
                     _type: 'reference',
-                    url: 'https://images.unsplash.com/photo-1530103862676-de3c9de59f9e?q=80&w=800&auto=format&fit=crop'
+                    url: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop'
                 },
                 alt: 'Isabella\'s 18th Birthday Celebration'
             }
@@ -187,7 +183,7 @@ export const homeMockData: HomePageContent = {
                 asset: {
                     _ref: 'image-mockPartner1-400x200-png',
                     _type: 'reference',
-                    url: 'https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=400&h=200&auto=format&fit=crop'
+                    url: 'https://picsum.photos/seed/catering/400/200'
                 },
                 alt: 'Elite Catering Co. logo'
             }
@@ -201,7 +197,7 @@ export const homeMockData: HomePageContent = {
                 asset: {
                     _ref: 'image-mockPartner2-400x200-png',
                     _type: 'reference',
-                    url: 'https://images.unsplash.com/photo-1563241527-3004b7be8930?q=80&w=400&h=200&auto=format&fit=crop'
+                    url: 'https://picsum.photos/seed/floral/400/200'
                 },
                 alt: 'Floral Dreams logo'
             }
@@ -214,7 +210,7 @@ export const homeMockData: HomePageContent = {
                 asset: {
                     _ref: 'image-mockPartner3-400x200-png',
                     _type: 'reference',
-                    url: 'https://images.unsplash.com/photo-1554046920-90dcac824bd0?q=80&w=400&h=200&auto=format&fit=crop'
+                    url: 'https://picsum.photos/seed/photography/400/200'
                 },
                 alt: 'Luxe Visuals Photography logo'
             }
