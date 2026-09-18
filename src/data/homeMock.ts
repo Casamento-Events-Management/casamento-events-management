@@ -219,7 +219,7 @@ export const homeMockData: HomePageContent = {
     socialLinks: [
         {
             platform: 'instagram',
-            url: 'https://instagram.com/casamentoevents'
+            url: 'https://www.instagram.com/casamento.events.management'
         },
         {
             platform: 'facebook',
@@ -227,11 +227,11 @@ export const homeMockData: HomePageContent = {
         },
         {
             platform: 'tiktok',
-            url: 'https://tiktok.com/@casamentoevents'
+            url: 'https://www.tiktok.com/@casamentoevents'
         },
         {
             platform: 'youtube',
-            url: 'https://www.youtube.com/@casamentoevents'
+            url: 'https://www.youtube.com/@casamentoevents8664'
         }
     ]
 };
