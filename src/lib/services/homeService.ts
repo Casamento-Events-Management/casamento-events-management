@@ -15,25 +15,33 @@ export const GROQ_HOME_PAGE = `
     hero {
       brandline,
       showreelVideo {
-        "sourceType": select(defined(sourceType) => sourceType, "external"),
+        "sourceType": select(
+          defined(asset) => "sanity",
+          defined(sourceType) => sourceType,
+          "external"
+        ),
         url,
         provider,
         mimeType,
-        asset->{
-          _ref,
-          _type,
-          url
+        "asset": {
+          "_ref": coalesce(asset.asset._ref, asset._ref),
+          "_type": "reference",
+          "url": coalesce(asset.asset->url, asset->url)
         }
       },
       showreelMobileVideo {
-        "sourceType": select(defined(sourceType) => sourceType, "external"),
+        "sourceType": select(
+          defined(asset) => "sanity",
+          defined(sourceType) => sourceType,
+          "external"
+        ),
         url,
         provider,
         mimeType,
-        asset->{
-          _ref,
-          _type,
-          url
+        "asset": {
+          "_ref": coalesce(asset.asset._ref, asset._ref),
+          "_type": "reference",
+          "url": coalesce(asset.asset->url, asset->url)
         }
       },
       showreelThumbnail {
@@ -51,14 +59,18 @@ export const GROQ_HOME_PAGE = `
       description,
       priority,
       video {
-        "sourceType": select(defined(sourceType) => sourceType, "external"),
+        "sourceType": select(
+          defined(asset) => "sanity",
+          defined(sourceType) => sourceType,
+          "external"
+        ),
         url,
         provider,
         mimeType,
-        asset->{
-          _ref,
-          _type,
-          url
+        "asset": {
+          "_ref": coalesce(asset.asset._ref, asset._ref),
+          "_type": "reference",
+          "url": coalesce(asset.asset->url, asset->url)
         }
       },
       thumbnail {

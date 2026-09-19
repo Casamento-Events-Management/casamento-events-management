@@ -13,6 +13,7 @@ import { X, Calendar, MapPin, User, Tag, Sparkles, Film, Image as ImageIcon } fr
 import type { PortfolioItem } from '@/types';
 import { ShareDropdown } from '@/components/ui/share-dropdown';
 import type { SharePayload } from '@/lib/utils/shareUtils';
+import { parseVideoSource } from '@/lib/utils/videoUtils';
 
 interface PortfolioModalProps {
     item: PortfolioItem | null;
@@ -74,17 +75,18 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
         }
 
         // 2. Video Media Showcase
-        const videoSource = item.video;
-        if (!videoSource) {
-            return (
-                <div className="w-full aspect-video flex items-center justify-center bg-[#0C1206] text-[#EFEAD8]/60 text-sm">
-                    <span>Video preview unavailable</span>
-                </div>
-            );
-        }
+        const parsed = parseVideoSource(item.video);
 
-        // Native Sanity CDN Video
-        if (videoSource._type === 'sanity') {
+        if (parsed.sourceType === 'sanity' || parsed.sourceType === 'native') {
+            const videoUrl = parsed.directUrl || (item.video as any)?.url || '';
+            if (!videoUrl) {
+                return (
+                    <div className="w-full aspect-video flex items-center justify-center bg-[#0C1206] text-[#EFEAD8]/60 text-sm">
+                        <span>Video preview unavailable</span>
+                    </div>
+                );
+            }
+
             return (
                 <div className="relative aspect-video w-full bg-[#0C1206]">
                     <video
@@ -94,30 +96,18 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                         poster={item.thumbnail.url}
                         className="w-full h-full object-contain bg-black"
                     >
-                        <source src={videoSource.asset.url} type={videoSource.mimeType || 'video/mp4'} />
+                        <source src={videoUrl} type={(item.video as any)?.mimeType || 'video/mp4'} />
                         Your browser does not support HTML5 video streaming.
                     </video>
                 </div>
             );
         }
 
-        // External Video Embed (YouTube / Vimeo / Cloudflare Stream)
-        if (videoSource._type === 'external') {
-            let embedUrl = videoSource.url;
-            
-            // Format YouTube or Vimeo autoplay parameters
-            if (videoSource.provider === 'youtube' && !embedUrl.includes('autoplay=')) {
-                const separator = embedUrl.includes('?') ? '&' : '?';
-                embedUrl = `${embedUrl}${separator}autoplay=1&rel=0`;
-            } else if (videoSource.provider === 'vimeo' && !embedUrl.includes('autoplay=')) {
-                const separator = embedUrl.includes('?') ? '&' : '?';
-                embedUrl = `${embedUrl}${separator}autoplay=1`;
-            }
-
+        if (parsed.sourceType === 'external' && parsed.embedUrl) {
             return (
                 <div className="relative aspect-video w-full bg-[#0C1206]">
                     <iframe
-                        src={embedUrl}
+                        src={parsed.embedUrl}
                         title={item.title}
                         className="w-full h-full border-0 bg-black"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -129,7 +119,7 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
 
         return (
             <div className="w-full aspect-video flex items-center justify-center bg-[#0C1206] text-[#EFEAD8]/60 text-sm">
-                <span>Unsupported media format</span>
+                <span>Video preview unavailable</span>
             </div>
         );
     };

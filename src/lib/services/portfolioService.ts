@@ -53,14 +53,18 @@ export const GROQ_PORTFOLIO_ITEMS = `
       "aspectRatio": asset->metadata.dimensions.aspectRatio
     },
     video {
-      "sourceType": select(defined(sourceType) => sourceType, "external"),
+      "sourceType": select(
+        defined(sourceType) => sourceType,
+        defined(asset) => "sanity",
+        "external"
+      ),
       provider,
       url,
       mimeType,
-      asset->{
-        _ref,
-        _type,
-        url
+      "asset": {
+        "_ref": coalesce(asset.asset._ref, asset._ref),
+        "_type": "reference",
+        "url": coalesce(asset.asset->url, asset->url)
       }
     },
     description,
