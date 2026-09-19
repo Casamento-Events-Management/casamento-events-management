@@ -30,6 +30,7 @@ const nextConfig: NextConfig = {
       "media-src * data: blob:",
       "connect-src *",
       "frame-src *",
+      "frame-ancestors 'self' https://*.sanity.io https://*.sanity.build https://sanity.io",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' *",
       "style-src 'self' 'unsafe-inline' *",
       "font-src 'self' data: *",
@@ -48,7 +49,6 @@ const nextConfig: NextConfig = {
       // Media: self + Sanity CDN (native video assets)
       "media-src 'self' https://cdn.sanity.io https://*.supabase.co",
       // Frames: ONLY youtube-nocookie.com and player.vimeo.com
-      // Using youtube-nocookie.com prevents PREF / tracking cookies from being set
       "frame-src https://www.youtube-nocookie.com https://player.vimeo.com",
       // Connections: self + Sanity API + Supabase + Google fonts
       "connect-src 'self' https://*.sanity.io https://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com",
@@ -58,7 +58,7 @@ const nextConfig: NextConfig = {
       "form-action 'self'",
     ].join('; ');
 
-    const commonHeaders = [
+    const sharedSecurityHeaders = [
       {
         key: 'Permissions-Policy',
         value: [
@@ -69,26 +69,26 @@ const nextConfig: NextConfig = {
         ].join(', '),
       },
       { key: 'X-Content-Type-Options', value: 'nosniff' },
-      { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
       { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
       { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
     ];
 
     return [
-      // ── Sanity Studio: permissive policy (internal editorial tool only) ──────
+      // ── Sanity Studio: allow embedding inside sanity.io dashboard ───────────
       {
-        source: '/studio/(.*)',
+        source: '/studio/:path*',
         headers: [
           { key: 'Content-Security-Policy', value: studioPermissiveCSP },
-          ...commonHeaders,
+          ...sharedSecurityHeaders,
         ],
       },
-      // ── Public routes: strict CSP ────────────────────────────────────────────
+      // ── Public routes: strict CSP + SAMEORIGIN frame protection ─────────────
       {
         source: '/((?!studio).*)',
         headers: [
           { key: 'Content-Security-Policy', value: publicCSP },
-          ...commonHeaders,
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          ...sharedSecurityHeaders,
         ],
       },
     ];
