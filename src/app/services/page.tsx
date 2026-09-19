@@ -8,9 +8,11 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { getServiceCategories, getServiceItems } from '@/lib/services/serviceService';
+import { getHomePageContent } from '@/lib/services/homeService';
 import { ServicesHero } from '@/components/services/services-hero';
 import { ServicesView } from '@/components/services/services-view';
 import { ServicesJsonLd } from '@/components/services/services-json-ld';
+import { ConnectSection } from '@/components/layout/connect-section';
 
 export const metadata: Metadata = {
     title: 'Event Management Services | Wedding, Gala & Technical Production',
@@ -41,9 +43,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ServicesPage() {
-    const [categories, services] = await Promise.all([
+    const [categories, services, homeContent] = await Promise.all([
         getServiceCategories(),
         getServiceItems('all'),
+        getHomePageContent(),
     ]);
 
     return (
@@ -55,6 +58,7 @@ export default async function ServicesPage() {
                 activeCategory="all"
             />
             <ServicesJsonLd services={services} />
+            <ConnectSection socialLinks={homeContent.socialLinks} />
         </main>
     );
 }

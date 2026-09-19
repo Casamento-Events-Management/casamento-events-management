@@ -104,7 +104,7 @@ export function ServicesDetailPanel({
                     <h4 className="text-[10px] font-bold tracking-wider uppercase text-[#3A4F1C]/70 mb-1">
                         Package Scope
                     </h4>
-                    <p className="text-[11px] text-[#3A4F1C]/85 leading-relaxed font-light">
+                    <p className="text-[11px] text-[#3A4F1C]/90 leading-relaxed font-medium">
                         {service.fullDescription || service.shortDescription}
                     </p>
                 </div>
@@ -118,7 +118,7 @@ export function ServicesDetailPanel({
                         {service.defaultInclusions.map((item, idx) => (
                             <li key={idx} className="text-[11px] flex items-start space-x-1.5">
                                 <span className="text-[#BC6F07] font-bold mt-0.5">✓</span>
-                                <span className="text-[#3A4F1C]/90 leading-snug">{item}</span>
+                                <span className="text-[#3A4F1C]/90 leading-snug font-medium">{item}</span>
                             </li>
                         ))}
                     </ul>
@@ -160,7 +160,7 @@ export function ServicesDetailPanel({
                                                 </span>
                                             </div>
                                             {addon.description && (
-                                                <p className="text-[9px] text-[#3A4F1C]/70 leading-tight mt-0.5">
+                                                <p className="text-[9px] text-[#3A4F1C]/85 leading-tight mt-0.5 font-medium">
                                                     {addon.description}
                                                 </p>
                                             )}

@@ -154,7 +154,7 @@ export function ServicesCard({
                         <span>{service.category.title}</span>
                     </div>
 
-                    <p className="text-[11px] sm:text-xs text-[#3A4F1C]/80 line-clamp-2 leading-relaxed font-light">
+                    <p className="text-[11px] sm:text-xs text-[#3A4F1C]/90 font-medium line-clamp-2 leading-relaxed">
                         {service.shortDescription}
                     </p>
                 </div>
@@ -162,13 +162,13 @@ export function ServicesCard({
                 {/* Default Inclusions Teaser */}
                 {service.defaultInclusions && service.defaultInclusions.length > 0 && (
                     <div className="pt-1.5 border-t border-[#3A4F1C]/10 space-y-0.5">
-                        <span className="text-[9px] font-bold uppercase text-[#3A4F1C]/60 tracking-wider">
+                        <span className="text-[9px] font-bold uppercase text-[#3A4F1C]/70 tracking-wider">
                             Key Inclusions:
                         </span>
                         <ul className="space-y-0.5">
                             {service.defaultInclusions.slice(0, 2).map((item, idx) => (
-                                <li key={idx} className="text-[10px] sm:text-[11px] text-[#3A4F1C]/85 flex items-center space-x-1">
-                                    <span className="text-[#BC6F07] text-[11px]">✓</span>
+                                <li key={idx} className="text-[10px] sm:text-[11px] text-[#3A4F1C]/90 font-medium flex items-center space-x-1">
+                                    <span className="text-[#BC6F07] text-[11px] font-bold">✓</span>
                                     <span className="truncate">{item}</span>
                                 </li>
                             ))}
@@ -179,7 +179,7 @@ export function ServicesCard({
                 {/* 3. Card Footer Price & Reduced Mobile CTA Buttons */}
                 <div className="pt-2 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-1.5">
                     <div>
-                        <span className="text-[9px] text-[#3A4F1C]/60 block uppercase tracking-wider">Starting Rate</span>
+                        <span className="text-[9px] text-[#3A4F1C]/75 font-semibold block uppercase tracking-wider">Starting Rate</span>
                         <span className="text-sm sm:text-base font-bold font-serif text-[#3A4F1C]">
                             {service.priceFormatted}
                         </span>
