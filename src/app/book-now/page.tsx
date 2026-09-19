@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Book Your Event | Casamento Events Management',
     description: 'Reserve your event date and schedule a free consultation. Luxury weddings, debutante galas, corporate events, and live streaming productions.',
-    url: 'https://casamentoevents.com/book-now',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/book-now`,
     siteName: 'Casamento Events Management',
     type: 'website',
   },
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: 'Reserve your event date and schedule a free consultation. Luxury weddings, debutante galas, corporate events, and live streaming productions.',
   },
   alternates: {
-    canonical: 'https://casamentoevents.com/book-now',
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/book-now`,
   },
 };
 

@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     title: 'Casamento Events | Crafting Unforgettable Celebrations',
     description:
       'Casamento Events Management specializes in luxury weddings, grand debutante galas, corporate milestones, and bespoke celebration planning.',
-    url: 'https://casamentoevents.com',
+    url: process.env.NEXT_PUBLIC_SITE_URL,
     siteName: 'Casamento Events',
     images: [
       {
