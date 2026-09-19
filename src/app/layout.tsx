@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist } from 'next/font/google';
 import './globals.css';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
+import { SiteChrome } from '@/components/layout/site-chrome';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -89,10 +88,9 @@ export default function RootLayout({
       className={`${geistSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#F7F3E8] text-[#2B3817]" suppressHydrationWarning>
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <SiteChrome>{children}</SiteChrome>
       </body>
     </html>
   );
 }
+
