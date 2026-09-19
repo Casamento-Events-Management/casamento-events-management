@@ -23,8 +23,16 @@ export const structure: StructureResolver = (S) =>
         .title('Portfolio Items')
         .child(S.documentTypeList('portfolioItem').title('Portfolio Items')),
       S.divider(),
-      // Filter out singletons from remaining document list if any
+      // Services section
+      S.listItem()
+        .title('Service Categories')
+        .child(S.documentTypeList('serviceCategory').title('Service Categories')),
+      S.listItem()
+        .title('Service Items')
+        .child(S.documentTypeList('serviceItem').title('Service Items')),
+      S.divider(),
+      // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(
-        (listItem) => !['homePage', 'portfolioCategory', 'portfolioItem'].includes(listItem.getId() || '')
+        (listItem) => !['homePage', 'portfolioCategory', 'portfolioItem', 'serviceCategory', 'serviceItem'].includes(listItem.getId() || '')
       ),
     ])

@@ -54,3 +54,16 @@ export type {
     PortfolioPageProps,
 } from './portfolio';
 
+// Services types
+export type {
+    SanityServiceCategory,
+    SanityServiceAddOn,
+    SanityServiceItem,
+    ServiceCategory,
+    ServiceAddOn,
+    ServiceItem,
+    ActiveServiceCategoryFilter,
+    ServiceBookingRedirectParams,
+} from './service';
+
+
