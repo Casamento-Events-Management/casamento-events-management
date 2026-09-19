@@ -41,19 +41,7 @@ export const homeMockData: HomePageContent = {
                 _type: 'reference',
                 url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
             }
-        },
-        ctaButtons: [
-            {
-                label: 'Book Your Event',
-                href: '/contact',
-                variant: 'primary'
-            },
-            {
-                label: 'Our Services',
-                href: '/services',
-                variant: 'secondary'
-            }
-        ]
+        }
     },
     teaserVideos: [
         {

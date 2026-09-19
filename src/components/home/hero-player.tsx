@@ -258,17 +258,25 @@ export function HeroPlayer({ hero }: HeroPlayerProps) {
 
         {/* CTA Buttons */}
         <div className="flex flex-row items-center justify-center gap-2 sm:gap-4 w-full max-w-sm sm:max-w-none mx-auto">
-          {hero.ctaButtons.map((cta, index) => (
             <Button
-              key={cta.label}
-              href={cta.href}
-              variant={index === 0 ? 'primary' : 'secondary'}
+              key='Book Your Event'
+              href='/contact'
+              variant='primary'
               size="md"
               className="flex-1 sm:flex-initial text-[11px] xs:text-xs sm:text-sm px-3 sm:px-6 py-2.5 sm:py-3.5 whitespace-nowrap"
             >
-              {cta.label}
+              Book Your Event
             </Button>
-          ))}
+
+            <Button
+              key='Our Services'
+              href='/services'
+              variant='secondary'
+              size="md"
+              className="flex-1 sm:flex-initial text-[11px] xs:text-xs sm:text-sm px-3 sm:px-6 py-2.5 sm:py-3.5 whitespace-nowrap"
+            >
+              Our Services
+            </Button>
         </div>
       </div>
     </div>
