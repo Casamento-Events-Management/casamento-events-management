@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "tsx scripts/seed-sanity.ts"
   },
   "dependencies": {
     "@sanity/image-url": "2.1.1",
