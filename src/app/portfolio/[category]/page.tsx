@@ -43,25 +43,40 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
         };
     }
 
-    const title = `${category.title} Portfolio | Casamento Events Management`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
+    // Use short title — root layout template appends "| Casamento Events"
+    const title = `${category.title} Portfolio`;
     const description = category.description || `Explore our high-end ${category.title.toLowerCase()} showcase by Casamento Events Management.`;
-    const canonical = `https://casamentoevents.com/portfolio/${category.slug}`;
+    const canonical = `${siteUrl}/portfolio/${category.slug}`;
 
     return {
         title,
         description,
+        keywords: [
+            `${category.title.toLowerCase()} portfolio Philippines`,
+            `${category.title.toLowerCase()} Casamento Events`,
+            `${category.title.toLowerCase()} Manila`,
+            'luxury event production Philippines',
+            'Casamento Events Management',
+        ],
         openGraph: {
-            title,
+            title: `${category.title} Portfolio | Casamento Events`,
             description,
             url: canonical,
             siteName: 'Casamento Events Management',
             type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `${category.title} Portfolio | Casamento Events`,
+            description,
         },
         alternates: {
             canonical,
         },
     };
 }
+
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
     const { category: categorySlug } = await params;
@@ -89,6 +104,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             />
             <PortfolioJsonLd
                 items={items.filter((item) => item.category.slug === categorySlug)}
+                categorySlug={categorySlug}
+                categoryTitle={category.title}
             />
         </main>
     );

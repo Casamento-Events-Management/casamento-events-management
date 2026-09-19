@@ -3,8 +3,31 @@ import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
-  title: 'Articles & Vlogs | Casamento Events',
-  description: 'Read event planning guides, design trends, and behind-the-scenes vlogs.',
+  title: 'Articles & Vlogs | Event Planning Guides & Behind the Scenes',
+  description: 'Read expert event planning guides, luxury wedding trends, behind-the-scenes vlogs, and production insights from the Casamento Events editorial journal.',
+  keywords: [
+    'wedding planning articles Philippines',
+    'event planning guides',
+    'luxury wedding trends',
+    'behind the scenes event production',
+    'Casamento Events blog',
+    'event cinematography tips',
+  ],
+  openGraph: {
+    title: 'Articles & Vlogs | Casamento Events Editorial Journal',
+    description: 'Read expert event planning guides, luxury wedding trends, behind-the-scenes vlogs, and production insights.',
+    url: 'https://casamentoevents.com/articles',
+    siteName: 'Casamento Events Management',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Articles & Vlogs | Casamento Events Editorial Journal',
+    description: 'Read expert event planning guides, luxury wedding trends, behind-the-scenes vlogs, and production insights.',
+  },
+  alternates: {
+    canonical: 'https://casamentoevents.com/articles',
+  },
 };
 
 export default function ArticlesPage() {

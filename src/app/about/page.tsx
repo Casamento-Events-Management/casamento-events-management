@@ -3,8 +3,29 @@ import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
-  title: 'About Us | Casamento Events',
-  description: 'Learn about our passion for creating memorable events and extraordinary celebrations.',
+  title: 'About Us | Our Story & Heritage',
+  description: 'Learn about Casamento Events Management — our passion for crafting luxury weddings, grand debutante galas, and extraordinary celebrations across the Philippines and beyond.',
+  keywords: [
+    'about Casamento Events',
+    'event planning company Philippines',
+    'luxury wedding planner history',
+    'Casamento Events Management team',
+  ],
+  openGraph: {
+    title: 'About Casamento Events | Our Story & Heritage',
+    description: 'Learn about Casamento Events Management — our passion for crafting luxury weddings, grand debutante galas, and extraordinary celebrations.',
+    url: 'https://casamentoevents.com/about',
+    siteName: 'Casamento Events Management',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Casamento Events | Our Story & Heritage',
+    description: 'Learn about Casamento Events Management — our passion for crafting luxury weddings, grand debutante galas, and extraordinary celebrations.',
+  },
+  alternates: {
+    canonical: 'https://casamentoevents.com/about',
+  },
 };
 
 export default function AboutPage() {

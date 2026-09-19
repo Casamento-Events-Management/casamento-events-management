@@ -12,14 +12,26 @@ import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { PortfolioJsonLd } from '@/components/portfolio/portfolio-json-ld';
 
 export const metadata: Metadata = {
-    title: 'Portfolio | Wedding Films, Stage Production & Live Streams | Casamento Events',
+    title: 'Portfolio | Wedding Films, Stage Production & Live Streams',
     description: 'Explore our portfolio of high-end wedding films, cinematic stage productions, LED lighting designs, and broadcast live streams by Casamento Events.',
+    keywords: [
+        'wedding films portfolio Philippines',
+        'stage production portfolio Manila',
+        'live streaming portfolio Philippines',
+        'event cinematography showcase',
+        'luxury event portfolio Casamento',
+    ],
     openGraph: {
         title: 'Casamento Events Portfolio | Masterpieces in Motion',
         description: 'Explore our portfolio of high-end wedding films, cinematic stage productions, LED lighting designs, and broadcast live streams.',
         url: 'https://casamentoevents.com/portfolio',
         siteName: 'Casamento Events Management',
         type: 'website',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Casamento Events Portfolio | Masterpieces in Motion',
+        description: 'Explore our portfolio of high-end wedding films, cinematic stage productions, LED lighting designs, and broadcast live streams.',
     },
     alternates: {
         canonical: 'https://casamentoevents.com/portfolio',

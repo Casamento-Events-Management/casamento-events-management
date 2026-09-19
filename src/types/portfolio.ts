@@ -50,6 +50,12 @@ export interface SanityPortfolioItem extends SanityDocument {
      * - `ExternalVideoSource` for YouTube, Vimeo, or Cloudflare Stream URLs
      */
     video?: VideoSource;
+    /**
+     * ISO 8601 duration of the video (e.g. "PT3M45S").
+     * Required by Google Video Rich Snippet guidelines for VideoObject schema.
+     * Only applicable when mediaType === 'video'.
+     */
+    duration?: string;
     description?: string;
     eventDate?: string;
     location?: string;
@@ -100,6 +106,12 @@ export interface PortfolioItem {
         aspectRatio?: number;
     };
     video?: VideoSource;
+    /**
+     * ISO 8601 duration of the video (e.g. "PT3M45S").
+     * Required by Google Video Rich Snippet guidelines for VideoObject schema.
+     * Only applicable when mediaType === 'video'.
+     */
+    duration?: string;
     description?: string;
     eventDate?: string;
     location?: string;

@@ -8,17 +8,45 @@ const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
   display: 'swap',
-  preload: false,
+  preload: true,
 });
-
-
 
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'),
-  title: 'Casamento Events | Crafting Unforgettable Celebrations',
+  title: {
+    default: 'Casamento Events | Crafting Unforgettable Celebrations',
+    template: '%s | Casamento Events',
+  },
   description:
     'Casamento Events Management specializes in luxury weddings, grand debutante galas, corporate milestones, and bespoke celebration planning.',
+  keywords: [
+    'luxury wedding planner Philippines',
+    'luxury wedding planner Manila',
+    'cinematic wedding films Philippines',
+    'wedding cinematographer Manila',
+    'debutante gala production Manila',
+    'corporate event management Philippines',
+    'stage production events Manila',
+    'live streaming events Philippines',
+    'LED lighting design events',
+    'destination wedding planner Philippines',
+    'Casamento Events',
+    'Casamento Events Management',
+    'event planning Metro Manila',
+    'broadcast production Philippines',
+  ],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
     icon: '/icon.jpg',
     shortcut: '/icon.jpg',
@@ -43,7 +71,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Casamento Events | Unforgettable Celebrations', // to be finalize
+    title: 'Casamento Events | Unforgettable Celebrations',
     description:
       'Casamento Events Management specializes in luxury weddings, grand debutante galas, corporate milestones, and bespoke celebration planning.',
     images: ['/icon.jpg'],

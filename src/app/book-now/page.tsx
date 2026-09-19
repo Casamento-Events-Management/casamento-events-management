@@ -3,8 +3,31 @@ import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
-  title: 'Book Now | Casamento Events',
-  description: 'Reserve your event date and schedule a consultation with our primary event directors.',
+  title: 'Book Your Event | Consultation & Reservation',
+  description: 'Reserve your event date and schedule a free consultation with Casamento Events Management. Luxury weddings, debutante galas, corporate events, and live streaming productions.',
+  keywords: [
+    'book wedding planner Philippines',
+    'event consultation Manila',
+    'hire event planner Philippines',
+    'luxury wedding booking Philippines',
+    'reserve debutante gala production',
+    'book Casamento Events',
+  ],
+  openGraph: {
+    title: 'Book Your Event | Casamento Events Management',
+    description: 'Reserve your event date and schedule a free consultation. Luxury weddings, debutante galas, corporate events, and live streaming productions.',
+    url: 'https://casamentoevents.com/book-now',
+    siteName: 'Casamento Events Management',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Book Your Event | Casamento Events Management',
+    description: 'Reserve your event date and schedule a free consultation. Luxury weddings, debutante galas, corporate events, and live streaming productions.',
+  },
+  alternates: {
+    canonical: 'https://casamentoevents.com/book-now',
+  },
 };
 
 export default function BookNowPage() {

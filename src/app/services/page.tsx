@@ -3,8 +3,31 @@ import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
-  title: 'Services | Casamento Events',
-  description: 'Full-service wedding planning, event coordination, design styling, and corporate gala management.',
+  title: 'Event Management Services | Wedding, Gala & Production',
+  description: 'Full-service luxury wedding planning, debutante gala coordination, corporate event management, LED stage production, and live streaming services across the Philippines.',
+  keywords: [
+    'wedding planning services Philippines',
+    'debutante gala event management',
+    'corporate event management Manila',
+    'stage production services Philippines',
+    'live streaming events service',
+    'luxury event coordination Philippines',
+  ],
+  openGraph: {
+    title: 'Event Management Services | Casamento Events',
+    description: 'Full-service luxury wedding planning, debutante gala coordination, corporate event management, LED stage production, and live streaming services.',
+    url: 'https://casamentoevents.com/services',
+    siteName: 'Casamento Events Management',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Event Management Services | Casamento Events',
+    description: 'Full-service luxury wedding planning, debutante gala coordination, corporate event management, LED stage production, and live streaming services.',
+  },
+  alternates: {
+    canonical: 'https://casamentoevents.com/services',
+  },
 };
 
 export default function ServicesPage() {
