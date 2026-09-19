@@ -1,55 +1,60 @@
+// =============================================================================
+// app/services/page.tsx — Services Main Landing Page
+//
+// Static / ISR Server Component for the primary /services route.
+// Includes Metadata generation, Server Component data fetching, and structured JSON-LD data for SEO.
+// =============================================================================
+
 import React from 'react';
 import type { Metadata } from 'next';
-import { Button } from '@/components/ui/button';
+import { getServiceCategories, getServiceItems } from '@/lib/services/serviceService';
+import { ServicesHero } from '@/components/services/services-hero';
+import { ServicesView } from '@/components/services/services-view';
+import { ServicesJsonLd } from '@/components/services/services-json-ld';
 
 export const metadata: Metadata = {
-  title: 'Event Management Services | Wedding, Gala & Production',
-  description: 'Full-service luxury wedding planning, debutante gala coordination, corporate event management, LED stage production, and live streaming services across the Philippines.',
-  keywords: [
-    'wedding planning services Philippines',
-    'debutante gala event management',
-    'corporate event management Manila',
-    'stage production services Philippines',
-    'live streaming events service',
-    'luxury event coordination Philippines',
-  ],
-  openGraph: {
-    title: 'Event Management Services | Casamento Events',
-    description: 'Full-service luxury wedding planning, debutante gala coordination, corporate event management, LED stage production, and live streaming services.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/services`,
-    siteName: 'Casamento Events Management',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Event Management Services | Casamento Events',
-    description: 'Full-service luxury wedding planning, debutante gala coordination, corporate event management, LED stage production, and live streaming services.',
-  },
-  alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/services`,
-  },
+    title: 'Event Management Services | Wedding, Gala & Technical Production',
+    description: 'Bespoke luxury wedding planning, turnkey coordination, broadcast live streaming, and stage lighting production by Casamento Events across the Philippines.',
+    keywords: [
+        'wedding planning services Philippines',
+        'debutante gala event management',
+        'corporate event management Manila',
+        'stage production services Philippines',
+        'live streaming events service Philippines',
+        'luxury event coordination Casamento',
+    ],
+    openGraph: {
+        title: 'Event Management Services | Casamento Events',
+        description: 'Bespoke luxury wedding planning, turnkey coordination, broadcast live streaming, and stage lighting production.',
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/services`,
+        siteName: 'Casamento Events Management',
+        type: 'website',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'Event Management Services | Casamento Events',
+        description: 'Bespoke luxury wedding planning, turnkey coordination, broadcast live streaming, and stage lighting production.',
+    },
+    alternates: {
+        canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/services`,
+    },
 };
 
-export default function ServicesPage() {
-  return (
-    <div className="min-h-screen bg-[#F7F3E8] pt-32 pb-20 px-6 flex flex-col items-center justify-center text-center">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <span className="text-xs font-semibold tracking-widest text-[#BC6F07] uppercase">
-          What We Offer
-        </span>
-        <h1 className="text-4xl sm:text-5xl font-serif text-[#3A4F1C]">
-          Our Services
-        </h1>
-        <div className="w-12 h-0.5 bg-[#BC6F07] mx-auto" />
-        <p className="text-base sm:text-lg text-[#3A4F1C]/80 font-light leading-relaxed">
-          From full bespoke planning to same-day coordination, our service details will be launched soon.
-        </p>
-        <div className="pt-6">
-          <Button href="/" variant="primary" size="md">
-            Return to Home Page
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+export default async function ServicesPage() {
+    const [categories, services] = await Promise.all([
+        getServiceCategories(),
+        getServiceItems('all'),
+    ]);
+
+    return (
+        <main className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
+            <ServicesHero />
+            <ServicesView
+                categories={categories}
+                services={services}
+                activeCategory="all"
+            />
+            <ServicesJsonLd services={services} />
+        </main>
+    );
 }
