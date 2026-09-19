@@ -81,10 +81,9 @@ export interface HeroSection {
     backgroundMusic?: SanityFile;
 
     /**
-     * Ordered list of call-to-action buttons rendered in the hero.
-     * Convention: first item = primary variant, second = secondary variant.
+     * Optional call-to-action buttons (hardcoded on frontend per optimization spec).
      */
-    ctaButtons: CTAButton[];
+    ctaButtons?: CTAButton[];
 }
 
 // ---------------------------------------------------------------------------

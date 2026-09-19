@@ -17,7 +17,7 @@ interface HomeJsonLdProps {
 }
 
 export function HomeJsonLd({ content }: HomeJsonLdProps) {
-    const siteUrl = 'https://casamentoevents.com';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
     // -------------------------------------------------------------------------
     // 1. ProfessionalService schema

@@ -50,12 +50,12 @@ export function PortfolioJsonLd({
     items,
     categorySlug,
     categoryTitle,
-    siteUrl = 'https://casamentoevents.com',
+    siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com',
 }: PortfolioJsonLdProps) {
     if (!items || items.length === 0) return null;
 
     // -------------------------------------------------------------------------
-    // 1. Build ItemList schema — VideoObject or VisualArtwork per item
+    // 1. Build ItemList schema — VideoObject or Visual Artwork per item
     // -------------------------------------------------------------------------
     const itemListSchema = {
         '@context': 'https://schema.org',

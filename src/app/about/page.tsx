@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'About Casamento Events | Our Story & Heritage',
     description: 'Learn about Casamento Events Management — our passion for crafting luxury weddings, grand debutante galas, and extraordinary celebrations.',
-    url: 'https://casamentoevents.com/about',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/about`,
     siteName: 'Casamento Events Management',
     type: 'website',
   },
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     description: 'Learn about Casamento Events Management — our passion for crafting luxury weddings, grand debutante galas, and extraordinary celebrations.',
   },
   alternates: {
-    canonical: 'https://casamentoevents.com/about',
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/about`,
   },
 };
 

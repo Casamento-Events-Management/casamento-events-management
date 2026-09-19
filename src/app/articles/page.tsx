@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Articles & Vlogs | Casamento Events Editorial Journal',
     description: 'Read expert event planning guides, luxury wedding trends, behind-the-scenes vlogs, and production insights.',
-    url: 'https://casamentoevents.com/articles',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/articles`,
     siteName: 'Casamento Events Management',
     type: 'website',
   },
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: 'Read expert event planning guides, luxury wedding trends, behind-the-scenes vlogs, and production insights.',
   },
   alternates: {
-    canonical: 'https://casamentoevents.com/articles',
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/articles`,
   },
 };
 

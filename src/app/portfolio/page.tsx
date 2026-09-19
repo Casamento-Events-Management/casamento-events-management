@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     openGraph: {
         title: 'Casamento Events Portfolio | Masterpieces in Motion',
         description: 'Explore our portfolio of high-end wedding films, cinematic stage productions, LED lighting designs, and broadcast live streams.',
-        url: 'https://casamentoevents.com/portfolio',
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/portfolio`,
         siteName: 'Casamento Events Management',
         type: 'website',
     },
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
         description: 'Explore our portfolio of high-end wedding films, cinematic stage productions, LED lighting designs, and broadcast live streams.',
     },
     alternates: {
-        canonical: 'https://casamentoevents.com/portfolio',
+        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/portfolio`,
     },
 };
 

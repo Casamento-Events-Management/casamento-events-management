@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Event Management Services | Casamento Events',
     description: 'Full-service luxury wedding planning, debutante gala coordination, corporate event management, LED stage production, and live streaming services.',
-    url: 'https://casamentoevents.com/services',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL}/services`,
     siteName: 'Casamento Events Management',
     type: 'website',
   },
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     description: 'Full-service luxury wedding planning, debutante gala coordination, corporate event management, LED stage production, and live streaming services.',
   },
   alternates: {
-    canonical: 'https://casamentoevents.com/services',
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/services`,
   },
 };
 
