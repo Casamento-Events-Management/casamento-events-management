@@ -14,7 +14,8 @@ interface ServicesDetailPanelProps {
 /**
  * ServicesDetailPanel Component
  *
- * Desktop: Fixed/Sticky 35% detail card (`sticky top-28 max-h-[calc(100vh-8rem)]`).
+ * Renders the 35% Book Now detail preview card.
+ * Desktop: Fits inside sticky Column 3 container.
  * Mobile: Rendered inside modal dialog.
  */
 export function ServicesDetailPanel({
@@ -31,7 +32,7 @@ export function ServicesDetailPanel({
 
     if (!service) {
         return (
-            <div className="bg-[#F7F3E8] border border-[#3A4F1C]/15 rounded-xl p-5 text-center space-y-2 sticky top-28 self-start max-h-[calc(100vh-8rem)] overflow-y-auto">
+            <div className="bg-[#F7F3E8] border border-[#3A4F1C]/15 rounded-xl p-5 text-center space-y-2">
                 <p className="text-xs font-medium text-[#3A4F1C]/70">
                     Select a service card to view package details, add-ons, and total estimate.
                 </p>
@@ -61,7 +62,7 @@ export function ServicesDetailPanel({
 
     return (
         <aside className={`bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl shadow-md overflow-hidden flex flex-col ${
-            isMobileModal ? 'w-full max-h-[90vh]' : 'sticky top-28 z-10 self-start max-h-[calc(100vh-8rem)]'
+            isMobileModal ? 'w-full max-h-[90vh]' : 'w-full max-h-[calc(100vh-7rem)]'
         }`}>
             {/* Header Banner & Close Control */}
             <div className="relative h-32 w-full bg-[#EFEAD8] shrink-0">

@@ -17,8 +17,7 @@ interface ServicesCardProps {
 /**
  * ServicesCard Component
  *
- * Compact service card with auto-switching carousel, compact viewport fit,
- * reduced mobile button size & text size, and seamless booking redirect.
+ * Rendered in Column 2 (50% list). Card clicks update selection state cleanly.
  */
 export function ServicesCard({
     service,
@@ -55,7 +54,8 @@ export function ServicesCard({
 
     const handleCardClick = () => {
         onSelect(service);
-        if (onOpenMobileModal) {
+        // Only open mobile modal on mobile screen size (< 1024px)
+        if (typeof window !== 'undefined' && window.innerWidth < 1024 && onOpenMobileModal) {
             onOpenMobileModal(service);
         }
     };
@@ -72,8 +72,8 @@ export function ServicesCard({
                     : 'border-[#3A4F1C]/15 hover:border-[#3A4F1C]/40 hover:shadow-xs'
             }`}
         >
-            {/* 1. Compact Image Carousel Container */}
-            <div className="relative h-32 sm:h-40 w-full bg-[#EFEAD8] overflow-hidden select-none">
+            {/* 1. Carousel Container */}
+            <div className="relative h-32 sm:h-80 w-full bg-[#EFEAD8] overflow-hidden select-none">
                 <Image
                     src={images[currentImageIndex]?.url || images[0].url}
                     alt={images[currentImageIndex]?.alt || service.title}
