@@ -97,7 +97,7 @@ function PortfolioViewContent({
                 <div className="mt-8 columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6">
                     {filteredItems.map((item, index) => (
                         <PortfolioCard
-                            key={item.id}
+                            key={item.id || item.slug || `portfolio-card-${index}`}
                             item={item}
                             priority={index < 4}
                             onSelect={handleOpenModal}
