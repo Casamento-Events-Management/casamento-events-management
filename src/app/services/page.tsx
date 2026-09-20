@@ -7,7 +7,7 @@
 
 import React from 'react';
 import type { Metadata } from 'next';
-import { getServiceCategories, getServiceItems } from '@/lib/services/serviceService';
+import { getServiceCategories, getServiceItems, getServicesHeroContent } from '@/lib/services/serviceService';
 import { getHomePageContent } from '@/lib/services/homeService';
 import { ServicesHero } from '@/components/services/services-hero';
 import { ServicesView } from '@/components/services/services-view';
@@ -43,15 +43,19 @@ export const metadata: Metadata = {
 };
 
 export default async function ServicesPage() {
-    const [categories, services, homeContent] = await Promise.all([
+    const [categories, services, homeContent, heroContent] = await Promise.all([
         getServiceCategories(),
         getServiceItems('all'),
         getHomePageContent(),
+        getServicesHeroContent(),
     ]);
 
     return (
         <main className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
-            <ServicesHero />
+            <ServicesHero
+                title={heroContent.title}
+                description={heroContent.description}
+            />
             <ServicesView
                 categories={categories}
                 services={services}

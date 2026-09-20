@@ -145,3 +145,28 @@ export interface PortfolioPageProps {
     params: Promise<{ category?: string }>;
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
+
+// ---------------------------------------------------------------------------
+// Hero Section Types (Singleton CMS-controlled)
+// ---------------------------------------------------------------------------
+
+/**
+ * Raw Sanity CMS document shape for the Portfolio Page Hero singleton
+ * (`_type: 'portfolioHero'`, `_id: 'portfolioHero'`).
+ */
+export interface SanityPortfolioHero extends SanityDocument {
+    _type: 'portfolioHero';
+    /** Primary headline shown at the top of the /portfolio route. */
+    title: string;
+    /** Introductory paragraph shown beneath the headline. */
+    description: string;
+}
+
+/**
+ * Next.js UI model for the Portfolio Hero section.
+ * Returned by `getPortfolioHeroContent()` in `portfolioService.ts`.
+ */
+export interface PortfolioHeroContent {
+    title: string;
+    description: string;
+}

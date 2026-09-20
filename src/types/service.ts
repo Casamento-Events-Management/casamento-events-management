@@ -204,3 +204,28 @@ export interface ServiceBookingRedirectParams {
     /** Optional action flag, e.g. 'book' | 'quote'. */
     action?: 'book' | 'quote';
 }
+
+// ---------------------------------------------------------------------------
+// 5. Hero Section Types (Singleton CMS-controlled)
+// ---------------------------------------------------------------------------
+
+/**
+ * Raw Sanity CMS document shape for the Services Page Hero singleton
+ * (`_type: 'servicesHero'`, `_id: 'servicesHero'`).
+ */
+export interface SanityServicesHero extends SanityDocument {
+    _type: 'servicesHero';
+    /** Primary headline shown at the top of the /services route. */
+    title: string;
+    /** Introductory paragraph shown beneath the headline. */
+    description: string;
+}
+
+/**
+ * Next.js UI model for the Services Hero section.
+ * Returned by `getServicesHeroContent()` in `serviceService.ts`.
+ */
+export interface ServicesHeroContent {
+    title: string;
+    description: string;
+}

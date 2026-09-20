@@ -17,6 +17,14 @@ export const structure: StructureResolver = (S) =>
       S.divider(),
       // Portfolio section
       S.listItem()
+        .title('Portfolio Page Hero')
+        .id('portfolioHeroSingleton')
+        .child(
+          S.document()
+            .schemaType('portfolioHero')
+            .documentId('portfolioHero')
+        ),
+      S.listItem()
         .title('Portfolio Categories')
         .child(S.documentTypeList('portfolioCategory').title('Portfolio Categories')),
       S.listItem()
@@ -24,6 +32,14 @@ export const structure: StructureResolver = (S) =>
         .child(S.documentTypeList('portfolioItem').title('Portfolio Items')),
       S.divider(),
       // Services section
+      S.listItem()
+        .title('Services Page Hero')
+        .id('servicesHeroSingleton')
+        .child(
+          S.document()
+            .schemaType('servicesHero')
+            .documentId('servicesHero')
+        ),
       S.listItem()
         .title('Service Categories')
         .child(S.documentTypeList('serviceCategory').title('Service Categories')),
@@ -33,6 +49,7 @@ export const structure: StructureResolver = (S) =>
       S.divider(),
       // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(
-        (listItem) => !['homePage', 'portfolioCategory', 'portfolioItem', 'serviceCategory', 'serviceItem'].includes(listItem.getId() || '')
+        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem'].includes(listItem.getId() || '')
       ),
     ])
+

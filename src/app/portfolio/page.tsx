@@ -6,7 +6,7 @@
 // =============================================================================
 
 import type { Metadata } from 'next';
-import { getPortfolioCategories, getPortfolioItems } from '@/lib/services/portfolioService';
+import { getPortfolioCategories, getPortfolioHeroContent, getPortfolioItems } from '@/lib/services/portfolioService';
 import { PortfolioHero } from '@/components/portfolio/portfolio-hero';
 import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { PortfolioJsonLd } from '@/components/portfolio/portfolio-json-ld';
@@ -39,14 +39,18 @@ export const metadata: Metadata = {
 };
 
 export default async function PortfolioPage() {
-    const [categories, items] = await Promise.all([
+    const [categories, items, heroContent] = await Promise.all([
         getPortfolioCategories(),
         getPortfolioItems('all'),
+        getPortfolioHeroContent(),
     ]);
 
     return (
         <main className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
-            <PortfolioHero />
+            <PortfolioHero
+                title={heroContent.title}
+                description={heroContent.description}
+            />
             <PortfolioView
                 categories={categories}
                 items={items}

@@ -10,7 +10,7 @@
 
 import { client } from '@/sanity/lib/client';
 import { MOCK_SERVICE_CATEGORIES, MOCK_SERVICE_ITEMS } from '@/data/servicesMock';
-import type { ServiceCategory, ServiceItem, SanityServiceItem } from '@/types';
+import type { ServiceCategory, ServiceItem, ServicesHeroContent, SanityServiceItem } from '@/types';
 
 // =============================================================================
 // 1. Sanity GROQ Query Templates
@@ -196,4 +196,51 @@ export async function getServiceItems(categorySlug?: string): Promise<ServiceIte
 export async function getServiceItemBySlug(slug: string): Promise<ServiceItem | null> {
     const items = await getServiceItems();
     return items.find((item) => item.slug === slug) ?? null;
+}
+
+// =============================================================================
+// Services Hero Content
+// =============================================================================
+
+/** GROQ query targeting the `servicesHero` singleton document. */
+export const GROQ_SERVICES_HERO = `
+  *[_type == "servicesHero" && _id == "servicesHero"][0] {
+    title,
+    description
+  }
+`;
+
+/** Hardcoded fallback used when Sanity is unreachable or document is unpublished. */
+const SERVICES_HERO_FALLBACK: ServicesHeroContent = {
+    title: 'Crafted Experiences, Unforgettable Moments',
+    description:
+        'Discover our bespoke wedding planning, turnkey coordination, and broadcast-grade technical production services tailored for luxury celebrations across the Philippines.',
+};
+
+/**
+ * Returns the Services Hero `title` and `description` from Sanity CMS.
+ * Falls back to hardcoded defaults when the singleton is not yet published or
+ * when the Sanity fetch fails (e.g. during local development without credentials).
+ *
+ * Cached with ISR at 3600-second revalidation (tagged `servicesHero`).
+ */
+export async function getServicesHeroContent(): Promise<ServicesHeroContent> {
+    try {
+        const data = await client.fetch<ServicesHeroContent | null>(
+            GROQ_SERVICES_HERO,
+            {},
+            { next: { revalidate: 3600, tags: ['servicesHero'] } }
+        );
+
+        if (data?.title && data?.description) {
+            return data;
+        }
+    } catch (err) {
+        console.warn(
+            '[serviceService] Failed to fetch servicesHero from Sanity, using fallback:',
+            err
+        );
+    }
+
+    return SERVICES_HERO_FALLBACK;
 }
