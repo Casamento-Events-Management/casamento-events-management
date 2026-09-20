@@ -15,76 +15,48 @@
 // re-exports stay centralised.
 // =============================================================================
 
-import type { SanityDocument, SanityImage, SanityImageWithPriority, SanityFile, SanitySlug, VideoSource } from './sanity';
-import type { SocialLink, Partner, CTAButton, TeaserVideo } from './shared';
+import type { SanityDocument, SanityImage, SanityImageWithPriority, SanitySlug, VideoSource } from './sanity';
+import type { SocialLink, Partner, TeaserVideo } from './shared';
 
 // ---------------------------------------------------------------------------
-// 1. Hero / Landing Section
+// 1. Hero / Service Carousel Section
 // ---------------------------------------------------------------------------
 
 /**
- * Data contract for the full-screen hero / landing section.
- *
- * Layout spec:
- * - Large brand-line headline (copy from `brandline`).
- * - Full-screen background showreel video — click-to-play (NOT autoplay).
- * - Optional background music track (audio-only, separate from video).
- * - One or more CTA buttons.
- *
- * **SEO / Video policy:**
- * `showreelThumbnail` is **required** and must be a high-quality still frame
- * or branded poster image. It is rendered as the LCP candidate via `next/image`
- * with `priority` prop, improving Core Web Vitals. The video only loads after
- * the user clicks the thumbnail.
+ * Interface representing an individual service highlight slide within the Hero carousel.
+ */
+export interface HeroSlide {
+    _key?: string;
+    /** Heading displayed on the left 30% pane (e.g. "Full Planning & Styling"). */
+    heading: string;
+    /** Short service overview text displayed on the left pane. */
+    description: string;
+    /** Text label for the CTA button (defaults to "Explore Service"). */
+    ctaText?: string;
+    /** Explicit URL link destination for CTA (e.g., "/services?category=full-planning-styling"). */
+    ctaLink?: string;
+    /** Media discriminator: 'image' or 'video'. */
+    mediaType: 'image' | 'video';
+    /** Image object when mediaType === 'image'. */
+    image?: SanityImageWithPriority;
+    /** Video source when mediaType === 'video'. */
+    video?: VideoSource;
+    /** Required poster thumbnail image for video slides (for LCP optimization & video policy). */
+    videoPoster?: SanityImageWithPriority;
+    /** Optional resolved category slug from Sanity reference */
+    serviceCategorySlug?: string;
+}
+
+/**
+ * Data contract for the full-width Hero Service Carousel section.
  */
 export interface HeroSection {
-    /**
-     * The primary brand headline displayed over the video background.
-     * Example: "Crafting unforgettable celebrations."
-     */
-    brandline: string;
-
-    /**
-     * The showreel video source. Discriminate on `_type` in the component:
-     * - `'sanity'`   → build a CDN URL via `@sanity/asset-utils` and render `<video>`.
-     * - `'external'` → render a Cloudflare Stream / YouTube `<iframe>`.
-     *
-     * Per video policy: this video MUST NOT autoplay. Display `showreelThumbnail`
-     * first; user interaction triggers playback.
-     */
-    showreelVideo: VideoSource;
-
-    /**
-     * Optional vertical (9:16 portrait) mobile showreel video source.
-     * When provided, mobile devices can stream this vertical video version
-     * to eliminate horizontal cropping on mobile viewports.
-     */
-    showreelMobileVideo?: VideoSource;
-
-    /**
-     * Poster / thumbnail image displayed over the hero before the user plays
-     * the showreel. Required.
-     *
-     * Recommendations:
-     * - Minimum 1920 × 1080 px.
-     * - Served via `next/image` with `priority` prop for LCP optimisation.
-     * - `priority` on the type itself supports future multi-thumbnail selection
-     *   (highest-priority image auto-selected as the hero poster).
-     */
-    showreelThumbnail: SanityImageWithPriority;
-
-    /**
-     * Optional background music track (audio-only) that plays when the
-     * showreel video is active. Stored as a Sanity file asset (MP3 / AAC).
-     * Null when no music track is configured.
-     */
-    backgroundMusic?: SanityFile;
-
-    /**
-     * Optional call-to-action buttons (hardcoded on frontend per optimization spec).
-     */
-    ctaButtons?: CTAButton[];
+    /** Auto-play rotation interval in seconds (default: 3 seconds). */
+    autoPlayInterval?: number;
+    /** Array of service highlight slides. */
+    slides: HeroSlide[];
 }
+
 
 // ---------------------------------------------------------------------------
 // 2. Upcoming Event Card

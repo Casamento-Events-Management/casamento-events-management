@@ -10,27 +10,36 @@ import { HomeJsonLd } from '@/components/home/home-json-ld';
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getHomePageContent();
+  const firstSlide = content.hero?.slides?.[0];
+  const pageDescription =
+    firstSlide?.description ||
+    'Crafting unforgettable celebrations that last a lifetime. Luxury event management and production across the Philippines.';
+  const pageOgImage =
+    firstSlide?.image?.asset?.url ||
+    firstSlide?.videoPoster?.asset?.url ||
+    '';
+
   return {
     title: 'Casamento Events | Unforgettable Celebrations & Event Management',
-    description: content.hero.brandline,
+    description: pageDescription,
     openGraph: {
       title: 'Casamento Events | Unforgettable Celebrations',
-      description: content.hero.brandline,
+      description: pageDescription,
       locale: 'en_PH',
       images: [
         {
-          url: content.hero.showreelThumbnail.asset.url || '',
+          url: pageOgImage,
           width: 1920,
           height: 1080,
-          alt: content.hero.showreelThumbnail.alt || 'Casamento Events Hero',
+          alt: firstSlide?.heading || 'Casamento Events Hero',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Casamento Events | Unforgettable Celebrations', // to be finalize
-      description: content.hero.brandline,
-      images: [content.hero.showreelThumbnail.asset.url || ''],
+      title: 'Casamento Events | Unforgettable Celebrations',
+      description: pageDescription,
+      images: [pageOgImage],
     },
   };
 }

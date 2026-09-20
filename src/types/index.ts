@@ -38,6 +38,7 @@ export type {
 // Home page types
 export type {
     HeroSection,
+    HeroSlide,
     UpcomingEvent,
     HomePageContent,
 } from './home';

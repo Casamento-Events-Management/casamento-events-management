@@ -13,46 +13,47 @@ export const GROQ_HOME_PAGE = `
     _createdAt,
     _updatedAt,
     hero {
-      brandline,
-      showreelVideo {
-        "sourceType": select(
-          defined(asset) => "sanity",
-          defined(sourceType) => sourceType,
-          "external"
-        ),
-        url,
-        provider,
-        mimeType,
-        "asset": {
-          "_ref": coalesce(asset.asset._ref, asset._ref),
-          "_type": "reference",
-          "url": coalesce(asset.asset->url, asset->url)
-        }
-      },
-      showreelMobileVideo {
-        "sourceType": select(
-          defined(asset) => "sanity",
-          defined(sourceType) => sourceType,
-          "external"
-        ),
-        url,
-        provider,
-        mimeType,
-        "asset": {
-          "_ref": coalesce(asset.asset._ref, asset._ref),
-          "_type": "reference",
-          "url": coalesce(asset.asset->url, asset->url)
-        }
-      },
-      showreelThumbnail {
-        "asset": {
-          "url": asset->url
+      autoPlayInterval,
+      slides[] {
+        _key,
+        heading,
+        description,
+        ctaText,
+        ctaLink,
+        mediaType,
+        "serviceCategorySlug": serviceCategory->slug.current,
+        image {
+          "asset": {
+            "url": asset->url
+          },
+          alt,
+          priority
         },
-        alt,
-        caption,
-        priority
+        video {
+          "sourceType": select(
+            defined(asset) => "sanity",
+            defined(sourceType) => sourceType,
+            "external"
+          ),
+          url,
+          provider,
+          mimeType,
+          "asset": {
+            "_ref": coalesce(asset.asset._ref, asset._ref),
+            "_type": "reference",
+            "url": coalesce(asset.asset->url, asset->url)
+          }
+        },
+        videoPoster {
+          "asset": {
+            "url": asset->url
+          },
+          alt,
+          priority
+        }
       }
     },
+
     teaserVideos[] | order(priority desc) {
       _key,
       title,

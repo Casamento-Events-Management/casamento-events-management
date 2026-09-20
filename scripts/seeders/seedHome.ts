@@ -3,11 +3,6 @@
  *
  * Transforms `homeMockData` from src/data/homeMock.ts into a Sanity `homePage`
  * singleton document and upserts it using createOrReplace.
- *
- * Schema mapping notes:
- * - videoSource fields use `sourceType` (not `_type` which is reserved in Sanity schemas)
- * - Images are uploaded from their external URLs to Sanity's asset store
- * - Array items include a `_key` field required by Sanity for stable array diffing
  */
 
 import { homeMockData } from '../../src/data/homeMock'
@@ -19,13 +14,33 @@ export async function seedHome(dryRun: boolean): Promise<void> {
 
     console.log('\n🏠 Seeding homePage singleton...\n')
 
-    // ── Hero showreel thumbnail ──────────────────────────────────────────────
-    console.log('▸ Uploading hero showreel thumbnail...')
-    const heroThumbnailRef = await uploadImageFromUrl(
-        client,
-        mock.hero.showreelThumbnail.asset.url!,
-        'hero-showreel-thumbnail.jpg',
-        dryRun,
+    // ── Hero slide images & posters ──────────────────────────────────────────
+    console.log('▸ Uploading hero slide media assets...')
+    const slideMediaRefs = await Promise.all(
+        mock.hero.slides.map(async (slide, i) => {
+            let imageRef = null
+            let posterRef = null
+
+            if (slide.image?.asset?.url) {
+                imageRef = await uploadImageFromUrl(
+                    client,
+                    slide.image.asset.url,
+                    `hero-slide-${i + 1}.jpg`,
+                    dryRun,
+                )
+            }
+
+            if (slide.videoPoster?.asset?.url) {
+                posterRef = await uploadImageFromUrl(
+                    client,
+                    slide.videoPoster.asset.url,
+                    `hero-slide-${i + 1}-poster.jpg`,
+                    dryRun,
+                )
+            }
+
+            return { imageRef, posterRef }
+        }),
     )
 
     // ── Teaser video thumbnails ──────────────────────────────────────────────
@@ -71,45 +86,51 @@ export async function seedHome(dryRun: boolean): Promise<void> {
     )
 
     // ── Build Sanity document ────────────────────────────────────────────────
-    const heroVideo = mock.hero.showreelVideo
-    const heroMobileVideo = mock.hero.showreelMobileVideo
-
     const document = {
         _id: 'homePage',
         _type: 'homePage',
 
         hero: {
-            brandline: mock.hero.brandline,
+            _type: 'heroSection',
+            autoPlayInterval: mock.hero.autoPlayInterval || 3,
+            slides: mock.hero.slides.map((slide, i) => {
+                const { imageRef, posterRef } = slideMediaRefs[i] || {}
+                const vid = slide.video
 
-            // Desktop showreel video — sourceType replaces _type (reserved field)
-            showreelVideo: {
-                _type: 'videoSource',
-                sourceType: heroVideo._type,
-                ...(heroVideo._type === 'external'
-                    ? { url: heroVideo.url, provider: heroVideo.provider }
-                    : { mimeType: (heroVideo as { mimeType?: string }).mimeType }),
-            },
-
-            // Optional mobile showreel
-            ...(heroMobileVideo && {
-                showreelMobileVideo: {
-                    _type: 'videoSource',
-                    sourceType: heroMobileVideo._type,
-                    ...(heroMobileVideo._type === 'external'
-                        ? { url: heroMobileVideo.url, provider: heroMobileVideo.provider }
-                        : {}),
-                },
-            }),
-
-            // Hero thumbnail (sanityImageWithPriority)
-            ...(heroThumbnailRef && {
-                showreelThumbnail: {
-                    _type: 'sanityImageWithPriority',
-                    asset: heroThumbnailRef,
-                    alt: mock.hero.showreelThumbnail.alt,
-                    caption: mock.hero.showreelThumbnail.caption,
-                    priority: mock.hero.showreelThumbnail.priority,
-                },
+                return {
+                    _key: slide._key || generateKey(`slide-${slide.heading}`),
+                    _type: 'heroSlide',
+                    heading: slide.heading,
+                    description: slide.description,
+                    ctaText: slide.ctaText || 'Explore Service',
+                    ctaLink: slide.ctaLink,
+                    mediaType: slide.mediaType,
+                    ...(imageRef && {
+                        image: {
+                            _type: 'sanityImageWithPriority',
+                            asset: imageRef,
+                            alt: slide.image?.alt || slide.heading,
+                            priority: slide.image?.priority || 100,
+                        },
+                    }),
+                    ...(vid && {
+                        video: {
+                            _type: 'videoSource',
+                            sourceType: vid._type,
+                            ...(vid._type === 'external'
+                                ? { url: vid.url, provider: vid.provider }
+                                : { mimeType: (vid as { mimeType?: string }).mimeType }),
+                        },
+                    }),
+                    ...(posterRef && {
+                        videoPoster: {
+                            _type: 'sanityImageWithPriority',
+                            asset: posterRef,
+                            alt: slide.videoPoster?.alt || slide.heading,
+                            priority: slide.videoPoster?.priority || 80,
+                        },
+                    }),
+                }
             }),
         },
 

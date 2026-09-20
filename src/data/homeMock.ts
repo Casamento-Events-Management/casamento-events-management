@@ -14,34 +14,90 @@ export const homeMockData: HomePageContent = {
     _updatedAt: '2024-01-02T00:00:00Z',
     _rev: 'rev-1',
     hero: {
-        brandline: 'Crafting unforgettable celebrations that last a lifetime.',
-        showreelVideo: {
-            _type: 'external',
-            url: 'https://www.youtube.com/watch?v=LXb3EKWsInQ', // Wedding cinematic showreel (dev simulation)
-            provider: 'youtube'
-        },
-
-
-
-        showreelThumbnail: {
-            _type: 'image',
-            asset: {
-                _ref: 'image-mockHeroPoster1-1920x1080-jpg',
-                _type: 'reference',
-                url: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=1920&auto=format&fit=crop'
+        autoPlayInterval: 3,
+        slides: [
+            {
+                _key: 'slide-1',
+                heading: 'Full Planning & Styling',
+                description: 'End-to-end luxury event design, conceptualization, floral artistry, and master management for grand weddings and galas.',
+                ctaText: 'Explore Service',
+                ctaLink: '/services?category=full-planning-styling',
+                serviceCategorySlug: 'full-planning-styling',
+                mediaType: 'image',
+                image: {
+                    _type: 'image',
+                    asset: {
+                        _ref: 'image-mockSlide1-1920x1080-jpg',
+                        _type: 'reference',
+                        url: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1920&auto=format&fit=crop'
+                    },
+                    alt: 'Full Planning & Styling Hero Showcase',
+                    priority: 100
+                }
             },
-            alt: 'Casamento Events Showreel Thumbnail',
-            priority: 100,
-            caption: 'A compilation of our best moments'
-        },
-        backgroundMusic: {
-            _type: 'file',
-            asset: {
-                _ref: 'file-mockHeroAudio1-mp3',
-                _type: 'reference',
-                url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+            {
+                _key: 'slide-2',
+                heading: 'Turnkey Event Coordination',
+                description: 'Seamless on-the-day execution, timeline enforcement, and stress-free guest management for flawless celebrations.',
+                ctaText: 'Explore Service',
+                ctaLink: '/services?category=turnkey-coordination',
+                serviceCategorySlug: 'turnkey-coordination',
+                mediaType: 'image',
+                image: {
+                    _type: 'image',
+                    asset: {
+                        _ref: 'image-mockSlide2-1920x1080-jpg',
+                        _type: 'reference',
+                        url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=1920&auto=format&fit=crop'
+                    },
+                    alt: 'Turnkey Event Coordination Hero Showcase',
+                    priority: 90
+                }
+            },
+            {
+                _key: 'slide-3',
+                heading: 'Technical & Stage Production',
+                description: 'State-of-the-art concert lighting, intelligent LED wall design, line-array audio, and immersive stage engineering.',
+                ctaText: 'Explore Service',
+                ctaLink: '/services?category=technical-production',
+                serviceCategorySlug: 'technical-production',
+                mediaType: 'video',
+                videoPoster: {
+                    _type: 'image',
+                    asset: {
+                        _ref: 'image-mockSlide3Poster-1920x1080-jpg',
+                        _type: 'reference',
+                        url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=1920&auto=format&fit=crop'
+                    },
+                    alt: 'Technical & Stage Production Video Poster',
+                    priority: 80
+                },
+                video: {
+                    _type: 'external',
+                    url: 'https://www.youtube.com/watch?v=LXb3EKWsInQ',
+                    provider: 'youtube'
+                }
+            },
+            {
+                _key: 'slide-4',
+                heading: 'Broadcast Live Streaming',
+                description: 'Multi-camera cinematic broadcasting, zero-latency hybrid streaming, and virtual audience engagement systems.',
+                ctaText: 'Explore Service',
+                ctaLink: '/services?category=broadcast-live-streaming',
+                serviceCategorySlug: 'broadcast-live-streaming',
+                mediaType: 'image',
+                image: {
+                    _type: 'image',
+                    asset: {
+                        _ref: 'image-mockSlide4-1920x1080-jpg',
+                        _type: 'reference',
+                        url: 'https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=1920&auto=format&fit=crop'
+                    },
+                    alt: 'Broadcast Live Streaming Hero Showcase',
+                    priority: 70
+                }
             }
-        }
+        ]
     },
     teaserVideos: [
         {

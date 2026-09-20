@@ -36,7 +36,9 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
             width: 512,
             height: 512,
         },
-        description: content.hero.brandline,
+        description:
+            content.hero.slides?.[0]?.description ||
+            'Crafting unforgettable celebrations that last a lifetime.',
         // Physical HQ address (Metro Manila, Philippines)
         address: {
             '@type': 'PostalAddress',
@@ -86,8 +88,12 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
         },
         // Social media profile links
         sameAs: content.socialLinks.map((s) => s.url),
-        // Hero showreel image as the primary photo
-        image: [content.hero.showreelThumbnail?.asset?.url || `${siteUrl}/icon.jpg`],
+        // Hero carousel image as the primary photo
+        image: [
+            content.hero.slides?.[0]?.image?.asset?.url ||
+            content.hero.slides?.[0]?.videoPoster?.asset?.url ||
+            `${siteUrl}/icon.jpg`
+        ],
     };
 
     // -------------------------------------------------------------------------
