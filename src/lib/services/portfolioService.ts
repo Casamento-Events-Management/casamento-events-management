@@ -10,7 +10,7 @@
 
 import { client } from '@/sanity/lib/client';
 import { MOCK_PORTFOLIO_CATEGORIES, MOCK_PORTFOLIO_ITEMS } from '@/data/portfolioMock';
-import type { PortfolioCategory, PortfolioItem, SanityPortfolioItem } from '@/types';
+import type { PortfolioCategory, PortfolioHeroContent, PortfolioItem, SanityPortfolioItem } from '@/types';
 
 // =============================================================================
 // 1. Sanity GROQ Query Templates
@@ -226,3 +226,49 @@ export async function getPortfolioItemBySlug(slug: string): Promise<PortfolioIte
     return items.find((item) => item.slug === slug) ?? null;
 }
 
+// =============================================================================
+// Portfolio Hero Content
+// =============================================================================
+
+/** GROQ query targeting the `portfolioHero` singleton document. */
+export const GROQ_PORTFOLIO_HERO = `
+  *[_type == "portfolioHero" && _id == "portfolioHero"][0] {
+    title,
+    description
+  }
+`;
+
+/** Hardcoded fallback used when Sanity is unreachable or document is unpublished. */
+const PORTFOLIO_HERO_FALLBACK: PortfolioHeroContent = {
+    title: 'Masterpieces in Motion',
+    description:
+        'Explore our curated showcase of high-end wedding films, immersive stage productions, and broadcast-grade live streams crafted with technical precision and artistic passion.',
+};
+
+/**
+ * Returns the Portfolio Hero `title` and `description` from Sanity CMS.
+ * Falls back to hardcoded defaults when the singleton is not yet published or
+ * when the Sanity fetch fails (e.g. during local development without credentials).
+ *
+ * Cached with ISR at 3600-second revalidation (tagged `portfolioHero`).
+ */
+export async function getPortfolioHeroContent(): Promise<PortfolioHeroContent> {
+    try {
+        const data = await client.fetch<PortfolioHeroContent | null>(
+            GROQ_PORTFOLIO_HERO,
+            {},
+            { next: { revalidate: 3600, tags: ['portfolioHero'] } }
+        );
+
+        if (data?.title && data?.description) {
+            return data;
+        }
+    } catch (err) {
+        console.warn(
+            '[portfolioService] Failed to fetch portfolioHero from Sanity, using fallback:',
+            err
+        );
+    }
+
+    return PORTFOLIO_HERO_FALLBACK;
+}

@@ -46,11 +46,28 @@ export type {
 export type {
     SanityPortfolioCategory,
     SanityPortfolioItem,
+    SanityPortfolioHero,
     PortfolioCategory,
     PortfolioItem,
+    PortfolioHeroContent,
     ActiveCategoryFilter,
     PortfolioModalState,
     PortfolioPageData,
     PortfolioPageProps,
 } from './portfolio';
+
+// Services types
+export type {
+    SanityServiceCategory,
+    SanityServiceAddOn,
+    SanityServiceItem,
+    SanityServicesHero,
+    ServiceCategory,
+    ServiceAddOn,
+    ServiceItem,
+    ServicesHeroContent,
+    ActiveServiceCategoryFilter,
+    ServiceBookingRedirectParams,
+} from './service';
+
 

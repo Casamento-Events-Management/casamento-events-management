@@ -17,14 +17,39 @@ export const structure: StructureResolver = (S) =>
       S.divider(),
       // Portfolio section
       S.listItem()
+        .title('Portfolio Page Hero')
+        .id('portfolioHeroSingleton')
+        .child(
+          S.document()
+            .schemaType('portfolioHero')
+            .documentId('portfolioHero')
+        ),
+      S.listItem()
         .title('Portfolio Categories')
         .child(S.documentTypeList('portfolioCategory').title('Portfolio Categories')),
       S.listItem()
         .title('Portfolio Items')
         .child(S.documentTypeList('portfolioItem').title('Portfolio Items')),
       S.divider(),
-      // Filter out singletons from remaining document list if any
+      // Services section
+      S.listItem()
+        .title('Services Page Hero')
+        .id('servicesHeroSingleton')
+        .child(
+          S.document()
+            .schemaType('servicesHero')
+            .documentId('servicesHero')
+        ),
+      S.listItem()
+        .title('Service Categories')
+        .child(S.documentTypeList('serviceCategory').title('Service Categories')),
+      S.listItem()
+        .title('Service Items')
+        .child(S.documentTypeList('serviceItem').title('Service Items')),
+      S.divider(),
+      // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(
-        (listItem) => !['homePage', 'portfolioCategory', 'portfolioItem'].includes(listItem.getId() || '')
+        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem'].includes(listItem.getId() || '')
       ),
     ])
+

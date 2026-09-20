@@ -78,7 +78,7 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
         const parsed = parseVideoSource(item.video);
 
         if (parsed.sourceType === 'sanity' || parsed.sourceType === 'native') {
-            const videoUrl = parsed.directUrl || (item.video as any)?.url || '';
+            const videoUrl = parsed.directUrl || (item.video?._type === 'sanity' ? item.video.asset?.url : undefined) || '';
             if (!videoUrl) {
                 return (
                     <div className="w-full aspect-video flex items-center justify-center bg-[#0C1206] text-[#EFEAD8]/60 text-sm">
@@ -96,7 +96,7 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                         poster={item.thumbnail.url}
                         className="w-full h-full object-contain bg-black"
                     >
-                        <source src={videoUrl} type={(item.video as any)?.mimeType || 'video/mp4'} />
+                        <source src={videoUrl} type={(item.video?._type === 'sanity' ? (item.video as import('@/types').SanityVideoSource).mimeType : undefined) || 'video/mp4'} />
                         Your browser does not support HTML5 video streaming.
                     </video>
                 </div>

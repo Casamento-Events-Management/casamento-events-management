@@ -6,6 +6,7 @@
  * Usage:
  *   npx tsx scripts/seed-sanity.ts src/data/homeMock
  *   npx tsx scripts/seed-sanity.ts src/data/portfolioMock
+ *   npx tsx scripts/seed-sanity.ts src/data/servicesMock
  *   npx tsx scripts/seed-sanity.ts src/data/homeMock --dry-run
  *
  * Or via npm script alias:
@@ -53,6 +54,14 @@ const SEEDERS: Record<string, () => Promise<void>> = {
     portfolioMock: async () => {
         const { seedPortfolio } = await import('./seeders/seedPortfolio')
         await seedPortfolio(dryRun)
+    },
+    servicesMock: async () => {
+        const { seedServices } = await import('./seeders/seedServices')
+        await seedServices(dryRun)
+    },
+    services: async () => {
+        const { seedServices } = await import('./seeders/seedServices')
+        await seedServices(dryRun)
     },
 }
 

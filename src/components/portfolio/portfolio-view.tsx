@@ -40,10 +40,12 @@ function PortfolioViewContent({
         if (itemParam) {
             const match = items.find((i) => i.slug === itemParam || i.id === itemParam);
             if (match) {
-                setSelectedItem(match);
+                startTransition(() => {
+                    setSelectedItem(match);
+                });
             }
         }
-    }, [itemParam, items]);
+    }, [itemParam, items, startTransition]);
 
     const handleOpenModal = (item: PortfolioItem) => {
         setSelectedItem(item);
