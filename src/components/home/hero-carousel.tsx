@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
-import type { HeroSection, HeroSlide, VideoSource } from '@/types';
+import type { HeroSection, VideoSource } from '@/types';
 
 interface HeroCarouselProps {
   hero: HeroSection;
@@ -167,6 +167,9 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
       ? `/services?category=${currentSlide.serviceCategorySlug}`
       : '/services');
 
+  const currentSlideKey = currentSlide._key || `slide-media-${currentIndex}`;
+  const isCurrentInlinePlaying = inlinePlayingKey === currentSlideKey;
+
   return (
     <div
       className="relative w-full bg-[#2A3A14] overflow-hidden select-none"
@@ -179,13 +182,21 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
     >
-      {/* ── SPLIT LAYOUT CONTAINER (30% Left / 70% Right) ── */}
-      <div className="flex flex-col lg:flex-row w-full min-h-[550px] lg:min-h-[680px]">
+      {/* ── MAIN HERO LAYOUT CONTAINER ── */}
+      <div className="flex flex-col lg:flex-row w-full h-[580px] sm:h-[680px] md:h-[720px] lg:h-auto lg:min-h-[680px]">
         
-        {/* ── LEFT PANE (30% Width on Desktop, Dark Olive Green `#2A3A14`) ── */}
-        <div className="w-full lg:w-[32%] xl:w-[30%] bg-[#2A3A14] text-[#F7F3E8] p-8 sm:p-12 lg:p-16 flex flex-col justify-between z-10 border-b lg:border-b-0 lg:border-r border-[#BC6F07]/20">
+        {/* ── DESKTOP LEFT PANE (30% Width on Desktop `lg:flex`, Hidden on Mobile/Tablet) ── */}
+        <div className="hidden lg:flex w-full lg:w-[32%] xl:w-[30%] bg-[#2A3A14] text-[#F7F3E8] p-8 sm:p-12 lg:p-16 flex-col justify-between z-10 border-r border-[#BC6F07]/20">
           <div>
             {/* Category Tag / Subtitle */}
+            <div className="flex items-center gap-2 mb-4 sm:mb-6">
+              <span className="w-6 h-0.5 bg-[#BC6F07]" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#BC6F07]">
+                Service Highlight
+              </span>
+              <span className="w-6 h-0.5 bg-[#BC6F07]" />
+            </div>
+
             {/* Slide Title */}
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-normal tracking-tight text-[#F7F3E8] leading-tight mb-4 sm:mb-6">
               {currentSlide.heading}
@@ -208,7 +219,7 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
             </div>
           </div>
 
-          {/* Carousel Controls (Counter, Arrows, Dots) */}
+          {/* Desktop Controls (Counter, Arrows, Dots) */}
           <div className="pt-8 sm:pt-12 flex items-center justify-between border-t border-[#F7F3E8]/10 mt-8">
             {/* Slide Counter */}
             <div className="text-xs font-mono text-[#F7F3E8]/70">
@@ -223,7 +234,7 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
             <div className="flex items-center gap-1.5">
               {slides.map((_, idx) => (
                 <button
-                  key={`dot-${idx}`}
+                  key={`desktop-dot-${idx}`}
                   onClick={() => handleSelectSlide(idx)}
                   className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
                     idx === currentIndex
@@ -255,8 +266,8 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
           </div>
         </div>
 
-        {/* ── RIGHT PANE (70% Width on Desktop, Media Container) ── */}
-        <div className="w-full lg:w-[68%] xl:w-[70%] relative h-[420px] sm:h-[550px] lg:h-auto min-h-[420px] bg-black overflow-hidden">
+        {/* ── RIGHT PANE / FULL-BLEED MEDIA CONTAINER ── */}
+        <div className="w-full lg:w-[68%] xl:w-[70%] relative h-full lg:h-auto min-h-full bg-black overflow-hidden flex-1">
           {slides.map((slide, idx) => {
             const isCurrent = idx === currentIndex;
             const slideKey = slide._key || `slide-media-${idx}`;
@@ -279,12 +290,12 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
                   isCurrent ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'
                 }`}
               >
-                {/* 1. INLINE VIDEO PLAYBACK MODE (Plays directly inside 70% pane, NO MODAL) */}
+                {/* 1. INLINE VIDEO PLAYBACK MODE (Plays directly inside media pane) */}
                 {isInlinePlaying && slide.video ? (
                   <div className="relative w-full h-full bg-black">
                     <button
                       onClick={() => setInlinePlayingKey(null)}
-                      className="absolute top-4 right-4 z-30 p-2.5 rounded-full bg-black/70 text-white hover:bg-red-600 transition-colors shadow-lg cursor-pointer"
+                      className="absolute top-4 right-4 z-40 p-2.5 rounded-full bg-black/70 text-white hover:bg-red-600 transition-colors shadow-lg cursor-pointer"
                       title="Stop Video & Return to Slide"
                     >
                       <X size={18} />
@@ -327,12 +338,12 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
                       />
                     )}
 
-                    {/* Subtle dark gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                    {/* Dark gradient overlay for contrast */}
+                    <div className="absolute inset-0 bg-black/40 lg:bg-gradient-to-t lg:from-black/60 lg:via-black/20 lg:to-transparent" />
 
-                    {/* Video Play Button Overlay if mediaType === 'video' */}
+                    {/* Video Play Button Overlay if mediaType === 'video' (Desktop layout) */}
                     {slide.mediaType === 'video' && slide.video && (
-                      <div className="absolute inset-0 flex items-center justify-center z-20">
+                      <div className="hidden lg:flex absolute inset-0 items-center justify-center z-20">
                         <button
                           onClick={() => setInlinePlayingKey(slideKey)}
                           className="group flex items-center gap-3 px-6 py-3.5 rounded-full bg-black/50 hover:bg-black/75 border border-white/30 backdrop-blur-md transition-all duration-300 transform hover:scale-105 cursor-pointer"
@@ -351,6 +362,99 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
               </div>
             );
           })}
+
+          {/* ── MOBILE & TABLET / IPAD OVERLAY (Visible ONLY on `< lg`, Hidden on Desktop) ── */}
+          {!isCurrentInlinePlaying && (
+            <div className="lg:hidden absolute inset-0 z-30 flex flex-col justify-between p-6 sm:p-10 md:p-12 text-center bg-[#171f0f]/80 sm:bg-[#171f0f]/75 backdrop-blur-xs text-[#F7F3E8]">
+              
+              {/* Top / Center Info Block */}
+              <div className="my-auto space-y-4 sm:space-y-6 max-w-xl mx-auto px-2 sm:px-4">
+                <div className="inline-flex items-center gap-2 sm:gap-3">
+                  <span className="w-6 sm:w-8 h-0.5 bg-[#BC6F07]" />
+                  <span className="text-xs sm:text-sm md:text-base font-semibold uppercase tracking-widest text-[#BC6F07]">
+                    Service Highlight
+                  </span>
+                  <span className="w-6 sm:w-8 h-0.5 bg-[#BC6F07]" />
+                </div>
+
+                <h1 className="text-3xl sm:text-5xl md:text-6xl font-serif font-normal text-[#F7F3E8] leading-tight tracking-tight drop-shadow-md">
+                  {currentSlide.heading}
+                </h1>
+
+                <p className="text-sm sm:text-base md:text-lg text-[#F7F3E8]/90 leading-relaxed font-light max-w-lg md:max-w-xl mx-auto">
+                  {currentSlide.description}
+                </p>
+
+                <div className="pt-2 sm:pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-5">
+                  <Link
+                    href={targetLink}
+                    className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 sm:px-8 sm:py-4 rounded-full bg-[#BC6F07] hover:bg-[#9E5B04] text-[#F7F3E8] font-medium text-xs sm:text-sm md:text-base tracking-wider uppercase transition-all duration-300 shadow-xl cursor-pointer"
+                  >
+                    <span>{currentSlide.ctaText || 'Explore Service'}</span>
+                    <ChevronRight size={18} />
+                  </Link>
+
+                  {/* Inline Video Play button on mobile/tablet if slide is a video */}
+                  {currentSlide.mediaType === 'video' && currentSlide.video && (
+                    <button
+                      onClick={() => setInlinePlayingKey(currentSlideKey)}
+                      className="inline-flex items-center justify-center gap-2.5 px-6 py-3 sm:px-7 sm:py-3.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/30 text-white font-medium text-xs sm:text-sm md:text-base tracking-wider uppercase transition-all shadow-lg cursor-pointer"
+                    >
+                      <Play size={16} fill="currentColor" className="text-[#BC6F07]" />
+                      <span>Play Video</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Mobile / Tablet Controls Bar */}
+              <div className="flex items-center justify-between pt-4 sm:pt-6 border-t border-[#F7F3E8]/20">
+                {/* Counter */}
+                <div className="text-xs sm:text-sm font-mono text-[#F7F3E8]/80">
+                  <span className="text-[#BC6F07] font-bold text-sm sm:text-base">
+                    {String(currentIndex + 1).padStart(2, '0')}
+                  </span>
+                  <span className="mx-1">/</span>
+                  <span>{String(slides.length).padStart(2, '0')}</span>
+                </div>
+
+                {/* Pagination Dots */}
+                <div className="flex items-center gap-2">
+                  {slides.map((_, idx) => (
+                    <button
+                      key={`mobile-dot-${idx}`}
+                      onClick={() => handleSelectSlide(idx)}
+                      className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                        idx === currentIndex
+                          ? 'w-6 sm:w-8 bg-[#BC6F07]'
+                          : 'w-2 bg-[#F7F3E8]/40'
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                {/* Left/Right Chevrons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePrev}
+                    className="p-2.5 sm:p-3 rounded-full border border-[#F7F3E8]/20 text-[#F7F3E8] active:bg-[#BC6F07] transition-all cursor-pointer"
+                    title="Previous Slide"
+                  >
+                    <ChevronLeft size={18} />
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    className="p-2.5 sm:p-3 rounded-full border border-[#F7F3E8]/20 text-[#F7F3E8] active:bg-[#BC6F07] transition-all cursor-pointer"
+                    title="Next Slide"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          )}
         </div>
       </div>
     </div>
