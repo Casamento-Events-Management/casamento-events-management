@@ -55,10 +55,10 @@ export function parseVideoSource(source?: VideoSource | null): ParsedVideoInfo {
     return { sourceType: 'native', directUrl: '' };
   }
 
-  const rawObj = source as any;
-  const assetUrl = rawObj.asset?.url || rawObj.assetUrl || '';
-  const rawUrl = rawObj.url || assetUrl || '';
-  const rawType = rawObj.sourceType || rawObj._type;
+  const rawObj = source as unknown as Record<string, unknown>;
+  const assetUrl = (typeof rawObj.asset === 'object' && rawObj.asset !== null && 'url' in rawObj.asset ? (rawObj.asset as { url?: string }).url : undefined) || (rawObj.assetUrl as string) || '';
+  const rawUrl = (rawObj.url as string) || assetUrl || '';
+  const rawType = (rawObj.sourceType as string) || (rawObj._type as string);
 
   // 1. Sanity CDN video file asset (if assetUrl exists or rawType === 'sanity')
   if (assetUrl || rawType === 'sanity' || rawObj._type === 'sanity') {
@@ -111,7 +111,7 @@ export function parseVideoSource(source?: VideoSource | null): ParsedVideoInfo {
     return {
       sourceType: 'external',
       embedUrl: rawUrl,
-      provider: rawObj.provider || 'unknown',
+      provider: (rawObj.provider as ParsedVideoInfo['provider']) || 'unknown',
     };
   }
 
