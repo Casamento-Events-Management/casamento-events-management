@@ -63,7 +63,7 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
             Schedule a personal consultation with our event director to discuss your vision and date availability.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button href="/book-now" size="lg" variant="primary">
+            <Button href="/book-now" size="md" variant="primary">
               Book Consultation
             </Button>
           </div>

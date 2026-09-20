@@ -31,7 +31,7 @@ export function SectionHeading({
       />
       {subtitle && (
         <p
-          className={`max-w-4xl text-base md:text-lg text-[#3A4F1C]/80 leading-relaxed font-light ${centered ? 'mx-auto' : ''
+          className={`max-w-6xl text-base md:text-lg text-[#3A4F1C]/80 leading-relaxed font-light ${centered ? 'mx-auto' : ''
             }`}
         >
           {subtitle}
