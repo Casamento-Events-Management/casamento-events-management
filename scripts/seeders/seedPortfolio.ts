@@ -16,6 +16,25 @@ import { createWriteClient, generateKey, uploadImageFromUrl } from './helpers'
 export async function seedPortfolio(dryRun: boolean): Promise<void> {
     const client = createWriteClient()
 
+    // ── 0. Seed Portfolio Hero Singleton ─────────────────────────────────────
+    console.log('\n🌟 Seeding portfolioHero singleton...\n')
+    const heroDoc = {
+        _id: 'portfolioHero',
+        _type: 'portfolioHero',
+        title: 'Masterpieces in Motion',
+        description:
+            'Explore our curated gallery of luxury weddings, grand production designs, and high-definition event broadcasts captured across the globe.',
+    }
+
+    if (dryRun) {
+        console.log('[dry-run] Would upsert portfolioHero:')
+        console.log(JSON.stringify(heroDoc, null, 2))
+    } else {
+        await client.delete('drafts.portfolioHero').catch(() => {})
+        await client.createOrReplace(heroDoc)
+        console.log(`  ✓ Upserted portfolioHero singleton (id: portfolioHero)`)
+    }
+
     // ── 1. Seed Portfolio Categories ────────────────────────────────────────
     console.log('\n📁 Seeding portfolioCategory documents...\n')
 
