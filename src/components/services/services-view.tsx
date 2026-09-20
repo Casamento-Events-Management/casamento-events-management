@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useTransition, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ServicesCategoryFilter } from './services-category-filter';
 import { ServicesCard } from './services-card';
@@ -26,6 +26,7 @@ function ServicesViewContent({
         services && services.length > 0 ? services[0] : null
     );
     const [mobileModalService, setMobileModalService] = useState<ServiceItem | null>(null);
+    const [, startTransition] = useTransition();
 
     const serviceParam = searchParams.get('service');
     const categoryParam = searchParams.get('category');
@@ -41,15 +42,19 @@ function ServicesViewContent({
     // Sync state with URL search params
     useEffect(() => {
         if (categoryParam && categoryParam !== activeCategory) {
-            setActiveCategory(categoryParam);
+            startTransition(() => {
+                setActiveCategory(categoryParam);
+            });
         }
         if (serviceParam) {
             const match = services.find((s) => s.slug === serviceParam || s.id === serviceParam);
             if (match) {
-                setSelectedService(match);
+                startTransition(() => {
+                    setSelectedService(match);
+                });
             }
         }
-    }, [serviceParam, categoryParam, services]);
+    }, [serviceParam, categoryParam, services, activeCategory, startTransition]);
 
     // Filter service items by active category
     const filteredServices = activeCategory === 'all'

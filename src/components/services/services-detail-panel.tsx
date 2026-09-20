@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import type { ServiceItem } from '@/types';
@@ -24,11 +24,14 @@ export function ServicesDetailPanel({
     onCloseMobile,
 }: ServicesDetailPanelProps) {
     const [selectedAddOnIds, setSelectedAddOnIds] = useState<string[]>([]);
+    const [, startTransition] = useTransition();
 
     // Reset selected add-ons when switching active service
     useEffect(() => {
-        setSelectedAddOnIds([]);
-    }, [service?.id]);
+        startTransition(() => {
+            setSelectedAddOnIds([]);
+        });
+    }, [service?.id, startTransition]);
 
     if (!service) {
         return (

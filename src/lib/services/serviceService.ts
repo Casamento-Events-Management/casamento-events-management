@@ -96,7 +96,7 @@ export function mapSanityItemToServiceItem(raw: SanityServiceItem): ServiceItem 
         serviceType: raw.serviceType || 'Event Service',
         shortDescription: raw.shortDescription || '',
         fullDescription: raw.fullDescription || raw.shortDescription || '',
-        images: Array.isArray(raw.images) ? raw.images.map((img: any) => ({
+        images: Array.isArray(raw.images) ? raw.images.map((img: { url?: string; asset?: { url?: string }; alt?: string; caption?: string; width?: number; height?: number; aspectRatio?: number }) => ({
             url: img.url || img.asset?.url || '',
             alt: img.alt || raw.title,
             caption: img.caption,
@@ -108,7 +108,7 @@ export function mapSanityItemToServiceItem(raw: SanityServiceItem): ServiceItem 
         priceFormatted: formattedPrice,
         priceUnit: raw.priceUnit || 'starting rate',
         defaultInclusions: raw.defaultInclusions || [],
-        addOns: Array.isArray(raw.addOns) ? raw.addOns.map((addon: any, idx: number) => ({
+        addOns: Array.isArray(raw.addOns) ? raw.addOns.map((addon: { title: string; description?: string; price?: number; priceUnit?: string }, idx: number) => ({
             id: `addon-${idx}`,
             title: addon.title,
             description: addon.description,
