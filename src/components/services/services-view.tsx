@@ -158,36 +158,6 @@ function ServicesViewContent({
                     </div>
                 )}
 
-                {/* Accordion Controls & Quick Filter Bar */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#F7F3E8] p-3.5 sm:p-4 rounded-xl border border-[#3A4F1C]/15 shadow-xs">
-                    <div className="flex items-center space-x-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[#3A4F1C]">
-                            Service Categories
-                        </span>
-                        <span className="text-xs text-[#3A4F1C]/60">
-                            ({categories.length} Total)
-                        </span>
-                    </div>
-
-                    {/* Expand All / Collapse All Quick Actions */}
-                    <div className="flex items-center space-x-2 text-xs font-medium">
-                        <button
-                            type="button"
-                            onClick={handleExpandAll}
-                            className="px-3 py-1.5 rounded-lg bg-[#3A4F1C]/10 hover:bg-[#3A4F1C] hover:text-[#F7F3E8] text-[#3A4F1C] transition-colors cursor-pointer"
-                        >
-                            Expand All
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleCollapseAll}
-                            className="px-3 py-1.5 rounded-lg border border-[#3A4F1C]/20 hover:bg-[#3A4F1C]/10 text-[#3A4F1C]/80 transition-colors cursor-pointer"
-                        >
-                            Collapse All
-                        </button>
-                    </div>
-                </div>
-
                 {/* Collapsible Accordions List */}
                 <div className="space-y-4 sm:space-y-6">
                     {categories.map((cat, idx) => {

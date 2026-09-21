@@ -58,12 +58,6 @@ export function ServicesCategoryAccordion({
                 aria-expanded={isOpen}
             >
                 <div className="flex items-center space-x-3.5 sm:space-x-4 min-w-0 pr-4">
-                    {/* Status / Category Dot indicator */}
-                    <span
-                        className={`w-3 h-3 rounded-full shrink-0 transition-colors ${
-                            isOpen ? 'bg-[#BC6F07] shadow-xs ring-2 ring-[#BC6F07]/40' : 'bg-[#3A4F1C]/30'
-                        }`}
-                    />
                     <div className="min-w-0">
                         <div className="flex items-center space-x-2.5">
                             <h2 className="text-base sm:text-lg lg:text-xl font-serif font-semibold tracking-tight leading-snug truncate">
