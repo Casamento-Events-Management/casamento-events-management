@@ -191,4 +191,52 @@ export const MOCK_SERVICE_ITEMS: ServiceItem[] = [
         priority: 30,
         createdAt: '2026-02-01T00:00:00Z',
     },
+    {
+        id: 'service-4',
+        title: 'Luxury Destination Wedding Planning & Styling',
+        slug: 'luxury-destination-wedding-planning',
+        category: {
+            title: 'Full Planning & Styling',
+            slug: 'full-planning',
+        },
+        serviceType: 'Bespoke Destination Planning',
+        shortDescription: 'Comprehensive planning, travel arrangement, guest hospitality, multi-day itinerary design, and venue styling for island and overseas destination weddings.',
+        fullDescription: 'Turn your dream destination wedding into a seamless, luxurious multi-day celebration. From island logistics (Bora, El Nido, Tagaytay, Cebu) to guest transfers, welcome party styling, main ceremony design, and post-wedding brunch coordination.',
+        images: [
+            {
+                url: 'https://images.unsplash.com/photo-1544078751-58fee2d8a03b?auto=format&fit=crop&w=1200&q=80',
+                alt: 'Beachside Destination Wedding Setup',
+            },
+            {
+                url: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=1200&q=80',
+                alt: 'Tropical Floral Arch & Scenic Reception',
+            },
+        ],
+        startingPrice: 220000,
+        priceFormatted: '₱220,000',
+        priceUnit: 'starting rate',
+        defaultInclusions: [
+            'Lead Destination Planner & 6 Travel Logistics Coordinators',
+            'Multi-Day Itinerary Planning (Welcome Dinner + Wedding Day + Recovery Brunch)',
+            'Hotel Accommodations & Guest Shuttle Transfer Management',
+            'Bespoke Spatial Design, Floral Concepts & Ambient Lighting',
+            'On-Site Supplier Coordination & Island Permit Handling',
+            'Welcome Bag Packaging & Guest Concierge Desk',
+        ],
+        addOns: [
+            {
+                id: 'addon-5',
+                title: 'Pre-Wedding Island Sunset Welcome Party',
+                description: 'Full styling, cocktail bar setup, and live acoustic duo for the night before.',
+                price: 50000,
+                priceFormatted: '+ ₱50,000',
+                priceUnit: 'add-on',
+            },
+        ],
+        badge: 'Signature Destination',
+        isFeatured: true,
+        bookingSlug: 'luxury-destination-wedding-planning',
+        priority: 45,
+        createdAt: '2026-03-01T00:00:00Z',
+    },
 ];
