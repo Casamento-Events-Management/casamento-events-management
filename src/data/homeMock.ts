@@ -161,7 +161,8 @@ export const homeMockData: HomePageContent = {
                 },
                 alt: 'Corporate gala dinner thumbnail',
                 priority: 10
-            }
+            },
+            description: 'A sophisticated evening of awards, keynotes, and executive networking.'
         },
         {
             title: 'Luxury Destination Wedding in Boracay',

@@ -127,17 +127,16 @@ export function TeaserVideosSection({ teaserVideos }: TeaserVideosSectionProps) 
 
         {/* Carousel Container Flanked by Left & Right Arrows: < [t1] [t2] [t3] > */}
         <div className="relative w-full flex items-center gap-2 sm:gap-4 md:gap-6">
-          
+
           {/* Left Arrow Button */}
           {totalTeasers > itemsPerPage ? (
             <button
               onClick={handlePrev}
               disabled={isAtStart}
-              className={`shrink-0 p-2.5 sm:p-3 md:p-3.5 rounded-full border border-[#3A4F1C]/20 bg-[#F7F3E8] text-[#3A4F1C] transition-all duration-300 z-10 ${
-                isAtStart
+              className={`shrink-0 p-2.5 sm:p-3 md:p-3.5 rounded-full border border-[#3A4F1C]/20 bg-[#F7F3E8] text-[#3A4F1C] transition-all duration-300 z-10 ${isAtStart
                   ? 'opacity-30 cursor-not-allowed'
                   : 'hover:bg-[#BC6F07] hover:text-[#F7F3E8] hover:border-[#BC6F07] cursor-pointer shadow-md transform hover:scale-105'
-              }`}
+                }`}
               title="Previous Teasers"
               aria-label="Previous Teaser Highlights"
             >
@@ -149,7 +148,7 @@ export function TeaserVideosSection({ teaserVideos }: TeaserVideosSectionProps) 
 
           {/* Carousel Cards Viewport */}
           <div
-            className="flex-1 overflow-hidden"
+            className="flex-1 overflow-hidden py-2"
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -158,13 +157,13 @@ export function TeaserVideosSection({ teaserVideos }: TeaserVideosSectionProps) 
             onMouseUp={handleMouseUp}
           >
             <div
-              className="flex gap-6 md:gap-8 transition-transform duration-500 ease-out"
+              className="flex items-stretch gap-6 md:gap-8 transition-transform duration-500 ease-out"
               style={{ transform: `translateX(${translateXStyle})` }}
             >
               {teaserVideos.map((teaser, index) => (
                 <div
                   key={teaser.title + index}
-                  className="w-full md:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-4rem)/3)] shrink-0"
+                  className="w-full md:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-4rem)/3)] shrink-0 flex flex-col"
                 >
                   <TeaserCard teaser={teaser} />
                 </div>
@@ -177,11 +176,10 @@ export function TeaserVideosSection({ teaserVideos }: TeaserVideosSectionProps) 
             <button
               onClick={handleNext}
               disabled={isAtEnd}
-              className={`shrink-0 p-2.5 sm:p-3 md:p-3.5 rounded-full border border-[#3A4F1C]/20 bg-[#F7F3E8] text-[#3A4F1C] transition-all duration-300 z-10 ${
-                isAtEnd
+              className={`shrink-0 p-2.5 sm:p-3 md:p-3.5 rounded-full border border-[#3A4F1C]/20 bg-[#F7F3E8] text-[#3A4F1C] transition-all duration-300 z-10 ${isAtEnd
                   ? 'opacity-30 cursor-not-allowed'
                   : 'hover:bg-[#BC6F07] hover:text-[#F7F3E8] hover:border-[#BC6F07] cursor-pointer shadow-md transform hover:scale-105'
-              }`}
+                }`}
               title="Next Teasers"
               aria-label="Next Teaser Highlights"
             >
@@ -199,11 +197,10 @@ export function TeaserVideosSection({ teaserVideos }: TeaserVideosSectionProps) 
               <button
                 key={`teaser-dot-${idx}`}
                 onClick={() => setCurrentIndex(idx)}
-                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                  idx === currentIndex
+                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === currentIndex
                     ? 'w-6 bg-[#BC6F07]'
                     : 'w-2 bg-[#3A4F1C]/25 hover:bg-[#3A4F1C]/50'
-                }`}
+                  }`}
                 aria-label={`Go to slide ${idx + 1}`}
               />
             ))}
