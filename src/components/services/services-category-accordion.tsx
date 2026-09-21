@@ -45,15 +45,15 @@ export function ServicesCategoryAccordion({
         : services[0] || null;
 
     return (
-        <div className="rounded-2xl border border-[#3A4F1C]/20 bg-[#F7F3E8] shadow-xs overflow-hidden transition-all duration-300">
+        <div className="rounded-2xl border border-[#3A4F1C]/20 bg-[#F7F3E8] shadow-xs transition-all duration-300">
             {/* Accordion Trigger Header */}
             <button
                 type="button"
                 onClick={onToggle}
                 className={`w-full px-5 py-4 sm:px-6 sm:py-5 flex items-center justify-between text-left transition-colors cursor-pointer select-none ${
                     isOpen
-                        ? 'bg-[#3A4F1C] text-[#F7F3E8]'
-                        : 'bg-[#F7F3E8] hover:bg-[#EFEAD8] text-[#3A4F1C]'
+                        ? 'bg-[#3A4F1C] text-[#F7F3E8] rounded-t-2xl'
+                        : 'bg-[#F7F3E8] hover:bg-[#EFEAD8] text-[#3A4F1C] rounded-2xl'
                 }`}
                 aria-expanded={isOpen}
             >
@@ -114,7 +114,7 @@ export function ServicesCategoryAccordion({
 
             {/* Accordion Content Body */}
             {isOpen && (
-                <div className="p-4 sm:p-6 bg-[#EFEAD8]/50 border-t border-[#3A4F1C]/15 animate-in fade-in duration-300">
+                <div className="p-4 sm:p-6 bg-[#EFEAD8]/50 border-t border-[#3A4F1C]/15 rounded-b-2xl animate-in fade-in duration-300">
                     {services.length > 0 ? (
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
                             {/* Left Column: Service Cards List (60% Desktop Width / col-span-7) */}
@@ -132,7 +132,7 @@ export function ServicesCategoryAccordion({
                             </div>
 
                             {/* Right Column: Sticky Detail Panel (40% Desktop Width / col-span-5) */}
-                            <div className="hidden lg:block lg:col-span-5 lg:sticky lg:top-24 lg:self-start">
+                            <div className="hidden lg:block lg:col-span-5 lg:sticky lg:top-20 lg:self-start z-10">
                                 <ServicesDetailPanel service={activeServiceInCat} />
                             </div>
                         </div>
