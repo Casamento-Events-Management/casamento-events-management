@@ -82,7 +82,7 @@ export const GROQ_PORTFOLIO_ITEMS = `
  * Helper mapper to convert raw Sanity documents into clean frontend PortfolioItem objects.
  */
 export function mapSanityItemToPortfolioItem(raw: SanityPortfolioItem): PortfolioItem {
-    const isVideo = raw.mediaType === 'video' || Boolean(raw.video);
+    const isVideo = raw.mediaType ? raw.mediaType === 'video' : Boolean(raw.video);
     const categorySlug = typeof raw.category?.slug === 'string'
         ? raw.category.slug
         : (raw.category?.slug as unknown as { current?: string })?.current || 'general';
