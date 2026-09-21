@@ -166,6 +166,12 @@ export interface SanityPortfolioHero extends SanityDocument {
     galleryTitle?: string;
     /** Introductory paragraph for the Portfolio Gallery section. */
     galleryDescription?: string;
+    /** Tagline displayed above the Upcoming Events section. */
+    upcomingEventsEyebrow?: string;
+    /** Headline for the Upcoming Events section on the Portfolio page. */
+    upcomingEventsTitle?: string;
+    /** Introductory paragraph for the Upcoming Events section. */
+    upcomingEventsDescription?: string;
 }
 
 /**
@@ -178,4 +184,7 @@ export interface PortfolioHeroContent {
     galleryEyebrow?: string;
     galleryTitle?: string;
     galleryDescription?: string;
+    upcomingEventsEyebrow?: string;
+    upcomingEventsTitle?: string;
+    upcomingEventsDescription?: string;
 }

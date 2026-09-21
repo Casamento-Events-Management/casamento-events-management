@@ -192,7 +192,7 @@ export async function getPortfolioItems(
 
     // Fallback to local mock data
     const items: PortfolioItem[] = JSON.parse(JSON.stringify(MOCK_PORTFOLIO_ITEMS));
-    
+
     // Filter by category if specified and not 'all'
     const filtered = categorySlug && categorySlug !== 'all'
         ? items.filter((item) => item.category.slug === categorySlug)
@@ -237,7 +237,10 @@ export const GROQ_PORTFOLIO_HERO = `
     description,
     galleryEyebrow,
     galleryTitle,
-    galleryDescription
+    galleryDescription,
+    upcomingEventsEyebrow,
+    upcomingEventsTitle,
+    upcomingEventsDescription
   }
 `;
 
@@ -250,6 +253,10 @@ const PORTFOLIO_HERO_FALLBACK: PortfolioHeroContent = {
     galleryTitle: 'Explore Our Showcase',
     galleryDescription:
         'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
+    upcomingEventsEyebrow: 'Calendar & Events',
+    upcomingEventsTitle: 'Upcoming & Featured Events',
+    upcomingEventsDescription:
+        'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
 };
 
 /**
@@ -274,6 +281,9 @@ export async function getPortfolioHeroContent(): Promise<PortfolioHeroContent> {
                 galleryEyebrow: data.galleryEyebrow || PORTFOLIO_HERO_FALLBACK.galleryEyebrow,
                 galleryTitle: data.galleryTitle || PORTFOLIO_HERO_FALLBACK.galleryTitle,
                 galleryDescription: data.galleryDescription || PORTFOLIO_HERO_FALLBACK.galleryDescription,
+                upcomingEventsEyebrow: data.upcomingEventsEyebrow || PORTFOLIO_HERO_FALLBACK.upcomingEventsEyebrow,
+                upcomingEventsTitle: data.upcomingEventsTitle || PORTFOLIO_HERO_FALLBACK.upcomingEventsTitle,
+                upcomingEventsDescription: data.upcomingEventsDescription || PORTFOLIO_HERO_FALLBACK.upcomingEventsDescription,
             };
         }
     } catch (err) {

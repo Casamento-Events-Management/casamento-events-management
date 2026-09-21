@@ -28,13 +28,17 @@ export async function seedPortfolio(dryRun: boolean): Promise<void> {
         galleryTitle: 'Explore Our Showcase',
         galleryDescription:
             'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
+        upcomingEventsEyebrow: 'Calendar & Events',
+        upcomingEventsTitle: 'Upcoming & Featured Events',
+        upcomingEventsDescription:
+            'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
     }
 
     if (dryRun) {
         console.log('[dry-run] Would upsert portfolioHero:')
         console.log(JSON.stringify(heroDoc, null, 2))
     } else {
-        await client.delete('drafts.portfolioHero').catch(() => {})
+        await client.delete('drafts.portfolioHero').catch(() => { })
         await client.createOrReplace(heroDoc)
         console.log(`  ✓ Upserted portfolioHero singleton (id: portfolioHero)`)
     }
@@ -56,7 +60,7 @@ export async function seedPortfolio(dryRun: boolean): Promise<void> {
         console.log(JSON.stringify(categoryDocuments, null, 2))
     } else {
         for (const doc of categoryDocuments) {
-            await client.delete(`drafts.${doc._id}`).catch(() => {})
+            await client.delete(`drafts.${doc._id}`).catch(() => { })
             await client.createOrReplace(doc)
             console.log(`  ✓ Upserted category: ${doc.title} (id: ${doc._id})`)
         }
@@ -98,12 +102,12 @@ export async function seedPortfolio(dryRun: boolean): Promise<void> {
                 ...(vid._type === 'external'
                     ? { url: vid.url, provider: vid.provider }
                     : {
-                          mimeType: (vid as { mimeType?: string }).mimeType,
-                      }),
+                        mimeType: (vid as { mimeType?: string }).mimeType,
+                    }),
             }
         }
 
-        const document: { _id: string; _type: string; [key: string]: unknown } = {
+        const document: { _id: string; _type: string;[key: string]: unknown } = {
             _id: item.id,
             _type: 'portfolioItem',
             title: item.title,
@@ -140,7 +144,7 @@ export async function seedPortfolio(dryRun: boolean): Promise<void> {
             console.log('[dry-run] Would upsert:')
             console.log(JSON.stringify(document, null, 2))
         } else {
-            await client.delete(`drafts.${item.id}`).catch(() => {})
+            await client.delete(`drafts.${item.id}`).catch(() => { })
             await client.createOrReplace(document)
             console.log(`  ✅ Upserted portfolioItem: ${item.title} (id: ${item.id})`)
         }

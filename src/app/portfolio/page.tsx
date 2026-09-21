@@ -59,7 +59,12 @@ export default async function PortfolioPage() {
                 description={heroContent.description}
             />
 
-            <UpcomingEventsSection events={content.upcomingEvents} />
+            <UpcomingEventsSection
+                events={content.upcomingEvents}
+                eyebrow={heroContent.upcomingEventsEyebrow}
+                title={heroContent.upcomingEventsTitle}
+                description={heroContent.upcomingEventsDescription}
+            />
 
             <PortfolioView
                 categories={categories}

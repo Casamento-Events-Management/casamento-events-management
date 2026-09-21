@@ -28,6 +28,28 @@ export const portfolioHero = defineType({
       validation: (Rule) => Rule.required().min(20).max(400),
     }),
     defineField({
+      name: 'upcomingEventsEyebrow',
+      title: 'Upcoming Events Section Eyebrow',
+      type: 'string',
+      description: 'Small tagline above the Upcoming Events section title (e.g. "Calendar & Events").',
+      initialValue: 'Calendar & Events',
+    }),
+    defineField({
+      name: 'upcomingEventsTitle',
+      title: 'Upcoming Events Section Title',
+      type: 'string',
+      description: 'Main heading for the Upcoming Events section on the Portfolio page.',
+      initialValue: 'Upcoming & Featured Events',
+    }),
+    defineField({
+      name: 'upcomingEventsDescription',
+      title: 'Upcoming Events Section Description',
+      type: 'text',
+      rows: 3,
+      description: 'Introductory paragraph beneath the Upcoming Events section heading.',
+      initialValue: 'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
+    }),
+    defineField({
       name: 'galleryEyebrow',
       title: 'Gallery Section Eyebrow',
       type: 'string',
@@ -48,7 +70,7 @@ export const portfolioHero = defineType({
       rows: 3,
       description: 'Introductory paragraph for the Portfolio Gallery section.',
       initialValue: 'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
-    }),
+    })
   ],
   preview: {
     select: {

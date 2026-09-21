@@ -39,12 +39,7 @@ export function TeaserVideosSection({ teaserVideos }: TeaserVideosSectionProps) 
   const totalTeasers = teaserVideos?.length || 0;
   const maxIndex = Math.max(0, totalTeasers - itemsPerPage);
 
-  // Ensure currentIndex stays within bounds when itemsPerPage changes on window resize
-  useEffect(() => {
-    if (currentIndex > maxIndex) {
-      setCurrentIndex(maxIndex);
-    }
-  }, [itemsPerPage, maxIndex, currentIndex]);
+  const effectiveIndex = Math.min(currentIndex, maxIndex);
 
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => Math.min(prev + 1, maxIndex));
@@ -103,15 +98,15 @@ export function TeaserVideosSection({ teaserVideos }: TeaserVideosSectionProps) 
   if (!teaserVideos || totalTeasers === 0) return null;
 
   // Dynamic Translate X calculation accounting for card gap spacing
-  let translateXStyle = `calc(-${currentIndex} * (100% + 1.5rem))`;
+  let translateXStyle = `calc(-${effectiveIndex} * (100% + 1.5rem))`;
   if (itemsPerPage === 2) {
-    translateXStyle = `calc(-${currentIndex} * (50% + 0.75rem))`;
+    translateXStyle = `calc(-${effectiveIndex} * (50% + 0.75rem))`;
   } else if (itemsPerPage === 3) {
-    translateXStyle = `calc(-${currentIndex} * (33.3333% + 0.6667rem))`;
+    translateXStyle = `calc(-${effectiveIndex} * (33.3333% + 0.6667rem))`;
   }
 
-  const isAtStart = currentIndex === 0;
-  const isAtEnd = currentIndex >= maxIndex;
+  const isAtStart = effectiveIndex === 0;
+  const isAtEnd = effectiveIndex >= maxIndex;
 
   return (
     <section className="py-20 md:py-28 bg-[#EFEAD8]/60 border-y border-[#3A4F1C]/10 select-none overflow-hidden">
