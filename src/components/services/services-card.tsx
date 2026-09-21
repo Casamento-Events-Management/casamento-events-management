@@ -73,7 +73,7 @@ export function ServicesCard({
             }`}
         >
             {/* 1. Carousel Container */}
-            <div className="relative h-32 sm:h-80 w-full bg-[#EFEAD8] overflow-hidden select-none">
+            <div className="relative h-48 sm:h-68 md:h-76 lg:h-82 w-full bg-[#EFEAD8] overflow-hidden select-none">
                 <Image
                     src={images[currentImageIndex]?.url || images[0].url}
                     alt={images[currentImageIndex]?.alt || service.title}
@@ -88,8 +88,8 @@ export function ServicesCard({
 
                 {/* Badge Tag */}
                 {service.badge && (
-                    <div className="absolute top-2 left-2 z-10">
-                        <Badge status="upcoming" className="bg-[#3A4F1C]/90 text-[#F7F3E8] border-[#BC6F07]/60 text-[9px] py-0.5 px-1.5">
+                    <div className="absolute top-2.5 left-2.5 z-10">
+                        <Badge status="upcoming" className="bg-[#3A4F1C]/90 text-[#F7F3E8] border-[#BC6F07]/60 text-[10px] py-0.5 px-2">
                             {service.badge}
                         </Badge>
                     </div>
@@ -102,9 +102,9 @@ export function ServicesCard({
                             type="button"
                             onClick={handlePrevImage}
                             aria-label="Previous image"
-                            className="absolute left-1.5 top-1/2 -translate-y-1/2 z-10 p-1 rounded-full bg-black/40 text-white hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                         >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
@@ -112,15 +112,15 @@ export function ServicesCard({
                             type="button"
                             onClick={handleNextImage}
                             aria-label="Next image"
-                            className="absolute right-1.5 top-1/2 -translate-y-1/2 z-10 p-1 rounded-full bg-black/40 text-white hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                         >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
 
                         {/* Carousel Dots */}
-                        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 z-10 flex space-x-1">
+                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex space-x-1">
                             {images.map((_, idx) => (
                                 <button
                                     key={`dot-${idx}`}
@@ -130,7 +130,7 @@ export function ServicesCard({
                                         setCurrentImageIndex(idx);
                                     }}
                                     className={`h-1 rounded-full transition-all ${
-                                        idx === currentImageIndex ? 'bg-[#BC6F07] w-2.5' : 'bg-white/70 w-1'
+                                        idx === currentImageIndex ? 'bg-[#BC6F07] w-3' : 'bg-white/70 w-1'
                                     }`}
                                 />
                             ))}
@@ -140,7 +140,7 @@ export function ServicesCard({
             </div>
 
             {/* 2. Card Content Body */}
-            <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between space-y-2.5">
+            <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between space-y-3">
                 <div className="space-y-1">
                     <h3 className="text-sm sm:text-base font-serif font-semibold text-[#3A4F1C] leading-snug group-hover:text-[#BC6F07] transition-colors">
                         {service.title}
