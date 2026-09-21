@@ -162,6 +162,46 @@ export const homeMockData: HomePageContent = {
                 alt: 'Corporate gala dinner thumbnail',
                 priority: 10
             }
+        },
+        {
+            title: 'Luxury Destination Wedding in Boracay',
+            priority: 5,
+            video: {
+                _type: 'external',
+                url: 'https://www.youtube.com/watch?v=LXb3EKWsInQ',
+                provider: 'youtube'
+            },
+            thumbnail: {
+                _type: 'image',
+                asset: {
+                    _ref: 'image-mockTeaserThumb4-800x600-jpg',
+                    _type: 'reference',
+                    url: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop'
+                },
+                alt: 'Luxury destination wedding thumbnail',
+                priority: 5
+            },
+            description: 'A romantic beachside ceremony under golden sunsets.'
+        },
+        {
+            title: 'Metropolitan Fashion Week Runway Show',
+            priority: 2,
+            video: {
+                _type: 'external',
+                url: 'https://www.youtube.com/watch?v=LXb3EKWsInQ',
+                provider: 'youtube'
+            },
+            thumbnail: {
+                _type: 'image',
+                asset: {
+                    _ref: 'image-mockTeaserThumb5-800x600-jpg',
+                    _type: 'reference',
+                    url: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=800&auto=format&fit=crop'
+                },
+                alt: 'Metropolitan fashion week runway thumbnail',
+                priority: 2
+            },
+            description: 'High-fashion runway spectacle with intelligent stage lighting.'
         }
     ],
     upcomingEvents: [
