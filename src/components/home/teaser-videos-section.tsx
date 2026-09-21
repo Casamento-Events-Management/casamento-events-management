@@ -11,7 +11,7 @@ export function TeaserVideosSection({ teaserVideos }: TeaserVideosSectionProps) 
   if (!teaserVideos || teaserVideos.length === 0) return null;
 
   return (
-    <section className="py-20 md:py-28 bg-[#F7F3E8]">
+    <section className="py-20 md:py-28 bg-[#EFEAD8]/60 border-y border-[#3A4F1C]/10">
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         <SectionHeading
           eyebrow="Visual Stories"

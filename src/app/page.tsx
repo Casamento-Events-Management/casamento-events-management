@@ -2,11 +2,10 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { getHomePageContent } from '@/lib/services/homeService';
 import { HeroSectionComponent } from '@/components/home/hero-section';
-import { TeaserVideosSection } from '@/components/home/teaser-videos-section';
-import { UpcomingEventsSection } from '@/components/home/upcoming-events-section';
 import { PartnersSection } from '@/components/home/partners-section';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { HomeJsonLd } from '@/components/home/home-json-ld';
+import { TeaserVideosSection } from '@/components/home/teaser-videos-section';
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getHomePageContent();
@@ -54,16 +53,13 @@ export default async function HomePage() {
         {/* Section 1: Hero / Landing Section */}
         <HeroSectionComponent hero={content.hero} />
 
-        {/* Section 2: 3 Teaser Videos Section */}
+        {/* Section 2: Teaser Videos Section */}
         <TeaserVideosSection teaserVideos={content.teaserVideos} />
 
-        {/* Section 3: Upcoming Events Section */}
-        <UpcomingEventsSection events={content.upcomingEvents} />
-
-        {/* Section 4: Partners Section */}
+        {/* Section 3: Partners: 1 whole section */}
         <PartnersSection partners={content.partners} />
 
-        {/* Section 5: Connect With Us Section */}
+        {/* Section 4: Connect With Us Section */}
         <ConnectSection socialLinks={content.socialLinks} />
       </article>
     </>

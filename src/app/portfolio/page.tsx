@@ -6,10 +6,16 @@
 // =============================================================================
 
 import type { Metadata } from 'next';
-import { getPortfolioCategories, getPortfolioHeroContent, getPortfolioItems } from '@/lib/services/portfolioService';
+import {
+    getPortfolioCategories, getPortfolioHeroContent,
+    getPortfolioItems
+} from '@/lib/services/portfolioService';
+
 import { PortfolioHero } from '@/components/portfolio/portfolio-hero';
 import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { PortfolioJsonLd } from '@/components/portfolio/portfolio-json-ld';
+import { getHomePageContent } from '@/lib/services/homeService';
+import { UpcomingEventsSection } from '@/components/home/upcoming-events-section';
 
 export const metadata: Metadata = {
     title: 'Portfolio | Wedding Films, Stage Production & Live Streams',
@@ -39,10 +45,11 @@ export const metadata: Metadata = {
 };
 
 export default async function PortfolioPage() {
-    const [categories, items, heroContent] = await Promise.all([
+    const [categories, items, heroContent, content] = await Promise.all([
         getPortfolioCategories(),
         getPortfolioItems('all'),
         getPortfolioHeroContent(),
+        getHomePageContent(),
     ]);
 
     return (
@@ -51,6 +58,9 @@ export default async function PortfolioPage() {
                 title={heroContent.title}
                 description={heroContent.description}
             />
+
+            <UpcomingEventsSection events={content.upcomingEvents} />
+
             <PortfolioView
                 categories={categories}
                 items={items}
