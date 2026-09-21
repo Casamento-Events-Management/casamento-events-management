@@ -2,35 +2,43 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { getHomePageContent } from '@/lib/services/homeService';
 import { HeroSectionComponent } from '@/components/home/hero-section';
-import { TeaserVideosSection } from '@/components/home/teaser-videos-section';
-import { UpcomingEventsSection } from '@/components/home/upcoming-events-section';
 import { PartnersSection } from '@/components/home/partners-section';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { HomeJsonLd } from '@/components/home/home-json-ld';
+import { TeaserVideosSection } from '@/components/home/teaser-videos-section';
 
 export async function generateMetadata(): Promise<Metadata> {
   const content = await getHomePageContent();
+  const firstSlide = content.hero?.slides?.[0];
+  const pageDescription =
+    firstSlide?.description ||
+    'Crafting unforgettable celebrations that last a lifetime. Luxury event management and production across the Philippines.';
+  const pageOgImage =
+    firstSlide?.image?.asset?.url ||
+    firstSlide?.videoPoster?.asset?.url ||
+    '';
+
   return {
     title: 'Casamento Events | Unforgettable Celebrations & Event Management',
-    description: content.hero.brandline,
+    description: pageDescription,
     openGraph: {
       title: 'Casamento Events | Unforgettable Celebrations',
-      description: content.hero.brandline,
+      description: pageDescription,
       locale: 'en_PH',
       images: [
         {
-          url: content.hero.showreelThumbnail.asset.url || '',
+          url: pageOgImage,
           width: 1920,
           height: 1080,
-          alt: content.hero.showreelThumbnail.alt || 'Casamento Events Hero',
+          alt: firstSlide?.heading || 'Casamento Events Hero',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Casamento Events | Unforgettable Celebrations', // to be finalize
-      description: content.hero.brandline,
-      images: [content.hero.showreelThumbnail.asset.url || ''],
+      title: 'Casamento Events | Unforgettable Celebrations',
+      description: pageDescription,
+      images: [pageOgImage],
     },
   };
 }
@@ -45,16 +53,18 @@ export default async function HomePage() {
         {/* Section 1: Hero / Landing Section */}
         <HeroSectionComponent hero={content.hero} />
 
-        {/* Section 2: 3 Teaser Videos Section */}
-        <TeaserVideosSection teaserVideos={content.teaserVideos} />
+        {/* Section 2: Teaser Videos Section */}
+        <TeaserVideosSection
+          teaserVideos={content.teaserVideos}
+          eyebrow={content.teaserVideosEyebrow}
+          title={content.teaserVideosTitle}
+          description={content.teaserVideosDescription}
+        />
 
-        {/* Section 3: Upcoming Events Section */}
-        <UpcomingEventsSection events={content.upcomingEvents} />
-
-        {/* Section 4: Partners Section */}
+        {/* Section 3: Partners: 1 whole section */}
         <PartnersSection partners={content.partners} />
 
-        {/* Section 5: Connect With Us Section */}
+        {/* Section 4: Connect With Us Section */}
         <ConnectSection socialLinks={content.socialLinks} />
       </article>
     </>

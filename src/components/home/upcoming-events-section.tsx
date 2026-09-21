@@ -1,17 +1,23 @@
 import React from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Calendar, MapPin, ChevronRight } from 'lucide-react';
+import { Calendar, MapPin } from 'lucide-react';
 import type { UpcomingEvent } from '@/types';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Badge } from '@/components/ui/badge';
 
 interface UpcomingEventsSectionProps {
   events: UpcomingEvent[];
+  eyebrow?: string;
+  title?: string;
+  description?: string;
 }
 
-export function UpcomingEventsSection({ events }: UpcomingEventsSectionProps) {
+export function UpcomingEventsSection({ events, eyebrow, title, description }: UpcomingEventsSectionProps) {
   if (!events || events.length === 0) return null;
+
+  const displayEyebrow = (eyebrow && eyebrow.trim()) ? eyebrow : 'Calendar & Events';
+  const displayTitle = (title && title.trim()) ? title : 'Upcoming & Featured Events';
+  const displayDescription = (description && description.trim()) ? description : 'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.';
 
   const formatDate = (dateString: string) => {
     try {
@@ -30,9 +36,9 @@ export function UpcomingEventsSection({ events }: UpcomingEventsSectionProps) {
     <section className="py-20 md:py-28 bg-[#EFEAD8]/60 border-y border-[#3A4F1C]/10">
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
         <SectionHeading
-          eyebrow="Calendar & Portfolio"
-          title="Upcoming & Featured Events"
-          subtitle="Discover our upcoming celebrations and past milestone galas curated with timeless elegance."
+          eyebrow={displayEyebrow}
+          title={displayTitle}
+          subtitle={displayDescription}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -73,16 +79,6 @@ export function UpcomingEventsSection({ events }: UpcomingEventsSectionProps) {
                       <span>{event.location}</span>
                     </div>
                   )}
-                </div>
-
-                <div className="pt-4 border-t border-[#3A4F1C]/10 flex items-center justify-between">
-                  <Link
-                    href={`/portfolio#${event.slug.current}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#3A4F1C] uppercase tracking-wider hover:text-[#BC6F07] transition-colors"
-                  >
-                    <span>View Event Details</span>
-                    <ChevronRight size={14} />
-                  </Link>
                 </div>
               </div>
             </div>

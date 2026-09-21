@@ -11,6 +11,7 @@ import { serviceItem } from './documents/serviceItem'
 
 // Objects
 import { heroSection } from './objects/heroSection'
+import { heroSlide } from './objects/heroSlide'
 import { partner } from './objects/partner'
 import { sanityImageWithPriority } from './objects/sanityImageWithPriority'
 import { serviceAddOn } from './objects/serviceAddOn'
@@ -32,6 +33,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
 
     // Reusable Objects
     heroSection,
+    heroSlide,
     partner,
     sanityImageWithPriority,
     serviceAddOn,
@@ -41,3 +43,4 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     videoSource,
   ],
 }
+

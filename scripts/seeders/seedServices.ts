@@ -11,7 +11,7 @@
  *   2. Items with category reference (_ref pointing to category _id)
  */
 
-import { MOCK_SERVICE_CATEGORIES, MOCK_SERVICE_ITEMS } from '../../src/data/servicesMock'
+import { MOCK_SERVICE_CATEGORIES, MOCK_SERVICES_HERO, MOCK_SERVICE_ITEMS } from '../../src/data/servicesMock'
 import { createWriteClient, generateKey, uploadImageFromUrl } from './helpers'
 
 export async function seedServices(dryRun: boolean): Promise<void> {
@@ -22,9 +22,7 @@ export async function seedServices(dryRun: boolean): Promise<void> {
     const heroDoc = {
         _id: 'servicesHero',
         _type: 'servicesHero',
-        title: 'Crafted Experiences, Unforgettable Moments',
-        description:
-            'From bespoke full wedding planning to technical broadcast production, we deliver immaculate events tailored to your vision.',
+        ...MOCK_SERVICES_HERO,
     }
 
     if (dryRun) {

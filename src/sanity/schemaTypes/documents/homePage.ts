@@ -16,6 +16,28 @@ export const homePage = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'teaserVideosEyebrow',
+      title: 'Teaser Videos Section Eyebrow',
+      type: 'string',
+      description: 'Small tagline above the teaser videos section title (e.g. "Visual Stories").',
+      initialValue: 'Visual Stories',
+    }),
+    defineField({
+      name: 'teaserVideosTitle',
+      title: 'Teaser Videos Section Title',
+      type: 'string',
+      description: 'Main heading for the teaser videos section.',
+      initialValue: 'Featured Teaser Highlights',
+    }),
+    defineField({
+      name: 'teaserVideosDescription',
+      title: 'Teaser Videos Section Description',
+      type: 'text',
+      rows: 3,
+      description: 'Introductory paragraph beneath the section heading.',
+      initialValue: 'Experience the emotional intensity and cinematic splendor of our handcrafted celebrations.',
+    }),
+    defineField({
       name: 'teaserVideos',
       title: 'Teaser Highlight Videos',
       type: 'array',

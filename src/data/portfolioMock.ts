@@ -5,7 +5,21 @@
 // returned from Sanity CMS for local development and static fallback.
 // =============================================================================
 
-import type { PortfolioCategory, PortfolioItem } from '@/types';
+import type { PortfolioCategory, PortfolioHeroContent, PortfolioItem } from '@/types';
+
+export const MOCK_PORTFOLIO_HERO: PortfolioHeroContent = {
+    title: 'Masterpieces in Motion',
+    description:
+        'Explore our curated showcase of high-end wedding films, immersive stage productions, and broadcast-grade live streams crafted with technical precision and artistic passion.',
+    galleryEyebrow: 'Portfolio Gallery',
+    galleryTitle: 'Explore Our Showcase',
+    galleryDescription:
+        'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
+    upcomingEventsEyebrow: 'Calendar & Events',
+    upcomingEventsTitle: 'Upcoming & Featured Events',
+    upcomingEventsDescription:
+        'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
+};
 
 export const MOCK_PORTFOLIO_CATEGORIES: PortfolioCategory[] = [
     {

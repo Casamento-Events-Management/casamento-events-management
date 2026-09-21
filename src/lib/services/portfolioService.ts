@@ -9,7 +9,7 @@
 // =============================================================================
 
 import { client } from '@/sanity/lib/client';
-import { MOCK_PORTFOLIO_CATEGORIES, MOCK_PORTFOLIO_ITEMS } from '@/data/portfolioMock';
+import { MOCK_PORTFOLIO_CATEGORIES, MOCK_PORTFOLIO_HERO, MOCK_PORTFOLIO_ITEMS } from '@/data/portfolioMock';
 import type { PortfolioCategory, PortfolioHeroContent, PortfolioItem, SanityPortfolioItem } from '@/types';
 
 // =============================================================================
@@ -192,7 +192,7 @@ export async function getPortfolioItems(
 
     // Fallback to local mock data
     const items: PortfolioItem[] = JSON.parse(JSON.stringify(MOCK_PORTFOLIO_ITEMS));
-    
+
     // Filter by category if specified and not 'all'
     const filtered = categorySlug && categorySlug !== 'all'
         ? items.filter((item) => item.category.slug === categorySlug)
@@ -234,16 +234,18 @@ export async function getPortfolioItemBySlug(slug: string): Promise<PortfolioIte
 export const GROQ_PORTFOLIO_HERO = `
   *[_type == "portfolioHero" && _id == "portfolioHero"][0] {
     title,
-    description
+    description,
+    galleryEyebrow,
+    galleryTitle,
+    galleryDescription,
+    upcomingEventsEyebrow,
+    upcomingEventsTitle,
+    upcomingEventsDescription
   }
 `;
 
-/** Hardcoded fallback used when Sanity is unreachable or document is unpublished. */
-const PORTFOLIO_HERO_FALLBACK: PortfolioHeroContent = {
-    title: 'Masterpieces in Motion',
-    description:
-        'Explore our curated showcase of high-end wedding films, immersive stage productions, and broadcast-grade live streams crafted with technical precision and artistic passion.',
-};
+/** Fallback used when Sanity is unreachable or document is unpublished. */
+const PORTFOLIO_HERO_FALLBACK: PortfolioHeroContent = MOCK_PORTFOLIO_HERO;
 
 /**
  * Returns the Portfolio Hero `title` and `description` from Sanity CMS.
@@ -261,7 +263,16 @@ export async function getPortfolioHeroContent(): Promise<PortfolioHeroContent> {
         );
 
         if (data?.title && data?.description) {
-            return data;
+            return {
+                title: data.title,
+                description: data.description,
+                galleryEyebrow: data.galleryEyebrow || PORTFOLIO_HERO_FALLBACK.galleryEyebrow,
+                galleryTitle: data.galleryTitle || PORTFOLIO_HERO_FALLBACK.galleryTitle,
+                galleryDescription: data.galleryDescription || PORTFOLIO_HERO_FALLBACK.galleryDescription,
+                upcomingEventsEyebrow: data.upcomingEventsEyebrow || PORTFOLIO_HERO_FALLBACK.upcomingEventsEyebrow,
+                upcomingEventsTitle: data.upcomingEventsTitle || PORTFOLIO_HERO_FALLBACK.upcomingEventsTitle,
+                upcomingEventsDescription: data.upcomingEventsDescription || PORTFOLIO_HERO_FALLBACK.upcomingEventsDescription,
+            };
         }
     } catch (err) {
         console.warn(

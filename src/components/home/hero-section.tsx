@@ -1,6 +1,6 @@
 import React from 'react';
 import type { HeroSection } from '@/types';
-import { HeroPlayer } from './hero-player';
+import { HeroCarousel } from './hero-carousel';
 
 interface HeroSectionProps {
   hero: HeroSection;
@@ -9,7 +9,8 @@ interface HeroSectionProps {
 export function HeroSectionComponent({ hero }: HeroSectionProps) {
   return (
     <section className="relative w-full pt-16 md:pt-20">
-      <HeroPlayer hero={hero} />
+      <HeroCarousel hero={hero} />
     </section>
   );
 }
+

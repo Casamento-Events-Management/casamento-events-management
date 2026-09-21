@@ -34,9 +34,9 @@ export function TeaserCard({ teaser }: TeaserCardProps) {
 
   return (
     <>
-      <div className="group flex flex-col bg-white rounded-2xl overflow-hidden border border-[#3A4F1C]/10 shadow-xs hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
+      <div className="group flex flex-col justify-between h-full flex-1 w-full bg-white rounded-2xl overflow-hidden border border-[#3A4F1C]/10 shadow-xs hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
         {/* Poster Image Container */}
-        <div className="relative aspect-video w-full overflow-hidden bg-[#2A3A14]">
+        <div className="relative aspect-video w-full shrink-0 overflow-hidden bg-[#2A3A14]">
           <Image
             src={teaser.thumbnail.asset.url || ''}
             alt={teaser.thumbnail.alt || teaser.title}
@@ -59,13 +59,17 @@ export function TeaserCard({ teaser }: TeaserCardProps) {
         </div>
 
         {/* Card Info */}
-        <div className="p-6 flex flex-col flex-1">
+        <div className="p-6 flex flex-col justify-between flex-1 min-h-[110px]">
           <h3 className="text-lg font-serif font-semibold text-[#3A4F1C] mb-2 line-clamp-1 group-hover:text-[#BC6F07] transition-colors">
             {teaser.title}
           </h3>
-          {teaser.description && (
+          {teaser.description ? (
             <p className="text-sm text-[#3A4F1C]/75 font-light leading-relaxed line-clamp-2">
               {teaser.description}
+            </p>
+          ) : (
+            <p className="text-sm opacity-0 pointer-events-none select-none font-light leading-relaxed line-clamp-2" aria-hidden="true">
+              &nbsp;
             </p>
           )}
         </div>
