@@ -1,5 +1,6 @@
 export { ServicesHero } from './services-hero';
 export { ServicesCategoryFilter } from './services-category-filter';
+export { ServicesCategoryAccordion } from './services-category-accordion';
 export { ServicesCard } from './services-card';
 export { ServicesDetailPanel } from './services-detail-panel';
 export { ServicesView } from './services-view';

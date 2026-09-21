@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useTransition, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { ServicesCategoryFilter } from './services-category-filter';
-import { ServicesCard } from './services-card';
+import { ServicesCategoryAccordion } from './services-category-accordion';
 import { ServicesDetailPanel } from './services-detail-panel';
 import type { ServiceCategory, ServiceItem, ActiveServiceCategoryFilter } from '@/types';
 
@@ -16,66 +15,80 @@ interface ServicesViewProps {
 function ServicesViewContent({
     categories,
     services,
-    activeCategory: initialActiveCategory,
 }: ServicesViewProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    const [activeCategory, setActiveCategory] = useState<ActiveServiceCategoryFilter>(initialActiveCategory);
+    // State for array of currently expanded category slugs
+    const [openCategorySlugs, setOpenCategorySlugs] = useState<string[]>([]);
+    
+    // State for selected service across categories
     const [selectedService, setSelectedService] = useState<ServiceItem | null>(
         services && services.length > 0 ? services[0] : null
     );
+    
+    // Mobile modal state
     const [mobileModalService, setMobileModalService] = useState<ServiceItem | null>(null);
     const [, startTransition] = useTransition();
 
     const serviceParam = searchParams.get('service');
     const categoryParam = searchParams.get('category');
 
-    const allCategoriesList = [
-        { slug: 'all', title: 'All Services' },
-        ...categories.map((cat) => ({
-            slug: cat.slug,
-            title: cat.title,
-        })),
-    ];
-
-    // Sync state with URL search params
+    // 1. Initial load & Deep Link URL parameter auto-open logic
     useEffect(() => {
-        if (categoryParam && categoryParam !== activeCategory) {
-            startTransition(() => {
-                setActiveCategory(categoryParam);
-            });
-        }
+        let initialOpenSlug: string | null = null;
+        let matchedService: ServiceItem | null = null;
+
         if (serviceParam) {
-            const match = services.find((s) => s.slug === serviceParam || s.id === serviceParam);
-            if (match) {
-                startTransition(() => {
-                    setSelectedService(match);
-                });
+            matchedService = services.find((s) => s.slug === serviceParam || s.id === serviceParam) || null;
+            if (matchedService) {
+                initialOpenSlug = matchedService.category.slug;
+            }
+        } else if (categoryParam && categoryParam !== 'all') {
+            initialOpenSlug = categoryParam;
+            const catServices = services.filter((s) => s.category.slug === categoryParam);
+            if (catServices.length > 0) {
+                matchedService = catServices[0];
             }
         }
-    }, [serviceParam, categoryParam, services, activeCategory, startTransition]);
 
-    // Filter service items by active category
-    const filteredServices = activeCategory === 'all'
-        ? services
-        : services.filter((s) => s.category.slug === activeCategory);
+        if (initialOpenSlug) {
+            startTransition(() => {
+                setOpenCategorySlugs((prev) =>
+                    prev.includes(initialOpenSlug!) ? prev : [...prev, initialOpenSlug!]
+                );
+                if (matchedService) {
+                    setSelectedService(matchedService);
+                }
+            });
+        }
+    }, [serviceParam, categoryParam, services, startTransition]);
 
-    // Instant category selection without screen freeze
-    const handleSelectCategory = (slug: ActiveServiceCategoryFilter) => {
-        setActiveCategory(slug);
+    // Handle toggling category open/closed
+    const handleToggleCategory = (catSlug: string) => {
+        const isCurrentlyOpen = openCategorySlugs.includes(catSlug);
+        const nextOpen = isCurrentlyOpen
+            ? openCategorySlugs.filter((s) => s !== catSlug)
+            : [...openCategorySlugs, catSlug];
 
-        const categoryItems = slug === 'all' ? services : services.filter((s) => s.category.slug === slug);
-        if (categoryItems.length > 0) {
-            setSelectedService(categoryItems[0]);
+        setOpenCategorySlugs(nextOpen);
+
+        // If opening a category, automatically select its first service if none selected in it
+        if (!isCurrentlyOpen) {
+            const catServices = services.filter((s) => s.category.slug === catSlug);
+            if (catServices.length > 0) {
+                setSelectedService(catServices[0]);
+            }
         }
 
+        // Sync URL state cleanly without calling replaceState inside pure state updater
         if (typeof window !== 'undefined') {
             const newParams = new URLSearchParams(window.location.search);
-            if (slug === 'all') {
-                newParams.delete('category');
+            if (!isCurrentlyOpen) {
+                newParams.set('category', catSlug);
             } else {
-                newParams.set('category', slug);
+                newParams.delete('category');
+                newParams.delete('service');
             }
             const queryStr = newParams.toString();
             const newUrl = queryStr ? `${pathname}?${queryStr}` : pathname;
@@ -86,9 +99,15 @@ function ServicesViewContent({
     const handleSelectService = (service: ServiceItem) => {
         setSelectedService(service);
 
+        // Ensure category is open if service selected
+        if (!openCategorySlugs.includes(service.category.slug)) {
+            setOpenCategorySlugs((prev) => [...prev, service.category.slug]);
+        }
+
         if (typeof window !== 'undefined') {
             const newParams = new URLSearchParams(window.location.search);
             newParams.set('service', service.slug);
+            newParams.set('category', service.category.slug);
             const queryStr = newParams.toString();
             const newUrl = `${pathname}?${queryStr}`;
             window.history.replaceState(null, '', newUrl);
@@ -100,77 +119,72 @@ function ServicesViewContent({
         setMobileModalService(service);
     };
 
+    const handleExpandAll = () => {
+        setOpenCategorySlugs(categories.map((c) => c.slug));
+    };
+
+    const handleCollapseAll = () => {
+        setOpenCategorySlugs([]);
+    };
+
     return (
         <section className="py-6 sm:py-12 bg-[#EFEAD8]/60 border-t border-[#3A4F1C]/10 min-h-screen">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
                 
-                {/* Mobile Category Dropdown — Sits inside Services body, sticky when scrolling down */}
-                <div className="lg:hidden sticky top-[56px] sm:top-[64px] z-30 bg-[#EFEAD8] py-2 mb-4 border-b border-[#3A4F1C]/20 shadow-xs">
-                    <label htmlFor="mobile-category-select-body" className="sr-only">
-                        Select Category
-                    </label>
-                    <div className="relative">
-                        <select
-                            id="mobile-category-select-body"
-                            value={activeCategory}
-                            onChange={(e) => handleSelectCategory(e.target.value)}
-                            className="w-full appearance-none bg-[#F7F3E8] text-[#3A4F1C] text-xs font-semibold uppercase tracking-wider py-2.5 px-3.5 pr-10 rounded-xl border border-[#3A4F1C]/30 shadow-xs focus:outline-none focus:ring-2 focus:ring-[#BC6F07] cursor-pointer"
+                {/* Accordion Controls & Quick Filter Bar */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#F7F3E8] p-3.5 sm:p-4 rounded-xl border border-[#3A4F1C]/15 shadow-xs">
+                    <div className="flex items-center space-x-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#3A4F1C]">
+                            Service Categories
+                        </span>
+                        <span className="text-xs text-[#3A4F1C]/60">
+                            ({categories.length} Total)
+                        </span>
+                    </div>
+
+                    {/* Expand All / Collapse All Quick Actions */}
+                    <div className="flex items-center space-x-2 text-xs font-medium">
+                        <button
+                            type="button"
+                            onClick={handleExpandAll}
+                            className="px-3 py-1.5 rounded-lg bg-[#3A4F1C]/10 hover:bg-[#3A4F1C] hover:text-[#F7F3E8] text-[#3A4F1C] transition-colors cursor-pointer"
                         >
-                            {allCategoriesList.map((cat) => (
-                                <option key={cat.slug} value={cat.slug}>
-                                    {cat.title}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#3A4F1C]">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </div>
+                            Expand All
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCollapseAll}
+                            className="px-3 py-1.5 rounded-lg border border-[#3A4F1C]/20 hover:bg-[#3A4F1C]/10 text-[#3A4F1C]/80 transition-colors cursor-pointer"
+                        >
+                            Collapse All
+                        </button>
                     </div>
                 </div>
 
-                {/* 3-Column Layout: 15% / 50% / 35% Breakdown */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-                    
-                    {/* Column 1 (15% Category Navigation) — Sticky on Desktop */}
-                    <div className="hidden lg:block lg:col-span-2 lg:sticky lg:top-24 lg:self-start">
-                        <ServicesCategoryFilter
-                            categories={categories}
-                            activeCategory={activeCategory}
-                            onSelectCategory={handleSelectCategory}
-                        />
-                    </div>
+                {/* Collapsible Accordions List */}
+                <div className="space-y-4 sm:space-y-6">
+                    {categories.map((cat, idx) => {
+                        const catServices = services.filter((s) => s.category.slug === cat.slug);
+                        const isOpen = openCategorySlugs.includes(cat.slug);
 
-                    {/* Column 2 (50% Service Cards List) — Primary Scrollable Feed */}
-                    <div className="lg:col-span-6 space-y-4 sm:space-y-5">
-                        {filteredServices.length > 0 ? (
-                            filteredServices.map((service, index) => (
-                                <ServicesCard
-                                    key={service.id || service.slug || `service-card-${index}`}
-                                    service={service}
-                                    isSelected={selectedService?.id === service.id}
-                                    onSelect={handleSelectService}
-                                    onOpenMobileModal={handleOpenMobileModal}
-                                    priority={index === 0}
-                                />
-                            ))
-                        ) : (
-                            <div className="py-16 text-center rounded-xl bg-[#F7F3E8] border border-[#3A4F1C]/15">
-                                <p className="text-[#3A4F1C]/80 text-sm font-medium">
-                                    No services found in this category.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Column 3 (35% Book Now Detail Card) — Sticky on Desktop */}
-                    <div className="hidden lg:block lg:col-span-4 lg:sticky lg:top-24 lg:self-start">
-                        <ServicesDetailPanel
-                            service={selectedService}
-                        />
-                    </div>
-
+                        return (
+                            <ServicesCategoryAccordion
+                                key={cat.id || cat.slug || `category-${idx}`}
+                                category={{
+                                    slug: cat.slug,
+                                    title: cat.title,
+                                    description: cat.description,
+                                }}
+                                services={catServices}
+                                isOpen={isOpen}
+                                onToggle={() => handleToggleCategory(cat.slug)}
+                                selectedService={selectedService}
+                                onSelectService={handleSelectService}
+                                onOpenMobileModal={handleOpenMobileModal}
+                                isFirstPriority={idx === 0}
+                            />
+                        );
+                    })}
                 </div>
             </div>
 
