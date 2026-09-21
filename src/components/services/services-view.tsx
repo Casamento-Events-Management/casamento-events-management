@@ -10,11 +10,17 @@ interface ServicesViewProps {
     categories: ServiceCategory[];
     services: ServiceItem[];
     activeCategory: ActiveServiceCategoryFilter;
+    eyebrow?: string;
+    title?: string;
+    description?: string;
 }
 
 function ServicesViewContent({
     categories,
     services,
+    eyebrow,
+    title,
+    description,
 }: ServicesViewProps) {
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -131,6 +137,27 @@ function ServicesViewContent({
         <section className="py-6 sm:py-12 bg-[#EFEAD8]/60 border-t border-[#3A4F1C]/10 min-h-screen">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
                 
+                {/* Service Section Hero Header */}
+                {(eyebrow || title || description) && (
+                    <div className="text-center space-y-2 pb-2">
+                        {eyebrow && (
+                            <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-[#BC6F07] block">
+                                {eyebrow}
+                            </span>
+                        )}
+                        {title && (
+                            <h2 className="text-2xl sm:text-4xl font-serif font-semibold text-[#3A4F1C] tracking-tight">
+                                {title}
+                            </h2>
+                        )}
+                        {description && (
+                            <p className="text-sm sm:text-base text-[#3A4F1C]/80 max-w-3xl mx-auto leading-relaxed font-light">
+                                {description}
+                            </p>
+                        )}
+                    </div>
+                )}
+
                 {/* Accordion Controls & Quick Filter Bar */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#F7F3E8] p-3.5 sm:p-4 rounded-xl border border-[#3A4F1C]/15 shadow-xs">
                     <div className="flex items-center space-x-2">

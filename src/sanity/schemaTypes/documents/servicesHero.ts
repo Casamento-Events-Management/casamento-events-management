@@ -27,6 +27,28 @@ export const servicesHero = defineType({
       description: 'Introductory paragraph shown beneath the title. Keep it concise — 1–2 sentences recommended.',
       validation: (Rule) => Rule.required().min(20).max(400),
     }),
+    defineField({
+      name: 'servicesEyebrow',
+      title: 'Services Section Eyebrow Tagline',
+      type: 'string',
+      description: 'Small uppercase tagline shown above the Service Section title (e.g. "OUR SERVICE CATALOG").',
+      validation: (Rule) => Rule.max(60),
+    }),
+    defineField({
+      name: 'servicesTitle',
+      title: 'Services Section Title',
+      type: 'string',
+      description: 'Heading displayed directly above the collapsible service categories list.',
+      validation: (Rule) => Rule.max(120),
+    }),
+    defineField({
+      name: 'servicesDescription',
+      title: 'Services Section Description',
+      type: 'text',
+      rows: 3,
+      description: 'Introductory copy displayed directly above the category list.',
+      validation: (Rule) => Rule.max(400),
+    }),
   ],
   preview: {
     select: {

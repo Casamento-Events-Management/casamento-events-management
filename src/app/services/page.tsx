@@ -60,6 +60,9 @@ export default async function ServicesPage() {
                 categories={categories}
                 services={services}
                 activeCategory="all"
+                eyebrow={heroContent.servicesEyebrow}
+                title={heroContent.servicesTitle}
+                description={heroContent.servicesDescription}
             />
             <ServicesJsonLd services={services} />
             <ConnectSection socialLinks={homeContent.socialLinks} />

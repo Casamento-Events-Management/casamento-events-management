@@ -206,7 +206,10 @@ export async function getServiceItemBySlug(slug: string): Promise<ServiceItem | 
 export const GROQ_SERVICES_HERO = `
   *[_type == "servicesHero" && _id == "servicesHero"][0] {
     title,
-    description
+    description,
+    servicesEyebrow,
+    servicesTitle,
+    servicesDescription
   }
 `;
 
@@ -215,10 +218,14 @@ const SERVICES_HERO_FALLBACK: ServicesHeroContent = {
     title: 'Crafted Experiences, Unforgettable Moments',
     description:
         'Discover our bespoke wedding planning, turnkey coordination, and broadcast-grade technical production services tailored for luxury celebrations across the Philippines.',
+    servicesEyebrow: 'OUR SERVICE CATALOG',
+    servicesTitle: 'Explore Our Service Offerings',
+    servicesDescription:
+        'Select a category below to explore package inclusions, optional add-ons, and instant price estimates.',
 };
 
 /**
- * Returns the Services Hero `title` and `description` from Sanity CMS.
+ * Returns the Services Hero content and Service Section header fields from Sanity CMS.
  * Falls back to hardcoded defaults when the singleton is not yet published or
  * when the Sanity fetch fails (e.g. during local development without credentials).
  *
@@ -233,7 +240,13 @@ export async function getServicesHeroContent(): Promise<ServicesHeroContent> {
         );
 
         if (data?.title && data?.description) {
-            return data;
+            return {
+                title: data.title,
+                description: data.description,
+                servicesEyebrow: data.servicesEyebrow || SERVICES_HERO_FALLBACK.servicesEyebrow,
+                servicesTitle: data.servicesTitle || SERVICES_HERO_FALLBACK.servicesTitle,
+                servicesDescription: data.servicesDescription || SERVICES_HERO_FALLBACK.servicesDescription,
+            };
         }
     } catch (err) {
         console.warn(

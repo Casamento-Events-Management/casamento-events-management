@@ -219,6 +219,12 @@ export interface SanityServicesHero extends SanityDocument {
     title: string;
     /** Introductory paragraph shown beneath the headline. */
     description: string;
+    /** Section Eyebrow tagline displayed above the section title. */
+    servicesEyebrow?: string;
+    /** Section title displayed above the collapsible service categories. */
+    servicesTitle?: string;
+    /** Section introductory copy displayed above the category list. */
+    servicesDescription?: string;
 }
 
 /**
@@ -228,4 +234,7 @@ export interface SanityServicesHero extends SanityDocument {
 export interface ServicesHeroContent {
     title: string;
     description: string;
+    servicesEyebrow?: string;
+    servicesTitle?: string;
+    servicesDescription?: string;
 }

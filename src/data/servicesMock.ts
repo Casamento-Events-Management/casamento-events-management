@@ -4,6 +4,10 @@ export const MOCK_SERVICES_HERO: ServicesHeroContent = {
     title: 'Crafted Experiences, Unforgettable Moments',
     description:
         'From bespoke full wedding planning to technical broadcast production, we deliver immaculate events tailored to your vision.',
+    servicesEyebrow: 'OUR SERVICE CATALOG',
+    servicesTitle: 'Explore Our Service Offerings',
+    servicesDescription:
+        'Select a category below to explore package inclusions, optional add-ons, and instant price estimates.',
 };
 
 /**
