@@ -9,7 +9,7 @@
 // =============================================================================
 
 import { client } from '@/sanity/lib/client';
-import { MOCK_PORTFOLIO_CATEGORIES, MOCK_PORTFOLIO_ITEMS } from '@/data/portfolioMock';
+import { MOCK_PORTFOLIO_CATEGORIES, MOCK_PORTFOLIO_HERO, MOCK_PORTFOLIO_ITEMS } from '@/data/portfolioMock';
 import type { PortfolioCategory, PortfolioHeroContent, PortfolioItem, SanityPortfolioItem } from '@/types';
 
 // =============================================================================
@@ -244,20 +244,8 @@ export const GROQ_PORTFOLIO_HERO = `
   }
 `;
 
-/** Hardcoded fallback used when Sanity is unreachable or document is unpublished. */
-const PORTFOLIO_HERO_FALLBACK: PortfolioHeroContent = {
-    title: 'Masterpieces in Motion',
-    description:
-        'Explore our curated showcase of high-end wedding films, immersive stage productions, and broadcast-grade live streams crafted with technical precision and artistic passion.',
-    galleryEyebrow: 'Portfolio Gallery',
-    galleryTitle: 'Explore Our Showcase',
-    galleryDescription:
-        'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
-    upcomingEventsEyebrow: 'Calendar & Events',
-    upcomingEventsTitle: 'Upcoming & Featured Events',
-    upcomingEventsDescription:
-        'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
-};
+/** Fallback used when Sanity is unreachable or document is unpublished. */
+const PORTFOLIO_HERO_FALLBACK: PortfolioHeroContent = MOCK_PORTFOLIO_HERO;
 
 /**
  * Returns the Portfolio Hero `title` and `description` from Sanity CMS.

@@ -1,4 +1,10 @@
-import type { ServiceCategory, ServiceItem } from '@/types';
+import type { ServiceCategory, ServiceItem, ServicesHeroContent } from '@/types';
+
+export const MOCK_SERVICES_HERO: ServicesHeroContent = {
+    title: 'Crafted Experiences, Unforgettable Moments',
+    description:
+        'From bespoke full wedding planning to technical broadcast production, we deliver immaculate events tailored to your vision.',
+};
 
 /**
  * Mock Service Categories for Phase 1 Scaffolding & Fallback State.

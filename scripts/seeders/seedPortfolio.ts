@@ -10,7 +10,7 @@
  *   2. Items with category reference (_ref pointing to category _id)
  */
 
-import { MOCK_PORTFOLIO_CATEGORIES, MOCK_PORTFOLIO_ITEMS } from '../../src/data/portfolioMock'
+import { MOCK_PORTFOLIO_CATEGORIES, MOCK_PORTFOLIO_HERO, MOCK_PORTFOLIO_ITEMS } from '../../src/data/portfolioMock'
 import { createWriteClient, generateKey, uploadImageFromUrl } from './helpers'
 
 export async function seedPortfolio(dryRun: boolean): Promise<void> {
@@ -21,17 +21,7 @@ export async function seedPortfolio(dryRun: boolean): Promise<void> {
     const heroDoc = {
         _id: 'portfolioHero',
         _type: 'portfolioHero',
-        title: 'Masterpieces in Motion',
-        description:
-            'Explore our curated gallery of luxury weddings, grand production designs, and high-definition event broadcasts captured across the globe.',
-        galleryEyebrow: 'Portfolio Gallery',
-        galleryTitle: 'Explore Our Showcase',
-        galleryDescription:
-            'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
-        upcomingEventsEyebrow: 'Calendar & Events',
-        upcomingEventsTitle: 'Upcoming & Featured Events',
-        upcomingEventsDescription:
-            'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
+        ...MOCK_PORTFOLIO_HERO,
     }
 
     if (dryRun) {
