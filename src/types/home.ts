@@ -138,6 +138,13 @@ export interface HomePageContent extends SanityDocument {
     /** Full-screen landing / hero section data. */
     hero: HeroSection;
 
+    /** Optional section header eyebrow for the teaser videos section. */
+    teaserVideosEyebrow?: string;
+    /** Optional section header title for the teaser videos section. */
+    teaserVideosTitle?: string;
+    /** Optional section header description for the teaser videos section. */
+    teaserVideosDescription?: string;
+
     /**
      * Teaser videos displayed in the teaser row.
      * Sort in GROQ: `order(priority desc, _createdAt asc)` then `.slice(0, N)`.

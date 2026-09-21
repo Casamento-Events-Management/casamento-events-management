@@ -134,7 +134,12 @@ export async function seedHome(dryRun: boolean): Promise<void> {
             }),
         },
 
-        // ── Teaser videos ──────────────────────────────────────────────────
+        // ── Teaser videos header & items ────────────────────────────────────
+        teaserVideosEyebrow: mock.teaserVideosEyebrow || 'Visual Stories',
+        teaserVideosTitle: mock.teaserVideosTitle || 'Featured Teaser Highlights',
+        teaserVideosDescription:
+            mock.teaserVideosDescription ||
+            'Experience the emotional intensity and cinematic splendor of our handcrafted celebrations.',
         teaserVideos: mock.teaserVideos.map((tv, i) => {
             const vid = tv.video
             return {

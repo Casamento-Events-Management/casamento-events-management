@@ -8,9 +8,12 @@ import { TeaserCard } from './teaser-card';
 
 interface TeaserVideosSectionProps {
   teaserVideos: TeaserVideo[];
+  eyebrow?: string;
+  title?: string;
+  description?: string;
 }
 
-export function TeaserVideosSection({ teaserVideos }: TeaserVideosSectionProps) {
+export function TeaserVideosSection({ teaserVideos, eyebrow, title, description }: TeaserVideosSectionProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(3);
 
@@ -108,15 +111,19 @@ export function TeaserVideosSection({ teaserVideos }: TeaserVideosSectionProps) 
   const isAtStart = effectiveIndex === 0;
   const isAtEnd = effectiveIndex >= maxIndex;
 
+  const displayEyebrow = (eyebrow && eyebrow.trim()) ? eyebrow : 'Visual Stories';
+  const displayTitle = (title && title.trim()) ? title : 'Featured Teaser Highlights';
+  const displayDescription = (description && description.trim()) ? description : 'Experience the emotional intensity and cinematic splendor of our handcrafted celebrations.';
+
   return (
     <section className="py-20 md:py-28 bg-[#EFEAD8]/60 border-y border-[#3A4F1C]/10 select-none overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Section Heading */}
         <SectionHeading
-          eyebrow="Visual Stories"
-          title="Featured Teaser Highlights"
-          subtitle="Experience the emotional intensity and cinematic splendor of our handcrafted celebrations."
+          eyebrow={displayEyebrow}
+          title={displayTitle}
+          subtitle={displayDescription}
           centered={true}
         />
 

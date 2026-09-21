@@ -54,7 +54,12 @@ export default async function HomePage() {
         <HeroSectionComponent hero={content.hero} />
 
         {/* Section 2: Teaser Videos Section */}
-        <TeaserVideosSection teaserVideos={content.teaserVideos} />
+        <TeaserVideosSection
+          teaserVideos={content.teaserVideos}
+          eyebrow={content.teaserVideosEyebrow}
+          title={content.teaserVideosTitle}
+          description={content.teaserVideosDescription}
+        />
 
         {/* Section 3: Partners: 1 whole section */}
         <PartnersSection partners={content.partners} />

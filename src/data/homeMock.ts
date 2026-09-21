@@ -13,6 +13,9 @@ export const homeMockData: HomePageContent = {
     _createdAt: '2024-01-01T00:00:00Z',
     _updatedAt: '2024-01-02T00:00:00Z',
     _rev: 'rev-1',
+    teaserVideosEyebrow: 'Visual Stories',
+    teaserVideosTitle: 'Featured Teaser Highlights',
+    teaserVideosDescription: 'Experience the emotional intensity and cinematic splendor of our handcrafted celebrations.',
     hero: {
         autoPlayInterval: 3,
         slides: [

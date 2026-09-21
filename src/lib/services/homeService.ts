@@ -54,6 +54,9 @@ export const GROQ_HOME_PAGE = `
       }
     },
 
+    teaserVideosEyebrow,
+    teaserVideosTitle,
+    teaserVideosDescription,
     teaserVideos[] | order(priority desc) {
       _key,
       title,
