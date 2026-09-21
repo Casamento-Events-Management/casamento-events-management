@@ -73,17 +73,7 @@ export function UpcomingEventsSection({ events }: UpcomingEventsSectionProps) {
                       <span>{event.location}</span>
                     </div>
                   )}
-                </div>
-
-                <div className="pt-4 border-t border-[#3A4F1C]/10 flex items-center justify-between">
-                  <Link
-                    href={`/portfolio#${event.slug.current}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#3A4F1C] uppercase tracking-wider hover:text-[#BC6F07] transition-colors"
-                  >
-                    <span>View Event Details</span>
-                    <ChevronRight size={14} />
-                  </Link>
-                </div>
+                </div>                
               </div>
             </div>
           ))}

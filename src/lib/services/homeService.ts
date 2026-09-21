@@ -86,6 +86,7 @@ export const GROQ_HOME_PAGE = `
       _key,
       title,
       slug,
+      slug,
       date,
       location,
       status,
