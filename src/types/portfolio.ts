@@ -160,6 +160,12 @@ export interface SanityPortfolioHero extends SanityDocument {
     title: string;
     /** Introductory paragraph shown beneath the headline. */
     description: string;
+    /** Tagline displayed above the Gallery section header. */
+    galleryEyebrow?: string;
+    /** Headline displayed above the Portfolio Gallery filter bar. */
+    galleryTitle?: string;
+    /** Introductory paragraph for the Portfolio Gallery section. */
+    galleryDescription?: string;
 }
 
 /**
@@ -169,4 +175,7 @@ export interface SanityPortfolioHero extends SanityDocument {
 export interface PortfolioHeroContent {
     title: string;
     description: string;
+    galleryEyebrow?: string;
+    galleryTitle?: string;
+    galleryDescription?: string;
 }

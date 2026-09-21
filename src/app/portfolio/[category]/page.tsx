@@ -10,6 +10,7 @@ import { notFound } from 'next/navigation';
 import {
     getPortfolioCategories,
     getPortfolioCategoryBySlug,
+    getPortfolioHeroContent,
     getPortfolioItems,
 } from '@/lib/services/portfolioService';
 import { getHomePageContent } from '@/lib/services/homeService';
@@ -83,11 +84,12 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 export default async function CategoryPage({ params }: CategoryPageProps) {
     const { category: categorySlug } = await params;
 
-    const [category, categories, items, homeContent] = await Promise.all([
+    const [category, categories, items, homeContent, heroContent] = await Promise.all([
         getPortfolioCategoryBySlug(categorySlug),
         getPortfolioCategories(),
         getPortfolioItems('all'), // Pass all items to PortfolioView so tab switching remains instant
         getHomePageContent(),
+        getPortfolioHeroContent(),
     ]);
 
     if (!category) {
@@ -105,6 +107,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 categories={categories}
                 items={items}
                 activeCategory={categorySlug}
+                galleryEyebrow={heroContent.galleryEyebrow}
+                galleryTitle={heroContent.galleryTitle}
+                galleryDescription={heroContent.galleryDescription}
             />
             <PortfolioJsonLd
                 items={items.filter((item) => item.category.slug === categorySlug)}

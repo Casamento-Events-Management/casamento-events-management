@@ -24,6 +24,10 @@ export async function seedPortfolio(dryRun: boolean): Promise<void> {
         title: 'Masterpieces in Motion',
         description:
             'Explore our curated gallery of luxury weddings, grand production designs, and high-definition event broadcasts captured across the globe.',
+        galleryEyebrow: 'Portfolio Gallery',
+        galleryTitle: 'Explore Our Showcase',
+        galleryDescription:
+            'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
     }
 
     if (dryRun) {

@@ -27,6 +27,28 @@ export const portfolioHero = defineType({
       description: 'Introductory paragraph shown beneath the title. Keep it concise — 1–2 sentences recommended.',
       validation: (Rule) => Rule.required().min(20).max(400),
     }),
+    defineField({
+      name: 'galleryEyebrow',
+      title: 'Gallery Section Eyebrow',
+      type: 'string',
+      description: 'Small tagline displayed above the Gallery section title (e.g. "PORTFOLIO GALLERY").',
+      initialValue: 'Portfolio Gallery',
+    }),
+    defineField({
+      name: 'galleryTitle',
+      title: 'Gallery Section Title',
+      type: 'string',
+      description: 'Headline displayed above the Portfolio Gallery filter bar (e.g. "Explore Our Showcase").',
+      initialValue: 'Explore Our Showcase',
+    }),
+    defineField({
+      name: 'galleryDescription',
+      title: 'Gallery Section Description',
+      type: 'text',
+      rows: 3,
+      description: 'Introductory paragraph for the Portfolio Gallery section.',
+      initialValue: 'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
+    }),
   ],
   preview: {
     select: {

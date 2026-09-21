@@ -9,6 +9,7 @@
 
 import React, { useState, useEffect, useTransition, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { SectionHeading } from '@/components/ui/section-heading';
 import { PortfolioFilterBar } from './portfolio-filter-bar';
 import { PortfolioCard } from './portfolio-card';
 import { PortfolioModal } from './portfolio-modal';
@@ -18,12 +19,18 @@ interface PortfolioViewProps {
     categories: PortfolioCategory[];
     items: PortfolioItem[];
     activeCategory: ActiveCategoryFilter;
+    galleryEyebrow?: string;
+    galleryTitle?: string;
+    galleryDescription?: string;
 }
 
 function PortfolioViewContent({
     categories,
     items,
     activeCategory: initialActiveCategory,
+    galleryEyebrow = 'Portfolio Gallery',
+    galleryTitle = 'Explore Our Showcase',
+    galleryDescription = 'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
 }: PortfolioViewProps) {
     const router = useRouter();
     const pathname = usePathname();
@@ -85,14 +92,27 @@ function PortfolioViewContent({
         }
     };
 
+    const displayEyebrow = (galleryEyebrow && galleryEyebrow.trim().length > 0) ? galleryEyebrow : 'Portfolio Gallery';
+    const displayTitle = (galleryTitle && galleryTitle.trim().length > 0) ? galleryTitle : 'Explore Our Showcase';
+    const displayDescription = (galleryDescription && galleryDescription.trim().length > 0) ? galleryDescription : 'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.';
+
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
-            {/* Category Filter Tabs */}
-            <PortfolioFilterBar
-                categories={categories}
-                activeCategory={activeCategory}
-                onSelectCategory={handleSelectCategory}
-            />
+        <section className="py-12 md:py-20 bg-[#F7F3E8]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* Gallery Section Header */}
+                <SectionHeading
+                    eyebrow={displayEyebrow}
+                    title={displayTitle}
+                    subtitle={displayDescription}
+                    centered={true}
+                />
+
+                {/* Category Filter Tabs */}
+                <PortfolioFilterBar
+                    categories={categories}
+                    activeCategory={activeCategory}
+                    onSelectCategory={handleSelectCategory}
+                />
 
             {/* Portfolio Masonry Layout (Display Whole Item) */}
             {filteredItems.length > 0 ? (
@@ -118,7 +138,8 @@ function PortfolioViewContent({
                 isOpen={Boolean(selectedItem)}
                 onClose={handleCloseModal}
             />
-        </div>
+            </div>
+        </section>
     );
 }
 

@@ -234,7 +234,10 @@ export async function getPortfolioItemBySlug(slug: string): Promise<PortfolioIte
 export const GROQ_PORTFOLIO_HERO = `
   *[_type == "portfolioHero" && _id == "portfolioHero"][0] {
     title,
-    description
+    description,
+    galleryEyebrow,
+    galleryTitle,
+    galleryDescription
   }
 `;
 
@@ -243,6 +246,10 @@ const PORTFOLIO_HERO_FALLBACK: PortfolioHeroContent = {
     title: 'Masterpieces in Motion',
     description:
         'Explore our curated showcase of high-end wedding films, immersive stage productions, and broadcast-grade live streams crafted with technical precision and artistic passion.',
+    galleryEyebrow: 'Portfolio Gallery',
+    galleryTitle: 'Explore Our Showcase',
+    galleryDescription:
+        'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
 };
 
 /**
@@ -261,7 +268,13 @@ export async function getPortfolioHeroContent(): Promise<PortfolioHeroContent> {
         );
 
         if (data?.title && data?.description) {
-            return data;
+            return {
+                title: data.title,
+                description: data.description,
+                galleryEyebrow: data.galleryEyebrow || PORTFOLIO_HERO_FALLBACK.galleryEyebrow,
+                galleryTitle: data.galleryTitle || PORTFOLIO_HERO_FALLBACK.galleryTitle,
+                galleryDescription: data.galleryDescription || PORTFOLIO_HERO_FALLBACK.galleryDescription,
+            };
         }
     } catch (err) {
         console.warn(

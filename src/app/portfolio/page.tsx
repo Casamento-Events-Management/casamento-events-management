@@ -65,6 +65,9 @@ export default async function PortfolioPage() {
                 categories={categories}
                 items={items}
                 activeCategory="all"
+                galleryEyebrow={heroContent.galleryEyebrow}
+                galleryTitle={heroContent.galleryTitle}
+                galleryDescription={heroContent.galleryDescription}
             />
             <PortfolioJsonLd items={items} />
         </main>
