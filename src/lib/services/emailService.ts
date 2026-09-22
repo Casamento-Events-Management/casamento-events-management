@@ -30,7 +30,7 @@ export async function sendContactEmail(
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: `Casamento Events <${process.env.CONTACT_EMAIL_TO}>`,
+        from: `Casamento Events <${process.env.CONTACT_EMAIL_FROM}>`,
         to: [toEmail],
         reply_to: payload.email,
         subject: `New Contact Inquiry from ${payload.name}`,
