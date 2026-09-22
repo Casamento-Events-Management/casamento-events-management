@@ -63,15 +63,6 @@ export function ServicesCategoryAccordion({
                             <h2 className="text-base sm:text-lg lg:text-xl font-serif font-semibold tracking-tight leading-snug truncate">
                                 {category.title}
                             </h2>
-                            <span
-                                className={`text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wider ${
-                                    isOpen
-                                        ? 'bg-[#BC6F07] text-[#F7F3E8]'
-                                        : 'bg-[#3A4F1C]/10 text-[#3A4F1C]'
-                                }`}
-                            >
-                                {serviceCount} {serviceCount === 1 ? 'Service' : 'Services'}
-                            </span>
                         </div>
                         {category.description && (
                             <p
@@ -106,39 +97,47 @@ export function ServicesCategoryAccordion({
                 </div>
             </button>
 
-            {/* Accordion Content Body */}
-            {isOpen && (
-                <div className="p-4 sm:p-6 bg-[#EFEAD8]/50 border-t border-[#3A4F1C]/15 rounded-b-2xl animate-in fade-in duration-300">
-                    {services.length > 0 ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-                            {/* Left Column: Service Cards List (60% Desktop Width / col-span-7) */}
-                            <div className="lg:col-span-7 space-y-4 sm:space-y-5">
-                                {services.map((service, index) => (
-                                    <ServicesCard
-                                        key={service.id || service.slug || `cat-service-${index}`}
-                                        service={service}
-                                        isSelected={selectedService?.id === service.id}
-                                        onSelect={onSelectService}
-                                        onOpenMobileModal={onOpenMobileModal}
-                                        priority={isFirstPriority && index === 0}
-                                    />
-                                ))}
-                            </div>
+            {/* Accordion Content Body with Smooth Expand/Collapse Transition */}
+            <div
+                className={`grid transition-all duration-300 ease-in-out ${
+                    isOpen
+                        ? 'grid-rows-[1fr] opacity-100'
+                        : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+                }`}
+            >
+                <div className={isOpen ? 'overflow-visible' : 'overflow-hidden'}>
+                    <div className="p-4 sm:p-6 bg-[#EFEAD8]/50 border-t border-[#3A4F1C]/15 rounded-b-2xl">
+                        {services.length > 0 ? (
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                                {/* Left Column: Service Cards List (60% Desktop Width / col-span-7) */}
+                                <div className="lg:col-span-7 space-y-4 sm:space-y-5">
+                                    {services.map((service, index) => (
+                                        <ServicesCard
+                                            key={service.id || service.slug || `cat-service-${index}`}
+                                            service={service}
+                                            isSelected={selectedService?.id === service.id}
+                                            onSelect={onSelectService}
+                                            onOpenMobileModal={onOpenMobileModal}
+                                            priority={isFirstPriority && index === 0}
+                                        />
+                                    ))}
+                                </div>
 
-                            {/* Right Column: Sticky Detail Panel (40% Desktop Width / col-span-5) */}
-                            <div className="hidden lg:block lg:col-span-5 lg:sticky lg:top-20 lg:self-start z-10">
-                                <ServicesDetailPanel service={activeServiceInCat} />
+                                {/* Right Column: Sticky Detail Panel (40% Desktop Width / col-span-5) */}
+                                <div className="hidden lg:block lg:col-span-5 lg:sticky lg:top-24 lg:self-start z-10">
+                                    <ServicesDetailPanel service={activeServiceInCat} />
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <div className="py-12 text-center rounded-xl bg-[#F7F3E8] border border-[#3A4F1C]/15">
-                            <p className="text-[#3A4F1C]/80 text-sm font-medium">
-                                No services found in this category.
-                            </p>
-                        </div>
-                    )}
+                        ) : (
+                            <div className="py-12 text-center rounded-xl bg-[#F7F3E8] border border-[#3A4F1C]/15">
+                                <p className="text-[#3A4F1C]/80 text-sm font-medium">
+                                    No services found in this category.
+                                </p>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

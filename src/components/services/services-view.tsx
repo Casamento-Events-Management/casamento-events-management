@@ -70,12 +70,10 @@ function ServicesViewContent({
         }
     }, [serviceParam, categoryParam, services, startTransition]);
 
-    // Handle toggling category open/closed
+    // Handle toggling category open/closed (single open category at a time)
     const handleToggleCategory = (catSlug: string) => {
         const isCurrentlyOpen = openCategorySlugs.includes(catSlug);
-        const nextOpen = isCurrentlyOpen
-            ? openCategorySlugs.filter((s) => s !== catSlug)
-            : [...openCategorySlugs, catSlug];
+        const nextOpen = isCurrentlyOpen ? [] : [catSlug];
 
         setOpenCategorySlugs(nextOpen);
 
@@ -105,9 +103,9 @@ function ServicesViewContent({
     const handleSelectService = (service: ServiceItem) => {
         setSelectedService(service);
 
-        // Ensure category is open if service selected
+        // Ensure only this service's category is open (single-open behavior)
         if (!openCategorySlugs.includes(service.category.slug)) {
-            setOpenCategorySlugs((prev) => [...prev, service.category.slug]);
+            setOpenCategorySlugs([service.category.slug]);
         }
 
         if (typeof window !== 'undefined') {
