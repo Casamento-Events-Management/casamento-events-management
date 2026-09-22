@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { Play, X } from 'lucide-react';
 import type { TeaserVideo } from '@/types';
@@ -10,32 +11,121 @@ interface TeaserCardProps {
   teaser: TeaserVideo;
 }
 
+// ─── Video Modal (portaled to document.body) ───────────────────────────────────
+interface VideoModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  embedUrl?: string;
+  directUrl?: string;
+  isNative: boolean;
+}
+
+function VideoModal({ isOpen, onClose, title, description, embedUrl, directUrl, isNative }: VideoModalProps) {
+  // Body scroll lock
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  // ESC key close
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const videoSrc = embedUrl || directUrl || '';
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-8"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Playing: ${title}`}
+    >
+      {/* Modal Panel */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10 animate-fade-in-scale"
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 z-20 p-2.5 rounded-full bg-black/60 text-white hover:text-[#BC6F07] hover:bg-black/80 transition-colors cursor-pointer"
+          aria-label="Close Video"
+        >
+          <X size={22} />
+        </button>
+
+        {/* Video Player */}
+        <div className="relative aspect-video w-full bg-black">
+          {isNative ? (
+            // Native / Sanity CDN — use <video> tag with autoplay
+            <video
+              src={directUrl}
+              className="w-full h-full"
+              controls
+              autoPlay
+              playsInline
+              title={title}
+            />
+          ) : (
+            // YouTube / Vimeo — use iframe embed
+            <iframe
+              src={videoSrc}
+              title={title}
+              className="w-full h-full border-0"
+              allow="autoplay; picture-in-picture; fullscreen"
+              allowFullScreen
+            />
+          )}
+        </div>
+
+        {/* Modal Caption */}
+        <div className="px-5 py-4 bg-[#3A4F1C] text-[#F7F3E8]">
+          <h4 className="text-base font-serif font-semibold leading-snug">{title}</h4>
+          {description && (
+            <p className="text-xs text-[#F7F3E8]/75 font-light mt-1 leading-relaxed">
+              {description}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+// ─── Teaser Card ───────────────────────────────────────────────────────────────
 export function TeaserCard({ teaser }: TeaserCardProps) {
   const [isOpenModal, setIsOpenModal] = useState(false);
 
-  // Close modal when pressing ESC key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsOpenModal(false);
-      }
-    };
-
-    if (isOpenModal) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpenModal]);
+  const openModal = useCallback(() => setIsOpenModal(true), []);
+  const closeModal = useCallback(() => setIsOpenModal(false), []);
 
   const parsedVideo = parseVideoSource(teaser.video);
-  const embedUrl = parsedVideo.embedUrl || parsedVideo.directUrl || 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&controls=1&rel=0';
+  const isNative = parsedVideo.sourceType === 'native' || parsedVideo.sourceType === 'sanity';
+  const embedUrl = parsedVideo.embedUrl;
+  const directUrl = parsedVideo.directUrl;
 
   return (
     <>
+      {/* Teaser Card */}
       <div className="group flex flex-col justify-between h-full flex-1 w-full bg-white rounded-2xl overflow-hidden border border-[#3A4F1C]/10 shadow-xs hover:shadow-md transition-all duration-300 transform hover:-translate-y-1">
-        {/* Poster Image Container */}
+        {/* Poster / Thumbnail */}
         <div className="relative aspect-video w-full shrink-0 overflow-hidden bg-[#2A3A14]">
           <Image
             src={teaser.thumbnail.asset.url || ''}
@@ -46,9 +136,9 @@ export function TeaserCard({ teaser }: TeaserCardProps) {
           />
           <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
 
-          {/* Click to Play Button Overlay */}
+          {/* Play Button Overlay */}
           <button
-            onClick={() => setIsOpenModal(true)}
+            onClick={openModal}
             className="absolute inset-0 flex items-center justify-center cursor-pointer"
             aria-label={`Play teaser video: ${teaser.title}`}
           >
@@ -75,49 +165,16 @@ export function TeaserCard({ teaser }: TeaserCardProps) {
         </div>
       </div>
 
-      {/* Video Playback Modal (Supports ESC key and clicking outside backdrop to exit) */}
-      {isOpenModal && (
-        <div
-          onClick={() => setIsOpenModal(false)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-6"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-4xl bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/20"
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setIsOpenModal(false)}
-              className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/60 text-white hover:text-[#BC6F07] hover:bg-black/80 transition-colors cursor-pointer"
-              aria-label="Close Video"
-            >
-              <X size={24} />
-            </button>
-
-            {/* Video Player Embed */}
-            <div className="relative aspect-video w-full">
-              <iframe
-                src={embedUrl}
-                title={teaser.title}
-                className="w-full h-full border-0"
-                allow="autoplay; picture-in-picture; fullscreen"
-                allowFullScreen
-              />
-            </div>
-
-            {/* Modal Caption */}
-            <div className="p-4 bg-[#3A4F1C] text-[#F7F3E8]">
-              <h4 className="text-base font-serif font-medium">{teaser.title}</h4>
-              {teaser.description && (
-                <p className="text-xs text-[#F7F3E8]/80 font-light mt-1">
-                  {teaser.description}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Portaled Video Modal */}
+      <VideoModal
+        isOpen={isOpenModal}
+        onClose={closeModal}
+        title={teaser.title}
+        description={teaser.description}
+        embedUrl={embedUrl}
+        directUrl={directUrl}
+        isNative={isNative}
+      />
     </>
   );
 }
-
