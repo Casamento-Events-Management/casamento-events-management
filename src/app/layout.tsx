@@ -11,6 +11,8 @@ const geistSans = Geist({
 });
 
 
+const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === 'true';
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'),
   title: {
@@ -36,11 +38,11 @@ export const metadata: Metadata = {
     'broadcast production Philippines',
   ],
   robots: {
-    index: true,
-    follow: true,
+    index: allowIndexing,
+    follow: allowIndexing,
     googleBot: {
-      index: true,
-      follow: true,
+      index: allowIndexing,
+      follow: allowIndexing,
       'max-video-preview': -1,
       'max-image-preview': 'large',
       'max-snippet': -1,
