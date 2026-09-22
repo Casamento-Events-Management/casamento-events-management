@@ -92,30 +92,40 @@ export function ContactForm() {
       // Execute reCAPTCHA v3
       const recaptchaToken = await getRecaptchaToken();
 
-      // Prepared payload for Phase 2 Resend backend endpoint integration
       const payload = {
+        action: 'contact_submit',
         ...result.data,
         recaptchaToken,
       };
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-ok
-        console.log('[ContactForm] Submission payload ready for Phase 2:', payload);
-      }
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
 
-      // Phase 1 Frontend Scaffolding Simulation delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit message.');
+      }
 
       setSubmitStatus({
         type: 'success',
-        message: 'Thank you! Your message has been received. We will get back to you shortly.',
+        message: data.message || 'Thank you! Your message has been received. We will get back to you shortly.',
       });
 
       setFormData({ name: '', email: '', message: '' });
-    } catch {
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : 'An error occurred while submitting your message. Please try again.';
       setSubmitStatus({
         type: 'error',
-        message: 'An error occurred while submitting your message. Please try again.',
+        message: errorMessage,
       });
     } finally {
       setIsSubmitting(false);
