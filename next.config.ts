@@ -37,21 +37,22 @@ const nextConfig: NextConfig = {
     ].join('; ');
 
     const publicCSP = [
-      "default-src 'self'",
+      "default-src 'self' https://www.google.com https://www.gstatic.com",
       // Scripts: self + Next.js inline chunks + Sanity + Google reCAPTCHA
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com",
-      // Styles: self + inline (Next.js injects critical CSS)
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "script-src-elem 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com",
+      // Styles: self + inline (Next.js injects critical CSS) + Google Fonts
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com",
       // Fonts: self + Google Fonts CDN + Next.js static
       "font-src 'self' https://fonts.gstatic.com",
-      // Images: self + data URIs + CDNs used in mock/sanity/unsplash
-      "img-src 'self' data: blob: https://cdn.sanity.io https://images.unsplash.com https://*.supabase.co https://i.ytimg.com https://vumbnail.com https://lh3.googleusercontent.com https://picsum.photos",
+      // Images: self + data URIs + CDNs + Google reCAPTCHA icons/badges
+      "img-src 'self' data: blob: https://cdn.sanity.io https://images.unsplash.com https://*.supabase.co https://i.ytimg.com https://vumbnail.com https://lh3.googleusercontent.com https://picsum.photos https://www.google.com https://www.gstatic.com",
       // Media: self + Sanity CDN (native video assets)
       "media-src 'self' https://cdn.sanity.io https://*.supabase.co",
-      // Frames: ONLY youtube-nocookie.com and player.vimeo.com
-      "frame-src https://www.youtube-nocookie.com https://player.vimeo.com",
-      // Connections: self + Sanity API + Supabase + Google fonts
-      "connect-src 'self' https://*.sanity.io https://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com",
+      // Frames: youtube-nocookie.com, player.vimeo.com, and Google reCAPTCHA
+      "frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com https://www.google.com https://recaptcha.google.com https://www.gstatic.com",
+      // Connections: self + Sanity API + Supabase + Google fonts + Google reCAPTCHA
+      "connect-src 'self' https://*.sanity.io https://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com https://www.google.com https://www.gstatic.com",
       // Disable browser features not needed
       "object-src 'none'",
       "base-uri 'self'",

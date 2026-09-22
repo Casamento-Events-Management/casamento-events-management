@@ -1,8 +1,8 @@
 import React from 'react';
 import type { SocialLink } from '@/types';
 import { SectionHeading } from '@/components/ui/section-heading';
-import { Button } from '@/components/ui/button';
 import { SocialIcon } from '@/components/ui/social-icon';
+import { ContactForm } from '@/components/layout/contact-form';
 
 interface ConnectSectionProps {
   socialLinks: SocialLink[];
@@ -54,22 +54,16 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
           ))}
         </div>
 
-        {/* Direct Booking Callout */}
+        {/* Contact Us Form Callout */}
         <div className="p-8 md:p-12 rounded-3xl bg-[#2A3A14] border border-[#BC6F07]/40 max-w-3xl mx-auto shadow-xl">
-          <h3 className="text-2xl font-serif font-semibold text-[#F7F3E8] mb-3">
-            Ready to plan your milestone celebration?
+          <h3 className="text-2xl font-serif font-semibold text-[#F7F3E8] mb-6 text-center">
+            Contact Us
           </h3>
-          <p className="text-sm text-[#F7F3E8]/80 font-light mb-6">
-            Schedule a personal consultation with our event director to discuss your vision and date availability.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button href="/book-now" size="md" variant="primary">
-              Book Consultation
-            </Button>
-          </div>
+          <ContactForm />
         </div>
       </div>
     </section>
   );
 }
+
 

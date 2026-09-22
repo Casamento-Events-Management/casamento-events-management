@@ -69,4 +69,12 @@ body {
   animation-play-state: paused;
 }
 
+/* Hide floating Google reCAPTCHA badge */
+.grecaptcha-badge {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+
 
