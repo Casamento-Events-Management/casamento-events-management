@@ -28,18 +28,18 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
 
   return (
     <section className="py-20 md:py-28 bg-[#3A4F1C] text-[#F7F3E8] relative overflow-hidden">
-      <div className="absolute inset-0 opacity-5 bg-[radial-[#BC6F07]_1px,transparent_1px] [background-size:16px_16px]" />
+      <div className="absolute inset-0 opacity-5 bg-[radial-[#BC6F07]_1px,transparent_1px] bg-size-[16px_16px]" />
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
         <SectionHeading
           eyebrow="Join Our Journey"
           title="Connect With Us"
           subtitle="Follow our latest event highlights, behind-the-scenes stories, and creative inspirations across our official channels."
-          className="[&_h2]:text-[#F7F3E8] [&_p]:text-[#F7F3E8]/80"
+          className="[&_h2]:text-[#F7F3E8] [&_p]:text-[rgba(247,243,232,0.8)]"
         />
 
         {/* Social Media Link Buttons (Compact 2x2 Grid on Mobile, Flex on Desktop) */}
-        <div className="grid grid-cols-2 gap-2 max-w-[240px] mx-auto md:max-w-none md:flex md:flex-wrap md:items-center md:justify-center md:gap-6 mb-12">
+        <div className="grid grid-cols-2 gap-2 max-w-60 mx-auto md:max-w-none md:flex md:flex-wrap md:items-center md:justify-center md:gap-6 mb-12">
           {socialLinks.map((link) => (
             <a
               key={link.platform}
