@@ -37,7 +37,19 @@ export function ServicesCategoryAccordion({
     onOpenMobileModal,
     isFirstPriority = false,
 }: ServicesCategoryAccordionProps) {
+    const accordionRef = React.useRef<HTMLDivElement>(null);
     const serviceCount = services.length;
+
+    // Smooth scroll newly opened category card into viewport with a single fluid glide
+    React.useEffect(() => {
+        if (isOpen && accordionRef.current) {
+            const timer = setTimeout(() => {
+                accordionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 180);
+
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen]);
 
     // Determine if the currently selected service is in this category
     const activeServiceInCat = selectedService && services.some((s) => s.id === selectedService.id)
@@ -45,7 +57,7 @@ export function ServicesCategoryAccordion({
         : services[0] || null;
 
     return (
-        <div className="rounded-2xl border border-[#3A4F1C]/20 bg-[#F7F3E8] shadow-xs transition-all duration-300">
+        <div ref={accordionRef} className="scroll-mt-24 sm:scroll-mt-28 rounded-2xl border border-[#3A4F1C]/20 bg-[#F7F3E8] shadow-xs transition-all duration-300">
             {/* Accordion Trigger Header */}
             <button
                 type="button"
