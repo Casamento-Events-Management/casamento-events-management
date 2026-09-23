@@ -6,13 +6,12 @@ import type { ArticleVlogBanner } from '@/types';
  * GROQ query to retrieve the active Article Vlog Banner.
  */
 export const GROQ_ARTICLE_VLOG_BANNER = `
-  *[_type == "articleVlogBanner" && isActive == true][0] {
+  *[_type == "articleVlogBanner" && _id == "articleVlogBanner"][0] {
     _id,
     _type,
     _createdAt,
     _updatedAt,
     _rev,
-    isActive,
     title,
     description,
     backgroundImage {

@@ -24,8 +24,6 @@ export interface ArticleVlogBanner extends SanityDocument {
   description?: string;
   /** Optional CTA button overlay. */
   ctaButton?: ArticleBannerCTA;
-  /** Active status flag to determine current hero banner. */
-  isActive?: boolean;
 }
 
 /**

@@ -9,7 +9,7 @@ import { defineField, defineType } from 'sanity'
  */
 export const articlesHero = defineType({
   name: 'articlesHero',
-  title: 'Articles Page Hero',
+  title: 'Vlog Section Header',
   type: 'document',
   fields: [
     defineField({

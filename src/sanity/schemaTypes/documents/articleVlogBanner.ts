@@ -55,13 +55,6 @@ export const articleVlogBanner = defineType({
         }),
       ],
     }),
-    defineField({
-      name: 'isActive',
-      title: 'Is Active Banner',
-      type: 'boolean',
-      description: 'Mark this banner as the active hero banner for the Articles page.',
-      initialValue: true,
-    }),
   ],
   preview: {
     select: {

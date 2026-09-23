@@ -25,9 +25,8 @@ export async function seedArticleBanner(dryRun: boolean): Promise<void> {
   }
 
   const document = {
-    _id: 'articleVlogBanner-featured',
+    _id: 'articleVlogBanner',
     _type: 'articleVlogBanner',
-    isActive: mock.isActive ?? true,
     title: mock.title,
     description: mock.description,
     ...(bgImageRef && {
@@ -52,7 +51,7 @@ export async function seedArticleBanner(dryRun: boolean): Promise<void> {
     return;
   }
 
-  await client.delete('drafts.articleVlogBanner-featured').catch(() => {});
+  await client.delete('drafts.articleVlogBanner').catch(() => {});
   await client.createOrReplace(document);
-  console.log('✅ articleVlogBanner document upserted successfully (id: articleVlogBanner-featured)');
+  console.log('✅ articleVlogBanner singleton upserted successfully (id: articleVlogBanner)');
 }

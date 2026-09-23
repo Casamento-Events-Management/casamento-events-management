@@ -31,6 +31,27 @@ export const structure: StructureResolver = (S) =>
         .title('Portfolio Items')
         .child(S.documentTypeList('portfolioItem').title('Portfolio Items')),
       S.divider(),
+      // Articles section
+      S.listItem()
+        .title('Article Vlog Banner')
+        .id('articleVlogBannerSingleton')
+        .child(
+          S.document()
+            .schemaType('articleVlogBanner')
+            .documentId('articleVlogBanner')
+        ),
+      S.listItem()
+        .title('Vlog Section Header')
+        .id('articlesHeroSingleton')
+        .child(
+          S.document()
+            .schemaType('articlesHero')
+            .documentId('articlesHero')
+        ),
+      S.listItem()
+        .title('Article Vlogs')
+        .child(S.documentTypeList('articleVlog').title('Article Vlogs')),
+      S.divider(),
       // Services section
       S.listItem()
         .title('Services Page Hero')
@@ -46,22 +67,6 @@ export const structure: StructureResolver = (S) =>
       S.listItem()
         .title('Service Items')
         .child(S.documentTypeList('serviceItem').title('Service Items')),
-      S.divider(),
-      // Articles section
-      S.listItem()
-        .title('Articles Page Hero')
-        .id('articlesHeroSingleton')
-        .child(
-          S.document()
-            .schemaType('articlesHero')
-            .documentId('articlesHero')
-        ),
-      S.listItem()
-        .title('Article Vlogs')
-        .child(S.documentTypeList('articleVlog').title('Article Vlogs')),
-      S.listItem()
-        .title('Article Vlog Banners')
-        .child(S.documentTypeList('articleVlogBanner').title('Article Vlog Banners')),
       S.divider(),
       // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(

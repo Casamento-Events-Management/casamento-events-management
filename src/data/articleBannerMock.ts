@@ -1,12 +1,11 @@
 import type { ArticleVlogBanner } from '@/types';
 
 export const articleBannerMockData: ArticleVlogBanner = {
-  _id: 'mock-article-vlog-banner',
+  _id: 'articleVlogBanner',
   _type: 'articleVlogBanner',
   _createdAt: new Date().toISOString(),
   _updatedAt: new Date().toISOString(),
   _rev: 'mock-rev',
-  isActive: true,
   title: 'Casamento Editorial Journal & Event Production Vlogs',
   description: 'Behind-the-scenes production insights, luxury styling trends, and cinematic event highlights by Casamento Events.',
   backgroundImage: {
