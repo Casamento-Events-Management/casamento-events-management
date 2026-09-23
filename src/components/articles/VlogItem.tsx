@@ -21,8 +21,8 @@ export function VlogItem({ item, onPlayVideo }: VlogItemProps) {
 
   const publishedDate = item.publishedAt
     ? new Intl.DateTimeFormat('en-PH', { year: 'numeric', month: 'long', day: 'numeric' }).format(
-        new Date(item.publishedAt)
-      )
+      new Date(item.publishedAt)
+    )
     : null;
 
   return (
@@ -104,6 +104,9 @@ export function VlogItem({ item, onPlayVideo }: VlogItemProps) {
         <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#3A4F1C]/10">
           {/* Social Backlinks */}
           <div className="flex items-center gap-2.5">
+            {Boolean(item.socialBacklinks?.length) && (
+              <span className="text-xs text-[#3A4F1C]/50 font-light mr-1">Also on: </span>
+            )}
             {item.socialBacklinks?.map((link, i) => (
               <a
                 key={i}

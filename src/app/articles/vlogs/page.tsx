@@ -69,15 +69,6 @@ export default async function ArticlesVlogsPage() {
           )}
         </nav>
       )}
-
-      <div className="text-center py-4">
-        <Link
-          href="/articles"
-          className="text-xs text-[#3A4F1C]/50 hover:text-[#BC6F07] transition-colors duration-200"
-        >
-          ← Back to Articles
-        </Link>
-      </div>
     </main>
   );
 }
