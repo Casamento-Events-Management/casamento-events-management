@@ -75,9 +75,27 @@ export default async function VlogsPageN({ params }: PageProps) {
       {/* Pagination nav */}
       <nav
         aria-label="Vlog pages"
-        className="flex items-center justify-between max-w-7xl mx-auto py-10 px-6 sm:px-8"
+        className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 max-w-7xl mx-auto py-10 px-6 sm:px-8"
       >
-        <div className="w-30">
+        {/* Left: Back to main Articles */}
+        <div className="flex justify-center md:justify-start">
+          <Link
+            href="/articles"
+            className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
+          >
+            ← Back to Articles
+          </Link>
+        </div>
+
+        {/* Center: Page Counter */}
+        <div className="flex justify-center text-center">
+          <span className="text-xs font-medium tracking-wider text-[#3A4F1C]/60 uppercase">
+            Page {pageNum} of {totalPages}
+          </span>
+        </div>
+
+        {/* Right: Prev & Next Page Links */}
+        <div className="flex items-center justify-center md:justify-end gap-4 sm:gap-6">
           <Link
             href={prevHref}
             rel="prev"
@@ -85,12 +103,8 @@ export default async function VlogsPageN({ params }: PageProps) {
           >
             ← Previous Page
           </Link>
-        </div>
-        <span className="text-xs font-medium tracking-wider text-[#3A4F1C]/60 uppercase">
-          Page {pageNum} of {totalPages}
-        </span>
-        <div className="w-28 text-right">
-          {hasNext ? (
+
+          {hasNext && (
             <Link
               href={`/articles/vlogs/page/${pageNum + 1}`}
               rel="next"
@@ -98,8 +112,6 @@ export default async function VlogsPageN({ params }: PageProps) {
             >
               Next Page →
             </Link>
-          ) : (
-            <div />
           )}
         </div>
       </nav>

@@ -54,16 +54,32 @@ export default async function ArticlesVlogsPage() {
       </div>
 
       {/* Pagination nav */}
-      {totalPages > 1 && (
-        <nav
-          aria-label="Vlog pages"
-          className="flex items-center justify-between max-w-7xl mx-auto py-10 px-6 sm:px-8"
-        >
-          <div className="w-24" />
-          <span className="text-xs font-medium tracking-wider text-[#3A4F1C]/60 uppercase">
-            Page 1 of {totalPages}
-          </span>
-          <div className="w-24 text-right">
+      <nav
+        aria-label="Vlog pages"
+        className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 max-w-7xl mx-auto py-10 px-6 sm:px-8"
+      >
+        {/* Left: Back to main Articles */}
+        <div className="flex justify-center md:justify-start">
+          <Link
+            href="/articles"
+            className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
+          >
+            ← Back to Articles
+          </Link>
+        </div>
+
+        {/* Center: Page Counter */}
+        <div className="flex justify-center text-center">
+          {totalPages > 1 && (
+            <span className="text-xs font-medium tracking-wider text-[#3A4F1C]/60 uppercase">
+              Page 1 of {totalPages}
+            </span>
+          )}
+        </div>
+
+        {/* Right: Next Page Link */}
+        <div className="flex justify-center md:justify-end">
+          {totalPages > 1 && (
             <Link
               href="/articles/vlogs/page/2"
               rel="next"
@@ -71,9 +87,9 @@ export default async function ArticlesVlogsPage() {
             >
               Next Page →
             </Link>
-          </div>
-        </nav>
-      )}
+          )}
+        </div>
+      </nav>
 
       <ConnectSection socialLinks={homeContent.socialLinks} />
     </main>
