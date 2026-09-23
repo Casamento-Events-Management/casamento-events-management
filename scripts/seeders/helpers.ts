@@ -48,32 +48,41 @@ export async function uploadImageFromUrl(
     url: string,
     filename: string,
     dryRun: boolean,
+    retries = 3,
 ): Promise<SanityAssetRef | null> {
     if (dryRun) {
         console.log(`  [dry-run] Would upload image: ${url}`)
         return { _type: 'reference', _ref: `dry-run-image-ref-${filename}` }
     }
 
-    try {
-        const response = await fetch(url)
-        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            const response = await fetch(url)
+            if (!response.ok) throw new Error(`HTTP ${response.status}`)
 
-        const contentType = response.headers.get('content-type') ?? 'image/jpeg'
-        const arrayBuffer = await response.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
+            const contentType = response.headers.get('content-type') ?? 'image/jpeg'
+            const arrayBuffer = await response.arrayBuffer()
+            const buffer = Buffer.from(arrayBuffer)
 
-        const asset = await client.assets.upload('image', buffer, {
-            filename,
-            contentType,
-        })
+            const asset = await client.assets.upload('image', buffer, {
+                filename,
+                contentType,
+            })
 
-        console.log(`  ✓ Uploaded image asset: ${asset._id} (${filename})`)
-        return { _type: 'reference', _ref: asset._id }
-    } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err)
-        console.warn(`  ⚠ Failed to upload image from ${url}: ${message}`)
-        return null
+            console.log(`  ✓ Uploaded image asset: ${asset._id} (${filename})`)
+            return { _type: 'reference', _ref: asset._id }
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err)
+            if (attempt < retries) {
+                console.warn(`  ⚠ Attempt ${attempt} failed for ${url} (${message}), retrying...`)
+                await new Promise((resolve) => setTimeout(resolve, 1000))
+            } else {
+                console.warn(`  ❌ Failed to upload image from ${url} after ${retries} attempts: ${message}`)
+            }
+        }
     }
+
+    return null
 }
 
 // ---------------------------------------------------------------------------

@@ -32,10 +32,10 @@ export async function seedArticleVlogs(dryRun: boolean): Promise<void> {
       _type: 'articleVlog',
       title: item.title,
       slug: { _type: 'slug', current: item.slug.current },
-      // Reference the portfolioCategory document by slug
+      // Reference the portfolioCategory document
       category: {
         _type: 'reference',
-        _ref: `portfolioCategory-${item.category.slug}`,
+        _ref: item.category.id || item.category._id || item.category.slug,
       },
       mediaType: item.mediaType,
       ...(thumbnailRef && {
