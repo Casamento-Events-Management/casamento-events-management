@@ -123,7 +123,7 @@ export function TeaserVideosSection({ teaserVideos, eyebrow, title, description 
         <SectionHeading
           eyebrow={displayEyebrow}
           title={displayTitle}
-          subtitle={displayDescription}
+          description={displayDescription}
           centered={true}
         />
 

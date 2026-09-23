@@ -38,7 +38,7 @@ export function UpcomingEventsSection({ events, eyebrow, title, description }: U
         <SectionHeading
           eyebrow={displayEyebrow}
           title={displayTitle}
-          subtitle={displayDescription}
+          description={displayDescription}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -34,8 +34,8 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
         <SectionHeading
           eyebrow="Join Our Journey"
           title="Connect With Us"
-          subtitle="Follow our latest event highlights, behind-the-scenes stories, and creative inspirations across our official channels."
-          className="[&_h2]:text-[#F7F3E8] [&_p]:text-[rgba(247,243,232,0.8)]"
+          description="Follow our latest event highlights, behind-the-scenes stories, and creative inspirations across our official channels."
+          theme="dark"
         />
 
         {/* Social Media Link Buttons (Compact 2x2 Grid on Mobile, Flex on Desktop) */}

@@ -103,7 +103,7 @@ function PortfolioViewContent({
                 <SectionHeading
                     eyebrow={displayEyebrow}
                     title={displayTitle}
-                    subtitle={displayDescription}
+                    description={displayDescription}
                     centered={true}
                 />
 
