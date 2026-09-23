@@ -120,7 +120,7 @@ export function VlogItem({ item, onPlayVideo }: VlogItemProps) {
 
           {/* Share + Read More */}
           <div className="flex items-center gap-3">
-            <ShareDropdown payload={sharePayload} align="right" />
+            <ShareDropdown payload={sharePayload} direction="left" theme="light" />
             <Link
               href={`/articles/vlogs/${item.slug.current}`}
               className="text-sm text-[#3A4F1C]/70 hover:text-[#BC6F07] underline underline-offset-4 transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07] rounded"

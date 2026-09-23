@@ -165,7 +165,7 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
                     {/* Touch-Friendly Action Buttons */}
                     <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                         {/* Reusable Share Dropdown Component */}
-                        <ShareDropdown payload={sharePayload} align="right" />
+                        <ShareDropdown payload={sharePayload} direction="down" theme="dark" />
 
                         <button
                             type="button"
