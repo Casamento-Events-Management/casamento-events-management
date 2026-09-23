@@ -32,7 +32,7 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
         url: siteUrl,
         logo: {
             '@type': 'ImageObject',
-            url: `${siteUrl}/icon.jpg`,
+            url: `${siteUrl}/icon.png`,
             width: 512,
             height: 512,
         },
@@ -92,7 +92,7 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
         image: [
             content.hero.slides?.[0]?.image?.asset?.url ||
             content.hero.slides?.[0]?.videoPoster?.asset?.url ||
-            `${siteUrl}/icon.jpg`
+            `${siteUrl}/icon.png`
         ],
     };
 
@@ -113,7 +113,7 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
                 addressCountry: 'PH',
             },
         },
-        image: [event.coverImage?.asset?.url || `${siteUrl}/icon.jpg`],
+        image: [event.coverImage?.asset?.url || `${siteUrl}/icon.png`],
         organizer: {
             '@type': 'Organization',
             name: 'Casamento Events Management',
