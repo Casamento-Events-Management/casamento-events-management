@@ -63,15 +63,16 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ---
 
 ## 6. Vercel Free-Tier (Hobby) Constraints & Cost Optimization
-- **Static First & Incremental Static Regeneration (ISR)**:
-  - Default to static rendering (`revalidate` tag or time-based ISR) and Server Components over dynamic serverless API routes.
-  - Cache Sanity CMS queries using `next-sanity` caching (`revalidate: 3600` or tag-based revalidation) so Vercel Edge serves cached static pages without triggering serverless function executions.
-- **Serverless Function Execution Limits**:
-  - Keep route handlers and Server Actions fast and lightweight (< 10s execution max limit).
-  - Do NOT call internal API routes (`fetch('/api/...')`) from inside Server Components; query database or service layers directly to avoid double serverless function invocations.
-  - Consolidate data fetching to minimize the total count of serverless function calls per user session.
-- **External CDN & Bandwidth Protection**:
-  - Deliver videos and heavy media strictly via external CDNs (Sanity CDN, Cloudflare Stream, YouTube/Vimeo). **NEVER** proxy raw video streams or large media files through Next.js API routes or Vercel serverless functions.
-  - Configure `images.remotePatterns` in `next.config.js` for Sanity CDN and Supabase Storage to optimize images efficiently without hitting Vercel image optimization limits.
-- **Database Connection Pooling**:
-  - Use Supabase `@supabase/ssr` with Supabase connection pooler (Transaction mode) in serverless contexts to prevent connection exhaustion and function timeouts.
+
+> **Enforcement details live in two companion files (priority order):**
+> 1. `.agents/.rules/vercel-deployment.md` — mandatory, non-negotiable rules (function grouping, checklist, runtime, reporting).
+> 2. `.agents/skills/vercel-deployment.md` — when/how guidance (trigger conditions, workflow reminders).
+> This section provides only the *why* (cost rationale) that those files reference.
+
+- **Static First & ISR**:
+  - Default to static rendering (`revalidate` tag or time-based ISR) and Server Components. Every Route Handler or Server Action added is a new serverless function invocation on the free tier.
+  - Cache Sanity CMS queries (`revalidate: 3600` or tag-based) so Vercel Edge serves cached pages without triggering function executions.
+  - Do NOT call internal API routes (`fetch('/api/...')`) from inside Server Components — query service layers directly to avoid double serverless invocations.
+- **Serverless Execution Cap**: Keep Route Handlers and Server Actions well under **10 s**. Do not approach the limit — target comfortably below it.
+- **External CDN & Bandwidth**: Deliver video and heavy media via external CDNs (Sanity CDN, Cloudflare Stream, YouTube/Vimeo). **NEVER** proxy raw media through Next.js API routes.
+- **Database Connection Pooling**: Use Supabase `@supabase/ssr` with the connection pooler (Transaction mode) in serverless contexts to prevent exhaustion and timeouts.
