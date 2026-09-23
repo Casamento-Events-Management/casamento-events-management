@@ -49,12 +49,23 @@ export const structure: StructureResolver = (S) =>
       S.divider(),
       // Articles section
       S.listItem()
-        .title('Article Vlog Banner')
+        .title('Articles Page Hero')
+        .id('articlesHeroSingleton')
+        .child(
+          S.document()
+            .schemaType('articlesHero')
+            .documentId('articlesHero')
+        ),
+      S.listItem()
+        .title('Article Vlogs')
+        .child(S.documentTypeList('articleVlog').title('Article Vlogs')),
+      S.listItem()
+        .title('Article Vlog Banners')
         .child(S.documentTypeList('articleVlogBanner').title('Article Vlog Banners')),
       S.divider(),
       // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(
-        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem', 'articleVlogBanner'].includes(listItem.getId() || '')
+        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem', 'articleVlogBanner', 'articlesHero', 'articleVlog'].includes(listItem.getId() || '')
       ),
     ])
 

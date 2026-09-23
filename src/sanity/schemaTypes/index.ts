@@ -2,6 +2,8 @@ import { type SchemaTypeDefinition } from 'sanity'
 
 // Documents
 import { articleVlogBanner } from './documents/articleVlogBanner'
+import { articlesHero } from './documents/articlesHero'
+import { articleVlog } from './documents/articleVlog'
 import { homePage } from './documents/homePage'
 import { portfolioCategory } from './documents/portfolioCategory'
 import { portfolioHero } from './documents/portfolioHero'
@@ -25,6 +27,8 @@ export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
     // Documents
     articleVlogBanner,
+    articlesHero,
+    articleVlog,
     homePage,
     portfolioCategory,
     portfolioHero,

@@ -78,5 +78,18 @@ export type {
     ArticleVlogBannerProps,
 } from './articleBanner';
 
+// Article Vlog types
+export type {
+    ArticleVlogMediaType,
+    VlogSocialBacklink,
+    ArticleVlogItem,
+    ArticlesHeroContent,
+    ArticlesHeroProps,
+    VlogGalleryProps,
+    VlogItemProps,
+    VlogCategoryFilterProps,
+} from './articleVlog';
+
+
 
 

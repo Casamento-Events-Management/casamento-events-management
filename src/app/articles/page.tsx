@@ -1,7 +1,15 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { ArticleVlogBanner } from '@/components/articles/ArticleVlogBanner';
+import { ArticlesHero } from '@/components/articles/ArticlesHero';
+import { VlogGallery } from '@/components/articles/VlogGallery';
 import { getArticleVlogBanner } from '@/lib/services/articleBannerService';
+import {
+  getArticlesHero,
+  getArticleVlogsForGallery,
+  getArticleVlogTotalCount,
+  getPortfolioCategories,
+} from '@/lib/services/articleVlogService';
 
 export const metadata: Metadata = {
   title: 'Articles & Vlogs | Event Planning Guides & Behind the Scenes',
@@ -32,12 +40,32 @@ export const metadata: Metadata = {
 };
 
 export default async function ArticlesPage() {
-  const bannerData = await getArticleVlogBanner();
+  const [bannerData, heroContent, items, categories, totalCount] = await Promise.all([
+    getArticleVlogBanner(),
+    getArticlesHero(),
+    getArticleVlogsForGallery(undefined, 1),
+    getPortfolioCategories(),
+    getArticleVlogTotalCount(),
+  ]);
+
+  const showViewMore = totalCount > 6;
 
   return (
     <main className="min-h-screen bg-[#F7F3E8] pt-20">
       {/* Section 1: Article Vlog Banner */}
       <ArticleVlogBanner banner={bannerData} />
+
+      {/* Section 2: Articles Hero + Vlog Gallery */}
+      <ArticlesHero content={heroContent} />
+
+      <div className="pb-20">
+        <VlogGallery
+          items={items}
+          categories={categories}
+          totalCount={totalCount}
+          showViewMore={showViewMore}
+        />
+      </div>
     </main>
   );
 }
