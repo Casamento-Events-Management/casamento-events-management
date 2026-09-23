@@ -71,4 +71,12 @@ export type {
     ServiceBookingRedirectParams,
 } from './service';
 
+// Article Banner types
+export type {
+    ArticleVlogBanner,
+    ArticleBannerCTA,
+    ArticleVlogBannerProps,
+} from './articleBanner';
+
+
 

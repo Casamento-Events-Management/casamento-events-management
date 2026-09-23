@@ -47,9 +47,14 @@ export const structure: StructureResolver = (S) =>
         .title('Service Items')
         .child(S.documentTypeList('serviceItem').title('Service Items')),
       S.divider(),
+      // Articles section
+      S.listItem()
+        .title('Article Vlog Banner')
+        .child(S.documentTypeList('articleVlogBanner').title('Article Vlog Banners')),
+      S.divider(),
       // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(
-        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem'].includes(listItem.getId() || '')
+        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem', 'articleVlogBanner'].includes(listItem.getId() || '')
       ),
     ])
 
