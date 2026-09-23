@@ -26,6 +26,14 @@ export type {
     WithPriority,
 } from './sanity';
 
+// Shared Media Category types
+export type {
+    MediaCategory,
+    PortfolioCategory,
+    ArticleVlogCategory,
+    ActiveCategoryFilter,
+} from './category';
+
 // Cross-page shared types
 export type {
     SocialPlatform,
@@ -48,10 +56,8 @@ export type {
     SanityPortfolioCategory,
     SanityPortfolioItem,
     SanityPortfolioHero,
-    PortfolioCategory,
     PortfolioItem,
     PortfolioHeroContent,
-    ActiveCategoryFilter,
     PortfolioModalState,
     PortfolioPageData,
     PortfolioPageProps,

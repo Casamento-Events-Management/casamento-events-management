@@ -68,21 +68,8 @@ export interface SanityPortfolioItem extends SanityDocument {
 // 2. Next.js Frontend Models & UI Component Contracts
 // ---------------------------------------------------------------------------
 
-/**
- * Clean UI representation of a Portfolio Category
- */
-export interface PortfolioCategory {
-    id: string;
-    title: string;
-    slug: string;
-    description?: string;
-    priority: number;
-}
-
-/**
- * Active category filter state: 'all' or any dynamic Sanity category slug string
- */
-export type ActiveCategoryFilter = 'all' | string;
+import type { PortfolioCategory, ActiveCategoryFilter } from './category';
+export type { PortfolioCategory, ActiveCategoryFilter };
 
 /**
  * Clean UI representation of a Portfolio Item

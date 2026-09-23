@@ -6,7 +6,7 @@ import { defineField, defineType } from 'sanity'
  */
 export const portfolioCategory = defineType({
   name: 'portfolioCategory',
-  title: 'Portfolio Category',
+  title: 'Media Category',
   type: 'document',
   fields: [
     defineField({

@@ -15,6 +15,11 @@ export const structure: StructureResolver = (S) =>
             .documentId('homePage')
         ),
       S.divider(),
+      // Media Categories
+      S.listItem()
+        .title('Media Categories')
+        .child(S.documentTypeList('portfolioCategory').title('Media Categories')),
+      S.divider(),
       // Portfolio section
       S.listItem()
         .title('Portfolio Page Hero')
@@ -24,9 +29,6 @@ export const structure: StructureResolver = (S) =>
             .schemaType('portfolioHero')
             .documentId('portfolioHero')
         ),
-      S.listItem()
-        .title('Portfolio Categories')
-        .child(S.documentTypeList('portfolioCategory').title('Portfolio Categories')),
       S.listItem()
         .title('Portfolio Items')
         .child(S.documentTypeList('portfolioItem').title('Portfolio Items')),

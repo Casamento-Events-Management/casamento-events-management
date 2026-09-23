@@ -6,7 +6,7 @@
 // =============================================================================
 
 import type { SanityDocument, SanityImageWithPriority, VideoSource } from './sanity';
-import type { PortfolioCategory } from './portfolio';
+import type { MediaCategory } from './category';
 
 // ---------------------------------------------------------------------------
 // 1. Media Type
@@ -40,7 +40,7 @@ export interface ArticleVlogItem extends SanityDocument {
     title: string;
     slug: { current: string };
     /** References the shared portfolioCategory taxonomy. */
-    category: PortfolioCategory;
+    category: MediaCategory;
     mediaType: ArticleVlogMediaType;
     /** Required LCP priority thumbnail image. */
     thumbnail: SanityImageWithPriority;
@@ -90,7 +90,7 @@ export interface ArticlesHeroProps {
 
 export interface VlogGalleryProps {
     items: ArticleVlogItem[];
-    categories: PortfolioCategory[];
+    categories: MediaCategory[];
     totalCount: number;
     onSelectVideo?: (item: ArticleVlogItem) => void;
 }
@@ -101,7 +101,7 @@ export interface VlogItemProps {
 }
 
 export interface VlogCategoryFilterProps {
-    categories: PortfolioCategory[];
+    categories: MediaCategory[];
     activeSlug: string;
     onSelect: (slug: string) => void;
 }
