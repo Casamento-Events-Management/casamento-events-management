@@ -171,7 +171,7 @@ export default function AboutPage() {
             <span className="inline-block text-xs md:text-sm font-semibold tracking-widest text-[#BC6F07] uppercase mb-3">
               About Us
             </span>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif text-[#3A4F1C] tracking-tight leading-tight mb-4">
+            <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-semibold tracking-tight text-[#3A4F1C] mb-4 sm:mb-6 leading-tight [text-wrap:balance]">
               Our Story: A Legacy Born from Love
             </h1>
             <div className="w-16 h-0.5 bg-[#BC6F07] mx-auto mb-6" />
@@ -231,18 +231,15 @@ export default function AboutPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Mission Card */}
-            <div className="relative rounded-3xl p-8 sm:p-10 bg-[#3A4F1C] text-[#F7F3E8] shadow-md border border-[#BC6F07]/30 flex flex-col justify-between overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-15 transition-opacity pointer-events-none">
-                <Target className="w-32 h-32 text-[#BC6F07]" />
-              </div>
+            <div className="relative rounded-3xl p-8 sm:p-10 bg-white text-[#3A4F1C] shadow-xs border border-[#3A4F1C]/15 flex flex-col justify-between overflow-hidden group">
               <div className="relative z-10">
-                <div className="w-12 h-12 rounded-2xl bg-[#BC6F07] flex items-center justify-center text-white mb-6 shadow-xs">
+                <div className="w-12 h-12 rounded-xl bg-[#F7F3E8] border border-[#BC6F07]/30 flex items-center justify-center text-[#BC6F07] mb-6">
                   <Target className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-serif font-semibold text-[#F7F3E8] mb-4 tracking-tight">
+                <h3 className="text-xl sm:text-2xl font-serif font-semibold text-[#3A4F1C] mb-4 tracking-tight">
                   Mission
                 </h3>
-                <p className="text-base sm:text-lg text-[#F7F3E8]/85 leading-relaxed font-light">
+                <p className="text-base sm:text-lg text-[#3A4F1C]/80 leading-relaxed font-light">
                   To transform our clients’ ideas into meaningful and memorable experiences through creative thinking, thoughtful planning, innovative production, and dependable execution.
                 </p>
               </div>
@@ -250,11 +247,8 @@ export default function AboutPage() {
 
             {/* Vision Card */}
             <div className="relative rounded-3xl p-8 sm:p-10 bg-white text-[#3A4F1C] shadow-xs border border-[#3A4F1C]/15 flex flex-col justify-between overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
-                <Eye className="w-32 h-32 text-[#3A4F1C]" />
-              </div>
               <div className="relative z-10">
-                <div className="w-12 h-12 rounded-2xl bg-[#3A4F1C] flex items-center justify-center text-[#F7F3E8] mb-6 shadow-xs">
+                <div className="w-12 h-12 rounded-xl bg-[#F7F3E8] border border-[#BC6F07]/30 flex items-center justify-center text-[#BC6F07] mb-6">
                   <Eye className="w-6 h-6 text-[#BC6F07]" />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-serif font-semibold text-[#3A4F1C] mb-4 tracking-tight">
@@ -310,20 +304,17 @@ export default function AboutPage() {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            {WHY_CHOOSE_ITEMS.map((item, index) => {
+            {WHY_CHOOSE_ITEMS.map((item, _) => {
               const IconComponent = item.icon;
               return (
                 <div
                   key={item.title}
                   className="p-8 rounded-2xl bg-white/90 border border-[#3A4F1C]/10 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-start relative group"
                 >
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-[#3A4F1C] text-[#F7F3E8] flex items-center justify-center shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-xl bg-[#F7F3E8] border border-[#BC6F07]/30 flex items-center justify-center text-[#BC6F07] mb-6">
                       <IconComponent className="w-6 h-6 text-[#BC6F07]" />
                     </div>
-                    <span className="text-xs font-mono font-semibold text-[#BC6F07] tracking-widest">
-                      0{index + 1}
-                    </span>
                   </div>
                   <h3 className="text-lg font-serif font-semibold text-[#3A4F1C] mb-3 leading-snug">
                     {item.title}
