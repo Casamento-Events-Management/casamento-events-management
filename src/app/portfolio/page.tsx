@@ -16,6 +16,7 @@ import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { PortfolioJsonLd } from '@/components/portfolio/portfolio-json-ld';
 import { getHomePageContent } from '@/lib/services/homeService';
 import { UpcomingEventsSection } from '@/components/home/upcoming-events-section';
+import { ConnectSection } from '@/components/layout/connect-section';
 
 export const metadata: Metadata = {
     title: 'Portfolio | Wedding Films, Stage Production & Live Streams',
@@ -75,6 +76,7 @@ export default async function PortfolioPage() {
                 galleryDescription={heroContent.galleryDescription}
             />
             <PortfolioJsonLd items={items} />
+            <ConnectSection socialLinks={content.socialLinks} />
         </main>
     );
 }
