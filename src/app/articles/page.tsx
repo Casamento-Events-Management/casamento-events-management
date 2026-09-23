@@ -10,6 +10,8 @@ import {
   getArticleVlogTotalCount,
   getPortfolioCategories,
 } from '@/lib/services/articleVlogService';
+import { ConnectSection } from '@/components/layout/connect-section';
+import { getHomePageContent } from '@/lib/services/homeService';
 
 export const metadata: Metadata = {
   title: 'Articles & Vlogs | Event Planning Guides & Behind the Scenes',
@@ -40,12 +42,13 @@ export const metadata: Metadata = {
 };
 
 export default async function ArticlesPage() {
-  const [bannerData, heroContent, items, categories, totalCount] = await Promise.all([
+  const [bannerData, heroContent, items, categories, totalCount, homeContent] = await Promise.all([
     getArticleVlogBanner(),
     getArticlesHero(),
     getArticleVlogsForGallery(undefined, 1),
     getPortfolioCategories(),
     getArticleVlogTotalCount(),
+    getHomePageContent()
   ]);
 
   const showViewMore = totalCount > 6;
@@ -66,6 +69,8 @@ export default async function ArticlesPage() {
           showViewMore={showViewMore}
         />
       </div>
+
+      <ConnectSection socialLinks={homeContent.socialLinks} />
     </main>
   );
 }
