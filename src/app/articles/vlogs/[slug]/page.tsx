@@ -7,6 +7,7 @@ import {
   getArticleVlogBySlug,
   getAllArticleVlogSlugs,
 } from '@/lib/services/articleVlogService';
+import { CustomPortableText } from '@/components/ui/portable-text';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -135,8 +136,12 @@ export default async function VlogDetailPage({ params }: PageProps) {
           </p>
         )}
 
-        {/* Full content placeholder — PortableText renderer goes here */}
-        {/* TODO: Add @portabletext/react renderer when content body implementation is scoped */}
+        {/* Full content body from Sanity PortableText */}
+        {item.content && item.content.length > 0 && (
+          <div className="my-8">
+            <CustomPortableText value={item.content} />
+          </div>
+        )}
 
         {/* Social Backlinks */}
         {item.socialBacklinks && item.socialBacklinks.length > 0 && (

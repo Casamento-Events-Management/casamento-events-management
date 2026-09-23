@@ -35,6 +35,103 @@ export const articleVlogMockItems: ArticleVlogItem[] = [
       { platform: 'instagram', url: 'https://instagram.com/p/example-001' },
       { platform: 'youtube', url: 'https://youtube.com/watch?v=example-001' },
     ],
+    content: [
+      {
+        _type: 'block',
+        _key: 'b1',
+        style: 'h2',
+        children: [{ _type: 'span', text: 'The Art of Glasshouse Wedding Production' }],
+      },
+      {
+        _type: 'block',
+        _key: 'b2',
+        style: 'normal',
+        markDefs: [
+          {
+            _key: 'link-casamento',
+            _type: 'link',
+            href: '/portfolio',
+          },
+        ],
+        children: [
+          { _type: 'span', text: 'Designing a celebration within a glasshouse presents a unique blend of natural ambient lighting and technical production challenges. Our team at ' },
+          { _type: 'span', marks: ['strong'], text: 'Casamento Events' },
+          { _type: 'span', text: ' deployed a custom kinetic lighting system designed to transition seamlessly from afternoon sunlight into an evening ballroom experience. Experience our featured work in our ' },
+          { _type: 'span', marks: ['link-casamento', 'em'], text: 'portfolio showcase' },
+          { _type: 'span', text: '.' },
+        ],
+      },
+      {
+        _type: 'block',
+        _key: 'b3',
+        style: 'blockquote',
+        children: [
+          {
+            _type: 'span',
+            marks: ['em'],
+            text: '"Elegance is not about being noticed, it is about being remembered. Every spotlight position and floral arrangement was orchestrated to create a timeless atmosphere."',
+          },
+        ],
+      },
+      {
+        _type: 'image',
+        _key: 'b-img-1',
+        asset: {
+          _type: 'reference',
+          _ref: 'img-vlog-embedded-001',
+          url: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=1200&q=80',
+        },
+        alt: 'Tagaytay Glasshouse Stage Production Setup',
+        caption: 'Figure 1.1 — Over 5,000 fresh white orchids and custom crystal chandelier chandeliers over the main stage.',
+      },
+      {
+        _type: 'block',
+        _key: 'b4',
+        style: 'h3',
+        children: [{ _type: 'span', text: 'Key Production Milestones' }],
+      },
+      {
+        _type: 'block',
+        _key: 'b5',
+        style: 'normal',
+        children: [
+          {
+            _type: 'span',
+            text: 'Here are the primary technical specs deployed for this event using our ',
+          },
+          {
+            _type: 'span',
+            marks: ['code'],
+            text: '4K-HDR Multi-Cam Broadcast Rig',
+          },
+          {
+            _type: 'span',
+            text: ':',
+          },
+        ],
+      },
+      {
+        _type: 'block',
+        _key: 'b-list-1',
+        listItem: 'bullet',
+        level: 1,
+        children: [{ _type: 'span', text: 'Architectural floral canopy with warm acoustic spotlighting.' }],
+      },
+      {
+        _type: 'block',
+        _key: 'b-list-2',
+        listItem: 'bullet',
+        level: 1,
+        children: [{ _type: 'span', text: 'Multi-camera live broadcast feed streamed to 15 international guest portals.' }],
+      },
+      {
+        _type: 'block',
+        _key: 'b-list-3',
+        listItem: 'bullet',
+        level: 1,
+        children: [{ _type: 'span', text: 'Acoustic sound dampening panels along the glass architectural walls.' }],
+      },
+    ],
     publishedAt: '2026-09-15T08:00:00.000Z',
     priority: 100,
   },
