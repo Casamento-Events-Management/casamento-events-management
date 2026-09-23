@@ -96,10 +96,11 @@ export async function getArticlesHero(): Promise<ArticlesHeroContent> {
  */
 export async function getArticleVlogsForGallery(
   categorySlug?: string,
-  page = 1
+  page = 1,
+  pageSize = 12
 ): Promise<ArticleVlogItem[]> {
-  const start = (page - 1) * ITEMS_PER_PAGE;
-  const end = start + ITEMS_PER_PAGE;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
 
   const categoryFilter = categorySlug && categorySlug !== 'all'
     ? `&& category->slug.current == $categorySlug`

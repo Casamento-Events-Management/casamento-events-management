@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArticlesHero } from '@/components/articles/ArticlesHero';
 import { VlogGallery } from '@/components/articles/VlogGallery';
+import { ConnectSection } from '@/components/layout/connect-section';
+import { getHomePageContent } from '@/lib/services/homeService';
 import {
   getArticlesHero,
   getArticleVlogsForGallery,
@@ -10,7 +12,7 @@ import {
   getPortfolioCategories,
 } from '@/lib/services/articleVlogService';
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 12;
 
 export const metadata: Metadata = {
   title: 'All Vlogs & Guides | Casamento Events Editorial Journal',
@@ -28,15 +30,15 @@ export const metadata: Metadata = {
 };
 
 export default async function ArticlesVlogsPage() {
-  const [heroContent, items, categories, totalCount] = await Promise.all([
+  const [heroContent, items, categories, totalCount, homeContent] = await Promise.all([
     getArticlesHero(),
-    getArticleVlogsForGallery(undefined, 1),
+    getArticleVlogsForGallery(undefined, 1, ITEMS_PER_PAGE),
     getPortfolioCategories(),
     getArticleVlogTotalCount(),
+    getHomePageContent(),
   ]);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
-  const showViewMore = totalCount > ITEMS_PER_PAGE;
 
   return (
     <main className="min-h-screen bg-[#F7F3E8] pt-20">
@@ -55,20 +57,26 @@ export default async function ArticlesVlogsPage() {
       {totalPages > 1 && (
         <nav
           aria-label="Vlog pages"
-          className="flex items-center justify-center gap-4 py-10 px-6"
+          className="flex items-center justify-between max-w-7xl mx-auto py-10 px-6 sm:px-8"
         >
-          <span className="text-xs text-[#3A4F1C]/50">Page 1 of {totalPages}</span>
-          {showViewMore && (
+          <div className="w-24" />
+          <span className="text-xs font-medium tracking-wider text-[#3A4F1C]/60 uppercase">
+            Page 1 of {totalPages}
+          </span>
+          <div className="w-24 text-right">
             <Link
               href="/articles/vlogs/page/2"
               rel="next"
-              className="text-sm font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
+              className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
             >
               Next Page →
             </Link>
-          )}
+          </div>
         </nav>
       )}
+
+      <ConnectSection socialLinks={homeContent.socialLinks} />
     </main>
   );
 }
+

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArticlesHero } from '@/components/articles/ArticlesHero';
 import { VlogGallery } from '@/components/articles/VlogGallery';
+import { ConnectSection } from '@/components/layout/connect-section';
+import { getHomePageContent } from '@/lib/services/homeService';
 import {
   getArticlesHero,
   getArticleVlogsForGallery,
@@ -11,7 +13,7 @@ import {
   getPortfolioCategories,
 } from '@/lib/services/articleVlogService';
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 12;
 
 interface PageProps {
   params: Promise<{ n: string }>;
@@ -43,17 +45,17 @@ export default async function VlogsPageN({ params }: PageProps) {
 
   if (isNaN(pageNum) || pageNum < 2) return notFound();
 
-  const [heroContent, items, categories, totalCount] = await Promise.all([
+  const [heroContent, items, categories, totalCount, homeContent] = await Promise.all([
     getArticlesHero(),
-    getArticleVlogsForGallery(undefined, pageNum),
+    getArticleVlogsForGallery(undefined, pageNum, ITEMS_PER_PAGE),
     getPortfolioCategories(),
     getArticleVlogTotalCount(),
+    getHomePageContent(),
   ]);
 
   if (items.length === 0) return notFound();
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
-  const hasPrev = pageNum > 2;
   const prevHref = pageNum === 2 ? '/articles/vlogs' : `/articles/vlogs/page/${pageNum - 1}`;
   const hasNext = pageNum < totalPages;
 
@@ -75,33 +77,35 @@ export default async function VlogsPageN({ params }: PageProps) {
         aria-label="Vlog pages"
         className="flex items-center justify-between max-w-7xl mx-auto py-10 px-6 sm:px-8"
       >
-        <div>
-          {(pageNum > 1) && (
-            <Link
-              href={prevHref}
-              rel="prev"
-              className="text-sm font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
-            >
-              ← Previous Page
-            </Link>
-          )}
+        <div className="w-30">
+          <Link
+            href={prevHref}
+            rel="prev"
+            className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
+          >
+            ← Previous Page
+          </Link>
         </div>
-        <span className="text-xs text-[#3A4F1C]/50">
+        <span className="text-xs font-medium tracking-wider text-[#3A4F1C]/60 uppercase">
           Page {pageNum} of {totalPages}
         </span>
-        <div>
-          {hasNext && (
+        <div className="w-28 text-right">
+          {hasNext ? (
             <Link
               href={`/articles/vlogs/page/${pageNum + 1}`}
               rel="next"
-              className="text-sm font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
+              className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
             >
               Next Page →
             </Link>
+          ) : (
+            <div />
           )}
         </div>
       </nav>
 
+      <ConnectSection socialLinks={homeContent.socialLinks} />
     </main>
   );
 }
+

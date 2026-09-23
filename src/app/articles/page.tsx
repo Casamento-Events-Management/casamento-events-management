@@ -45,7 +45,7 @@ export default async function ArticlesPage() {
   const [bannerData, heroContent, items, categories, totalCount, homeContent] = await Promise.all([
     getArticleVlogBanner(),
     getArticlesHero(),
-    getArticleVlogsForGallery(undefined, 1),
+    getArticleVlogsForGallery(undefined, 1, 6),
     getPortfolioCategories(),
     getArticleVlogTotalCount(),
     getHomePageContent()

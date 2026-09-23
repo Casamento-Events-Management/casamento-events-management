@@ -71,6 +71,10 @@ const SEEDERS: Record<string, () => Promise<void>> = {
         const { seedArticlesHero } = await import('./seeders/seedArticlesHero')
         await seedArticlesHero(dryRun)
     },
+    articleVlogMock: async () => {
+        const { seedArticleVlogs } = await import('./seeders/seedArticleVlogs')
+        await seedArticleVlogs(dryRun)
+    },
     articleVlogsMock: async () => {
         const { seedArticleVlogs } = await import('./seeders/seedArticleVlogs')
         await seedArticleVlogs(dryRun)
