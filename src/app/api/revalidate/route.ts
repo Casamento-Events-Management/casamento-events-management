@@ -64,6 +64,19 @@ export async function POST(req: NextRequest) {
         revalidatePath('/services')
         revalidatePath('/')
         break
+      case 'articleVlogBanner':
+      case 'articlesHero':
+      case 'articleVlog':
+        revalidatePath('/articles')
+        revalidatePath('/articles/vlogs/page/[n]', 'page')
+        revalidatePath('/')
+        break
+      case 'clientFeedback':
+        revalidatePath('/articles')
+        revalidatePath('/articles/feedback')
+        revalidatePath('/articles/feedback/page/[n]', 'page')
+        revalidatePath('/')
+        break
       default:
         // For any unspecified document type, revalidate main landing routes
         revalidatePath('/')
