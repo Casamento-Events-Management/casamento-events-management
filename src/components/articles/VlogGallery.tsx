@@ -63,7 +63,7 @@ export function VlogGallery({ items, categories, totalCount, onSelectVideo, show
 
       {/* View More Vlogs CTA */}
       {showViewMore && activeSlug === 'all' && (
-        <div className="flex justify-center mt-14 px-6">
+        <div className="flex justify-center mt-14 pb-14">
           <Link
             href="/articles/vlogs"
             className="text-sm font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"

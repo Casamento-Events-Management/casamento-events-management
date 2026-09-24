@@ -23,12 +23,15 @@ import { teaserVideo } from './objects/teaserVideo'
 import { upcomingEvent } from './objects/upcomingEvent'
 import { videoSource } from './objects/videoSource'
 
+import { clientFeedback } from './documents/clientFeedback'
+
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
     // Documents
     articleVlogBanner,
     articlesHero,
     articleVlog,
+    clientFeedback,
     homePage,
     portfolioCategory,
     portfolioHero,

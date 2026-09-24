@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { ArticleVlogBanner } from '@/components/articles/ArticleVlogBanner';
 import { ArticlesHero } from '@/components/articles/ArticlesHero';
 import { VlogGallery } from '@/components/articles/VlogGallery';
+import { FeedbackSection } from '@/components/articles/FeedbackSection';
 import { getArticleVlogBanner } from '@/lib/services/articleBannerService';
 import {
   getArticlesHero,
@@ -10,6 +11,7 @@ import {
   getArticleVlogTotalCount,
   getPortfolioCategories,
 } from '@/lib/services/articleVlogService';
+import { getApprovedFeedbacks } from '@/lib/services/feedbackService';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { getHomePageContent } from '@/lib/services/homeService';
 
@@ -42,13 +44,14 @@ export const metadata: Metadata = {
 };
 
 export default async function ArticlesPage() {
-  const [bannerData, heroContent, items, categories, totalCount, homeContent] = await Promise.all([
+  const [bannerData, heroContent, items, categories, totalCount, homeContent, feedbacks] = await Promise.all([
     getArticleVlogBanner(),
     getArticlesHero(),
     getArticleVlogsForGallery(undefined, 1, 6),
     getPortfolioCategories(),
     getArticleVlogTotalCount(),
-    getHomePageContent()
+    getHomePageContent(),
+    getApprovedFeedbacks(),
   ]);
 
   const showViewMore = totalCount > 6;
@@ -61,7 +64,7 @@ export default async function ArticlesPage() {
       {/* Section 2: Articles Hero + Vlog Gallery */}
       <ArticlesHero content={heroContent} />
 
-      <div className="pb-20">
+      <div>
         <VlogGallery
           items={items}
           categories={categories}
@@ -69,6 +72,9 @@ export default async function ArticlesPage() {
           showViewMore={showViewMore}
         />
       </div>
+
+      {/* Section 3: Client Feedback & Testimonials */}
+      <FeedbackSection feedbacks={feedbacks} />
 
       <ConnectSection socialLinks={homeContent.socialLinks} />
     </main>
