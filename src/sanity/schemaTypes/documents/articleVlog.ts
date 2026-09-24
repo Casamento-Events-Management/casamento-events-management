@@ -156,7 +156,13 @@ export const articleVlog = defineType({
       title: 'Full Content',
       type: 'array',
       description: 'Full portable text article body. Only rendered on the /articles/vlogs/[slug] detail page.',
-      of: [{ type: 'block' }, { type: 'image' }],
+      of: [
+        { type: 'block' },
+        { type: 'image' },
+        { type: 'videoEmbed' },
+        { type: 'videoFile' },
+        { type: 'videoSource' },
+      ],
     }),
     defineField({
       name: 'publishedAt',

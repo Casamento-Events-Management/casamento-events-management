@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { PortableText, type PortableTextComponents } from 'next-sanity';
 import { urlFor } from '@/sanity/lib/image';
 
@@ -96,19 +95,147 @@ const components: PortableTextComponents = {
       if (!imageUrl) return null;
 
       return (
-        <div className="relative w-full aspect-video my-8 rounded-xl overflow-hidden bg-[#1A2310]">
-          <Image
+        <figure className="my-8">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={imageUrl}
             alt={value.alt || 'Article embedded image'}
-            fill
-            className="object-cover"
-            sizes="(max-width: 896px) 100vw, 896px"
+            className="w-full h-auto rounded-xl block"
+            loading="lazy"
           />
           {value.caption && (
-            <p className="text-xs text-center text-[#3A4F1C]/60 mt-2 italic">{value.caption}</p>
+            <figcaption className="text-xs text-center text-[#3A4F1C]/60 mt-2 italic">
+              {value.caption}
+            </figcaption>
           )}
-        </div>
+        </figure>
       );
+    },
+    videoEmbed: ({ value }) => {
+      if (!value?.url) return null;
+      const url: string = value.url;
+      let embedUrl = url;
+
+      const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&?/]+)/);
+      if (ytMatch) embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}`;
+
+      const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+      if (vimeoMatch) embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+
+      return (
+        <figure className="my-8">
+          <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-[#1A2310]">
+            <iframe
+              src={embedUrl}
+              title={value.caption || 'Embedded video'}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full border-0"
+              loading="lazy"
+            />
+          </div>
+          {value.caption && (
+            <figcaption className="text-xs text-center text-[#3A4F1C]/60 mt-2 italic">
+              {value.caption}
+            </figcaption>
+          )}
+        </figure>
+      );
+    },
+    videoFile: ({ value }) => {
+      if (!value) return null;
+
+      let cdnUrl = '';
+      const assetRef: string = value.asset?.asset?._ref || value.asset?._ref || '';
+
+      if (assetRef) {
+        const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '';
+        const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
+        const refParts = assetRef.replace('file-', '').split('-');
+        const ext = refParts.pop();
+        const id = refParts.join('-');
+        cdnUrl = `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`;
+      } else if (value.asset?.url) {
+        cdnUrl = value.asset.url;
+      }
+
+      if (!cdnUrl) return null;
+
+      return (
+        <figure className="my-8">
+          <div className="rounded-xl overflow-hidden bg-[#1A2310]">
+            <video
+              controls
+              preload="metadata"
+              className="w-full h-auto block"
+              playsInline
+            >
+              <source src={cdnUrl} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          {value.caption && (
+            <figcaption className="text-xs text-center text-[#3A4F1C]/60 mt-2 italic">
+              {value.caption}
+            </figcaption>
+          )}
+        </figure>
+      );
+    },
+    videoSource: ({ value }) => {
+      if (!value) return null;
+
+      // Sanity CDN direct file upload
+      if (value.sourceType === 'sanity' && value.asset?.asset?._ref) {
+        const assetRef: string = value.asset.asset._ref;
+        const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || '';
+        const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || 'production';
+        const refParts = assetRef.replace('file-', '').split('-');
+        const ext = refParts.pop();
+        const id = refParts.join('-');
+        const cdnUrl = `https://cdn.sanity.io/files/${projectId}/${dataset}/${id}.${ext}`;
+
+        return (
+          <div className="my-8 rounded-xl overflow-hidden bg-[#1A2310]">
+            <video
+              controls
+              preload="metadata"
+              className="w-full h-auto block"
+              playsInline
+            >
+              <source src={cdnUrl} type={value.mimeType || 'video/mp4'} />
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        );
+      }
+
+      // External provider: YouTube, Vimeo, Cloudflare Stream
+      if (value.sourceType === 'external' && value.url) {
+        const url: string = value.url;
+        let embedUrl = url;
+
+        const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&?/]+)/);
+        if (ytMatch) embedUrl = `https://www.youtube.com/embed/${ytMatch[1]}`;
+
+        const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+        if (vimeoMatch) embedUrl = `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+
+        return (
+          <div className="my-8 relative w-full aspect-video rounded-xl overflow-hidden bg-[#1A2310]">
+            <iframe
+              src={embedUrl}
+              title="Embedded video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full border-0"
+              loading="lazy"
+            />
+          </div>
+        );
+      }
+
+      return null;
     },
   },
 };
