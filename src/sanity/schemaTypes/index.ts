@@ -22,6 +22,8 @@ import { socialLink } from './objects/socialLink'
 import { teaserVideo } from './objects/teaserVideo'
 import { upcomingEvent } from './objects/upcomingEvent'
 import { videoSource } from './objects/videoSource'
+import { videoEmbed } from './objects/videoEmbed'
+import { videoFile } from './objects/videoFile'
 
 import { clientFeedback } from './documents/clientFeedback'
 
@@ -50,6 +52,8 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     teaserVideo,
     upcomingEvent,
     videoSource,
+    videoEmbed,
+    videoFile,
   ],
 }
 

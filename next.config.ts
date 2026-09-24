@@ -49,8 +49,8 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https://cdn.sanity.io https://images.unsplash.com https://*.supabase.co https://i.ytimg.com https://vumbnail.com https://lh3.googleusercontent.com https://picsum.photos https://www.google.com https://www.gstatic.com",
       // Media: self + Sanity CDN (native video assets)
       "media-src 'self' https://cdn.sanity.io https://*.supabase.co",
-      // Frames: youtube-nocookie.com, player.vimeo.com, and Google reCAPTCHA
-      "frame-src 'self' https://www.youtube-nocookie.com https://player.vimeo.com https://www.google.com https://recaptcha.google.com https://www.gstatic.com",
+      // Frames: youtube-nocookie.com, youtube.com, player.vimeo.com, and Google reCAPTCHA
+      "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://youtube.com https://player.vimeo.com https://www.google.com https://recaptcha.google.com https://www.gstatic.com",
       // Connections: self + Sanity API + Supabase + Google fonts + Google reCAPTCHA
       "connect-src 'self' https://*.sanity.io https://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com https://www.google.com https://www.gstatic.com",
       // Disable browser features not needed
