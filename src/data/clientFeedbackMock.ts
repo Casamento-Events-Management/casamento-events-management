@@ -13,6 +13,8 @@ export const clientFeedbackMockItems: ClientFeedback[] = [
     message:
       'Casamento Events made our wedding day absolutely seamless and breathtaking. From the initial consultation to the final dance, their team executed every single detail with elegance, precision, and passion. We could not have asked for a better event coordinator!',
     submittedAt: '2026-08-15T10:00:00Z',
+    isFeatured: true,
+    priority: 10,
   },
   {
     _id: 'mock-feedback-2',
@@ -26,6 +28,8 @@ export const clientFeedbackMockItems: ClientFeedback[] = [
     message:
       'My 18th debut was a total dream come true! The stage production, floral design, and coordination were flawless. Everyone was praising how organized the night was. Thank you Casamento team for making me feel like royalty!',
     submittedAt: '2026-07-22T14:30:00Z',
+    isFeatured: true,
+    priority: 5,
   },
   {
     _id: 'mock-feedback-3',
@@ -39,5 +43,7 @@ export const clientFeedbackMockItems: ClientFeedback[] = [
     message:
       'Planning a destination wedding from abroad seemed daunting until we hired Casamento Events. They handled vendor management, logistics, and design impeccably. Highly recommended for couples wanting a stress-free celebration!',
     submittedAt: '2026-06-10T09:15:00Z',
+    isFeatured: true,
+    priority: 0,
   },
 ];

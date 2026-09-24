@@ -75,6 +75,20 @@ export const clientFeedback = defineType({
       ],
     }),
     defineField({
+      name: 'isFeatured',
+      title: 'Featured on Articles Page',
+      type: 'boolean',
+      description: 'Toggle ON to feature this review in the featured slider on the Articles hub page.',
+      initialValue: false,
+    }),
+    defineField({
+      name: 'priority',
+      title: 'Display Priority',
+      type: 'number',
+      description: 'Higher value = shown first in the featured slider and grid. Tie-break: newer submittedAt wins.',
+      initialValue: 0,
+    }),
+    defineField({
       name: 'status',
       title: 'Approval Status',
       type: 'string',

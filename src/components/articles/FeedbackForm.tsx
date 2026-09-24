@@ -4,14 +4,6 @@ import React, { useState } from 'react';
 import { Star, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import type { FeedbackFormProps } from '@/types';
 
-const COMMON_EVENT_TYPES = [
-  'Luxury Wedding',
-  'Destination Wedding',
-  '18th Debut',
-  'Corporate Gala',
-  'Anniversary',
-  'Other',
-];
 
 export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
   const [formData, setFormData] = useState({
@@ -167,22 +159,6 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
         <label htmlFor="eventType" className="block text-xs font-semibold uppercase tracking-wider text-[#3A4F1C] mb-2">
           Event Type <span className="text-[#BC6F07]">*</span>
         </label>
-        <div className="flex flex-wrap gap-2 mb-2">
-          {COMMON_EVENT_TYPES.map((type) => (
-            <button
-              key={type}
-              type="button"
-              onClick={() => setFormData((prev) => ({ ...prev, eventType: type }))}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                formData.eventType === type
-                  ? 'bg-[#3A4F1C] text-[#F7F3E8] border border-[#3A4F1C]'
-                  : 'bg-[#F7F3E8] text-[#3A4F1C]/80 border border-[#3A4F1C]/20 hover:border-[#BC6F07]'
-              }`}
-            >
-              {type}
-            </button>
-          ))}
-        </div>
         <input
           type="text"
           id="eventType"
@@ -190,7 +166,7 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
           required
           value={formData.eventType}
           onChange={handleChange}
-          placeholder="Or specify custom event type e.g. Corporate Birthday"
+          placeholder="e.g. Luxury Wedding, 18th Debut, Corporate Event"
           className="w-full px-4 py-2.5 bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl text-xs text-[#3A4F1C] placeholder-[#3A4F1C]/40 focus:outline-none focus:border-[#BC6F07] focus:ring-1 focus:ring-[#BC6F07] transition-all"
         />
       </div>
@@ -242,6 +218,13 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
           placeholder="Tell us about your experience working with the Casamento Events team..."
           className="w-full px-4 py-3 bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl text-sm text-[#3A4F1C] placeholder-[#3A4F1C]/40 focus:outline-none focus:border-[#BC6F07] focus:ring-1 focus:ring-[#BC6F07] transition-all resize-y"
         />
+      </div>
+
+      {/* Data Privacy Disclaimer */}
+      <div className="flex items-start gap-2.5 px-3.5 text-[11px] text-[#3A4F1C]/80 font-light leading-relaxed">
+        <p>
+          <strong className="font-semibold text-[#3A4F1C]">Data Privacy Notice:</strong> Your email and phone number are used strictly for administrative verification and will <strong className="font-semibold text-[#3A4F1C]">never</strong> be published or shared. Only your name, event type, star rating, and message are displayed publicly upon team approval.
+        </p>
       </div>
 
       {/* Action Buttons */}

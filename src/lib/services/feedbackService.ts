@@ -4,9 +4,9 @@ import { parseFeedbackEmailRecipients } from '@/lib/utils/envUtils';
 import type { ClientFeedback } from '@/types';
 import type { FeedbackFormData } from '@/lib/schemas/feedback';
 
-// GROQ Query — Lean projection for public website display (excludes email, phone, adminNote)
+// GROQ Queries — Lean projection for public website display (excludes email, phone, adminNote)
 export const GROQ_APPROVED_FEEDBACKS = `
-  *[_type == "clientFeedback" && status == "approved"] | order(submittedAt desc) {
+  *[_type == "clientFeedback" && status == "approved"] | order(priority desc, submittedAt desc) {
     _id, _type, _createdAt, _updatedAt, _rev,
     name,
     eventType,
@@ -16,14 +16,77 @@ export const GROQ_APPROVED_FEEDBACKS = `
       "asset": { "_ref": asset._ref, "_type": "reference", "url": asset->url },
       alt
     },
-    submittedAt
+    submittedAt,
+    isFeatured,
+    priority
   }
 `;
 
+export const GROQ_FEATURED_FEEDBACKS = `
+  *[_type == "clientFeedback" && status == "approved" && isFeatured == true] | order(priority desc, submittedAt desc) {
+    _id, _type, _createdAt, _updatedAt, _rev,
+    name,
+    eventType,
+    rating,
+    message,
+    photo {
+      "asset": { "_ref": asset._ref, "_type": "reference", "url": asset->url },
+      alt
+    },
+    submittedAt,
+    isFeatured,
+    priority
+  }
+`;
+
+export const GROQ_ALL_APPROVED_FEEDBACKS_PAGINATED = `
+  *[_type == "clientFeedback" && status == "approved"] | order(priority desc, submittedAt desc) [$start...$end] {
+    _id, _type, _createdAt, _updatedAt, _rev,
+    name,
+    eventType,
+    rating,
+    message,
+    photo {
+      "asset": { "_ref": asset._ref, "_type": "reference", "url": asset->url },
+      alt
+    },
+    submittedAt,
+    isFeatured,
+    priority
+  }
+`;
+
+export const GROQ_APPROVED_FEEDBACKS_COUNT = `
+  count(*[_type == "clientFeedback" && status == "approved"])
+`;
+
 /**
- * Fetch all approved client feedbacks from Sanity for public display on the Articles page.
+ * Fetch featured approved client feedbacks for the Articles hub page slider.
  * Uses ISR tag-based caching (`tags: ['clientFeedback']`, revalidate: 3600).
- * Falls back to mock items if fetch fails or no documents match.
+ * Falls back to mock items if fetch fails or no featured items found.
+ */
+export async function getFeaturedFeedbacks(): Promise<ClientFeedback[]> {
+  try {
+    const data = await client.fetch<ClientFeedback[]>(
+      GROQ_FEATURED_FEEDBACKS,
+      {},
+      { next: { revalidate: 3600, tags: ['clientFeedback'] } }
+    );
+    if (data && data.length > 0) {
+      return data;
+    }
+  } catch (err) {
+    console.warn('[feedbackService] Failed to fetch featured client feedbacks:', err);
+  }
+
+  // Fallback: Return all approved or mock items if no featured flag is set yet
+  const allApproved = await getApprovedFeedbacks();
+  const featured = allApproved.filter((item) => item.isFeatured);
+  return featured.length > 0 ? featured : allApproved;
+}
+
+/**
+ * Fetch all approved client feedbacks from Sanity for public display.
  */
 export async function getApprovedFeedbacks(): Promise<ClientFeedback[]> {
   try {
@@ -40,6 +103,67 @@ export async function getApprovedFeedbacks(): Promise<ClientFeedback[]> {
   }
 
   return clientFeedbackMockItems;
+}
+
+/**
+ * Get total count of approved client feedbacks.
+ */
+export async function getApprovedFeedbacksCount(): Promise<number> {
+  try {
+    const count = await client.fetch<number>(
+      GROQ_APPROVED_FEEDBACKS_COUNT,
+      {},
+      { next: { revalidate: 3600, tags: ['clientFeedback'] } }
+    );
+    if (typeof count === 'number' && count > 0) {
+      return count;
+    }
+  } catch (err) {
+    console.warn('[feedbackService] Failed to fetch approved client feedbacks count:', err);
+  }
+
+  return clientFeedbackMockItems.length;
+}
+
+/**
+ * Fetch a page of approved client feedbacks for `/articles/feedback` paginated views.
+ */
+export async function getApprovedFeedbacksPage(
+  page: number,
+  pageSize = 12
+): Promise<ClientFeedback[]> {
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+
+  try {
+    const data = await client.fetch<ClientFeedback[]>(
+      GROQ_ALL_APPROVED_FEEDBACKS_PAGINATED,
+      { start, end },
+      { next: { revalidate: 3600, tags: ['clientFeedback'] } }
+    );
+    if (data && data.length > 0) {
+      return data;
+    }
+  } catch (err) {
+    console.warn(`[feedbackService] Failed to fetch feedback page ${page}:`, err);
+  }
+
+  // Fallback slicing mock items
+  return clientFeedbackMockItems.slice(start, end);
+}
+
+/**
+ * Calculate aggregate rating for JSON-LD dynamic schema injection.
+ */
+export async function getAggregateRating(): Promise<{ average: number; count: number }> {
+  const feedbacks = await getApprovedFeedbacks();
+  if (!feedbacks || feedbacks.length === 0) {
+    return { average: 5.0, count: 0 };
+  }
+
+  const sum = feedbacks.reduce((acc, f) => acc + (f.rating || 5), 0);
+  const average = Number((sum / feedbacks.length).toFixed(1));
+  return { average, count: feedbacks.length };
 }
 
 /**

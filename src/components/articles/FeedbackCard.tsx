@@ -6,7 +6,7 @@ import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { FeedbackCardProps } from '@/types';
 
-export function FeedbackCard({ feedback }: FeedbackCardProps) {
+export function FeedbackCard({ feedback, compact = false }: FeedbackCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const photoUrl = feedback.photo?.asset?.url;
@@ -20,33 +20,43 @@ export function FeedbackCard({ feedback }: FeedbackCardProps) {
       }).format(new Date(feedback.submittedAt))
     : null;
 
+  const photoSizeClass = compact ? 'w-14 h-14 text-xl' : 'w-20 h-20 text-2xl';
+  const starSizeClass = compact ? 'w-4 h-4' : 'w-5 h-5';
+  const paddingClass = compact ? 'p-4 sm:p-5' : 'p-6 sm:p-7';
+
   return (
-    <div className="flex flex-col h-full bg-[#EFEAD8]/60 hover:bg-[#EFEAD8] border border-[#3A4F1C]/10 hover:border-[#BC6F07]/30 rounded-2xl p-6 sm:p-7 shadow-xs hover:shadow-md transition-all duration-300">
+    <div
+      className={`flex flex-col h-full bg-[#EFEAD8]/60 hover:bg-[#EFEAD8] border border-[#3A4F1C]/10 hover:border-[#BC6F07]/30 rounded-2xl ${paddingClass} shadow-xs hover:shadow-md transition-all duration-300`}
+    >
       {/* 1. Photo Slot (Admin-uploaded photo or initials avatar) */}
-      <div className="flex items-center justify-center mb-5">
+      <div className="flex items-center justify-center mb-3 sm:mb-4">
         {photoUrl ? (
-          <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-[#BC6F07] shadow-sm bg-[#1A2310]">
+          <div
+            className={`relative ${photoSizeClass} rounded-full overflow-hidden border-2 border-[#BC6F07] shadow-sm bg-[#1A2310]`}
+          >
             <Image
               src={photoUrl}
               alt={feedback.photo?.alt || `${feedback.name}'s photo`}
               fill
               className="object-cover object-center"
-              sizes="80px"
+              sizes={compact ? '56px' : '80px'}
             />
           </div>
         ) : (
-          <div className="w-20 h-20 rounded-full bg-[#3A4F1C] border-2 border-[#BC6F07] text-[#F7F3E8] flex items-center justify-center text-2xl font-serif font-bold shadow-sm">
+          <div
+            className={`${photoSizeClass} rounded-full bg-[#3A4F1C] border-2 border-[#BC6F07] text-[#F7F3E8] flex items-center justify-center font-serif font-bold shadow-sm`}
+          >
             {initial}
           </div>
         )}
       </div>
 
       {/* 2. Rating Slot */}
-      <div className="flex items-center justify-center gap-1 mb-4">
+      <div className="flex items-center justify-center gap-1 mb-3">
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
-            className={`w-5 h-5 ${
+            className={`${starSizeClass} ${
               star <= (feedback.rating || 5)
                 ? 'fill-[#BC6F07] text-[#BC6F07]'
                 : 'fill-[#3A4F1C]/15 text-transparent'
@@ -56,19 +66,19 @@ export function FeedbackCard({ feedback }: FeedbackCardProps) {
       </div>
 
       {/* 3. Name & Date Slot */}
-      <div className="text-center mb-3">
-        <h3 className="text-lg font-serif font-semibold text-[#3A4F1C] leading-snug">
+      <div className="text-center mb-2.5">
+        <h3 className="text-base sm:text-lg font-serif font-semibold text-[#3A4F1C] leading-snug">
           {feedback.name}
         </h3>
         {formattedDate && (
-          <span className="text-xs text-[#3A4F1C]/50 block mt-0.5 font-light">
+          <span className="text-[11px] text-[#3A4F1C]/50 block mt-0.5 font-light">
             {formattedDate}
           </span>
         )}
       </div>
 
       {/* 4. Event Type Badge Slot */}
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-3">
         <Badge
           status="neutral"
           className="text-[10px] py-0.5 px-2.5 font-semibold text-[#3A4F1C]"
@@ -78,16 +88,16 @@ export function FeedbackCard({ feedback }: FeedbackCardProps) {
       </div>
 
       {/* 5. Message Slot */}
-      <div className="mt-auto pt-2 text-center">
+      <div className="mt-auto pt-1 text-center">
         <blockquote
-          className={`text-sm sm:text-base font-serif italic text-[#3A4F1C]/85 leading-relaxed ${
-            !isExpanded ? 'line-clamp-4' : ''
+          className={`text-xs sm:text-sm font-serif italic text-[#3A4F1C]/85 leading-relaxed ${
+            compact ? 'line-clamp-3' : !isExpanded ? 'line-clamp-4' : ''
           }`}
         >
           &ldquo;{feedback.message}&rdquo;
         </blockquote>
 
-        {feedback.message && feedback.message.length > 180 && (
+        {!compact && feedback.message && feedback.message.length > 180 && (
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}

@@ -11,7 +11,7 @@ import {
   getArticleVlogTotalCount,
   getPortfolioCategories,
 } from '@/lib/services/articleVlogService';
-import { getApprovedFeedbacks } from '@/lib/services/feedbackService';
+import { getFeaturedFeedbacks, getApprovedFeedbacksCount } from '@/lib/services/feedbackService';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { getHomePageContent } from '@/lib/services/homeService';
 
@@ -44,14 +44,15 @@ export const metadata: Metadata = {
 };
 
 export default async function ArticlesPage() {
-  const [bannerData, heroContent, items, categories, totalCount, homeContent, feedbacks] = await Promise.all([
+  const [bannerData, heroContent, items, categories, totalCount, homeContent, featuredFeedbacks, totalFeedbackCount] = await Promise.all([
     getArticleVlogBanner(),
     getArticlesHero(),
     getArticleVlogsForGallery(undefined, 1, 6),
     getPortfolioCategories(),
     getArticleVlogTotalCount(),
     getHomePageContent(),
-    getApprovedFeedbacks(),
+    getFeaturedFeedbacks(),
+    getApprovedFeedbacksCount(),
   ]);
 
   const showViewMore = totalCount > 6;
@@ -74,7 +75,7 @@ export default async function ArticlesPage() {
       </div>
 
       {/* Section 3: Client Feedback & Testimonials */}
-      <FeedbackSection feedbacks={feedbacks} />
+      <FeedbackSection feedbacks={featuredFeedbacks} totalCount={totalFeedbackCount} />
 
       <ConnectSection socialLinks={homeContent.socialLinks} />
     </main>

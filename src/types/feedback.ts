@@ -14,6 +14,8 @@ export interface ClientFeedback extends SanityDocument {
   message: string;
   photo?: SanityImageWithPriority; // Admin-uploaded via Studio; optional
   submittedAt: string; // ISO datetime string
+  isFeatured?: boolean;
+  priority?: number;
 }
 
 /**
@@ -42,11 +44,13 @@ export interface FeedbackSubmitPayload {
 /** Component Props */
 export interface FeedbackSectionProps {
   feedbacks: ClientFeedback[];
+  totalCount?: number;
 }
 
 export interface FeedbackCardProps {
   feedback: ClientFeedback;
   index?: number;
+  compact?: boolean;
 }
 
 export interface FeedbackFormProps {
