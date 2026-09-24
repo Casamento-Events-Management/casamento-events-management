@@ -19,7 +19,7 @@ export function FeedbackSection({ feedbacks, totalCount }: FeedbackSectionProps)
         <SectionHeading
           eyebrow="CLIENT EXPERIENCES"
           title="What Our Clients Say"
-          description="Real stories, honest reviews, and unforgettable memories from our couples and event hosts."
+          description="Real stories, honest reviews, and unforgettable memories from yours."
           theme="light"
         />
 
