@@ -49,9 +49,9 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: '/icon.jpg',
-    shortcut: '/icon.jpg',
-    apple: '/icon.jpg',
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
   },
   openGraph: {
     title: 'Casamento Events | Crafting Unforgettable Celebrations',
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     siteName: 'Casamento Events',
     images: [
       {
-        url: '/icon.jpg',
+        url: '/icon.png',
         width: 800,
         height: 800,
         alt: 'Casamento Events Icon',
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
     title: 'Casamento Events | Unforgettable Celebrations',
     description:
       'Casamento Events Management specializes in luxury weddings, grand debutante galas, corporate milestones, and bespoke celebration planning.',
-    images: ['/icon.jpg'],
+    images: ['/icon.png'],
   },
 };
 

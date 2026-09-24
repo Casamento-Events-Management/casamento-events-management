@@ -26,6 +26,14 @@ export type {
     WithPriority,
 } from './sanity';
 
+// Shared Media Category types
+export type {
+    MediaCategory,
+    PortfolioCategory,
+    ArticleVlogCategory,
+    ActiveCategoryFilter,
+} from './category';
+
 // Cross-page shared types
 export type {
     SocialPlatform,
@@ -48,10 +56,8 @@ export type {
     SanityPortfolioCategory,
     SanityPortfolioItem,
     SanityPortfolioHero,
-    PortfolioCategory,
     PortfolioItem,
     PortfolioHeroContent,
-    ActiveCategoryFilter,
     PortfolioModalState,
     PortfolioPageData,
     PortfolioPageProps,
@@ -70,5 +76,26 @@ export type {
     ActiveServiceCategoryFilter,
     ServiceBookingRedirectParams,
 } from './service';
+
+// Article Banner types
+export type {
+    ArticleVlogBanner,
+    ArticleBannerCTA,
+    ArticleVlogBannerProps,
+} from './articleBanner';
+
+// Article Vlog types
+export type {
+    ArticleVlogMediaType,
+    VlogSocialBacklink,
+    ArticleVlogItem,
+    ArticlesHeroContent,
+    ArticlesHeroProps,
+    VlogGalleryProps,
+    VlogItemProps,
+    VlogCategoryFilterProps,
+} from './articleVlog';
+
+
 
 

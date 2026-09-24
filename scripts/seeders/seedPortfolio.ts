@@ -10,7 +10,7 @@
  *   2. Items with category reference (_ref pointing to category _id)
  */
 
-import { MOCK_PORTFOLIO_CATEGORIES, MOCK_PORTFOLIO_HERO, MOCK_PORTFOLIO_ITEMS } from '../../src/data/portfolioMock'
+import { MOCK_MEDIA_CATEGORIES, MOCK_PORTFOLIO_HERO, MOCK_PORTFOLIO_ITEMS } from '../../src/data/portfolioMock'
 import { createWriteClient, generateKey, uploadImageFromUrl } from './helpers'
 
 export async function seedPortfolio(dryRun: boolean): Promise<void> {
@@ -33,11 +33,11 @@ export async function seedPortfolio(dryRun: boolean): Promise<void> {
         console.log(`  ✓ Upserted portfolioHero singleton (id: portfolioHero)`)
     }
 
-    // ── 1. Seed Portfolio Categories ────────────────────────────────────────
-    console.log('\n📁 Seeding portfolioCategory documents...\n')
+    // ── 1. Seed Media Categories (Portfolio & Article Vlogs) ────────────────
+    console.log('\n📁 Seeding Media Categories (portfolioCategory)... \n')
 
-    const categoryDocuments = MOCK_PORTFOLIO_CATEGORIES.map((cat) => ({
-        _id: cat.id,
+    const categoryDocuments = MOCK_MEDIA_CATEGORIES.map((cat) => ({
+        _id: cat.id || cat._id || `cat-${cat.slug}`,
         _type: 'portfolioCategory',
         title: cat.title,
         slug: { _type: 'slug', current: cat.slug },
@@ -61,7 +61,7 @@ export async function seedPortfolio(dryRun: boolean): Promise<void> {
 
     // Build a slug → _id map from mock categories for category reference resolution
     const categoryIdBySlug = Object.fromEntries(
-        MOCK_PORTFOLIO_CATEGORIES.map((cat) => [cat.slug, cat.id]),
+        MOCK_MEDIA_CATEGORIES.map((cat) => [cat.slug, cat.id || cat._id || `cat-${cat.slug}`]),
     )
 
     for (const item of MOCK_PORTFOLIO_ITEMS) {
@@ -142,7 +142,7 @@ export async function seedPortfolio(dryRun: boolean): Promise<void> {
 
     if (!dryRun) {
         console.log(
-            `\n✅ Portfolio seeding complete — ${MOCK_PORTFOLIO_CATEGORIES.length} categories, ${MOCK_PORTFOLIO_ITEMS.length} items.`,
+            `\n✅ Portfolio seeding complete — ${MOCK_MEDIA_CATEGORIES.length} categories, ${MOCK_PORTFOLIO_ITEMS.length} items.`,
         )
     }
 }

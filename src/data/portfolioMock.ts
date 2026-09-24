@@ -5,7 +5,7 @@
 // returned from Sanity CMS for local development and static fallback.
 // =============================================================================
 
-import type { PortfolioCategory, PortfolioHeroContent, PortfolioItem } from '@/types';
+import type { MediaCategory, PortfolioCategory, PortfolioHeroContent, PortfolioItem } from '@/types';
 
 export const MOCK_PORTFOLIO_HERO: PortfolioHeroContent = {
     title: 'Masterpieces in Motion',
@@ -21,7 +21,7 @@ export const MOCK_PORTFOLIO_HERO: PortfolioHeroContent = {
         'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
 };
 
-export const MOCK_PORTFOLIO_CATEGORIES: PortfolioCategory[] = [
+export const MOCK_MEDIA_CATEGORIES: MediaCategory[] = [
     {
         id: 'cat-weddings',
         title: 'Wedding Events',
@@ -43,7 +43,30 @@ export const MOCK_PORTFOLIO_CATEGORIES: PortfolioCategory[] = [
         description: 'High-definition multi-camera live streaming, hybrid event broadcasting, and real-time remote audience engagement.',
         priority: 80,
     },
+    {
+        id: 'cat-corporate',
+        title: 'Corporate Galas',
+        slug: 'corporate',
+        description: 'Corporate award ceremonies, product launches, executive summits, and international trade galas.',
+        priority: 70,
+    },
+    {
+        id: 'cat-private',
+        title: 'Private Celebrations',
+        slug: 'private-celebrations',
+        description: 'Milestone birthdays, anniversary galas, debutante balls, and intimate luxury gatherings.',
+        priority: 60,
+    },
+    {
+        id: 'cat-styling',
+        title: 'Styling & Design',
+        slug: 'styling-design',
+        description: 'Luxury floral arrangements, tablescape styling, mood lighting, and curated decor themes.',
+        priority: 50,
+    },
 ];
+
+export const MOCK_PORTFOLIO_CATEGORIES: PortfolioCategory[] = MOCK_MEDIA_CATEGORIES;
 
 export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
     {

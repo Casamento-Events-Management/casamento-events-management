@@ -63,6 +63,37 @@ const SEEDERS: Record<string, () => Promise<void>> = {
         const { seedServices } = await import('./seeders/seedServices')
         await seedServices(dryRun)
     },
+    articleBannerMock: async () => {
+        const { seedArticleBanner } = await import('./seeders/seedArticleBanner')
+        await seedArticleBanner(dryRun)
+    },
+    articlesHeroMock: async () => {
+        const { seedArticlesHero } = await import('./seeders/seedArticlesHero')
+        await seedArticlesHero(dryRun)
+    },
+    articleVlogMock: async () => {
+        const { seedArticleVlogs } = await import('./seeders/seedArticleVlogs')
+        await seedArticleVlogs(dryRun)
+    },
+    articleVlogsMock: async () => {
+        const { seedArticleVlogs } = await import('./seeders/seedArticleVlogs')
+        await seedArticleVlogs(dryRun)
+    },
+    all: async () => {
+        console.log('🚀 Seeding ALL schemas and documents into Sanity CMS...\n')
+        const { seedHome } = await import('./seeders/seedHome')
+        await seedHome(dryRun)
+        const { seedPortfolio } = await import('./seeders/seedPortfolio')
+        await seedPortfolio(dryRun)
+        const { seedServices } = await import('./seeders/seedServices')
+        await seedServices(dryRun)
+        const { seedArticleBanner } = await import('./seeders/seedArticleBanner')
+        await seedArticleBanner(dryRun)
+        const { seedArticlesHero } = await import('./seeders/seedArticlesHero')
+        await seedArticlesHero(dryRun)
+        const { seedArticleVlogs } = await import('./seeders/seedArticleVlogs')
+        await seedArticleVlogs(dryRun)
+    },
 }
 
 // ---------------------------------------------------------------------------

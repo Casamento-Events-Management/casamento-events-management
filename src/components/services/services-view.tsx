@@ -4,6 +4,7 @@ import React, { useState, useEffect, useTransition, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ServicesCategoryAccordion } from './services-category-accordion';
 import { ServicesDetailPanel } from './services-detail-panel';
+import { SectionHero } from '@/components/ui/section-heading';
 import type { ServiceCategory, ServiceItem, ActiveServiceCategoryFilter } from '@/types';
 
 interface ServicesViewProps {
@@ -137,23 +138,12 @@ function ServicesViewContent({
                 
                 {/* Service Section Hero Header */}
                 {(eyebrow || title || description) && (
-                    <div className="text-center space-y-2 pb-2">
-                        {eyebrow && (
-                            <span className="text-xs sm:text-sm font-semibold uppercase tracking-widest text-[#BC6F07] block">
-                                {eyebrow}
-                            </span>
-                        )}
-                        {title && (
-                            <h2 className="text-2xl sm:text-4xl font-serif font-semibold text-[#3A4F1C] tracking-tight">
-                                {title}
-                            </h2>
-                        )}
-                        {description && (
-                            <p className="text-sm sm:text-base text-[#3A4F1C]/80 max-w-3xl mx-auto leading-relaxed font-light">
-                                {description}
-                            </p>
-                        )}
-                    </div>
+                    <SectionHero
+                        eyebrow={eyebrow}
+                        title={title || ''}
+                        description={description}
+                        centered={true}
+                    />
                 )}
 
                 {/* Collapsible Accordions List */}

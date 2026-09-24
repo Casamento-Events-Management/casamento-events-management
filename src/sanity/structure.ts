@@ -15,6 +15,11 @@ export const structure: StructureResolver = (S) =>
             .documentId('homePage')
         ),
       S.divider(),
+      // Media Categories
+      S.listItem()
+        .title('Media Categories')
+        .child(S.documentTypeList('portfolioCategory').title('Media Categories')),
+      S.divider(),
       // Portfolio section
       S.listItem()
         .title('Portfolio Page Hero')
@@ -25,11 +30,29 @@ export const structure: StructureResolver = (S) =>
             .documentId('portfolioHero')
         ),
       S.listItem()
-        .title('Portfolio Categories')
-        .child(S.documentTypeList('portfolioCategory').title('Portfolio Categories')),
-      S.listItem()
         .title('Portfolio Items')
         .child(S.documentTypeList('portfolioItem').title('Portfolio Items')),
+      S.divider(),
+      // Articles section
+      S.listItem()
+        .title('Article Vlog Banner')
+        .id('articleVlogBannerSingleton')
+        .child(
+          S.document()
+            .schemaType('articleVlogBanner')
+            .documentId('articleVlogBanner')
+        ),
+      S.listItem()
+        .title('Vlog Section Header')
+        .id('articlesHeroSingleton')
+        .child(
+          S.document()
+            .schemaType('articlesHero')
+            .documentId('articlesHero')
+        ),
+      S.listItem()
+        .title('Article Vlogs')
+        .child(S.documentTypeList('articleVlog').title('Article Vlogs')),
       S.divider(),
       // Services section
       S.listItem()
@@ -49,7 +72,7 @@ export const structure: StructureResolver = (S) =>
       S.divider(),
       // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(
-        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem'].includes(listItem.getId() || '')
+        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem', 'articleVlogBanner', 'articlesHero', 'articleVlog'].includes(listItem.getId() || '')
       ),
     ])
 

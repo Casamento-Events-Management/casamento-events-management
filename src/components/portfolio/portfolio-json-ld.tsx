@@ -90,7 +90,7 @@ export function PortfolioJsonLd({
                             url: siteUrl,
                             logo: {
                                 '@type': 'ImageObject',
-                                url: `${siteUrl}/icon.jpg`,
+                                url: `${siteUrl}/icon.png`,
                             },
                         },
                     },

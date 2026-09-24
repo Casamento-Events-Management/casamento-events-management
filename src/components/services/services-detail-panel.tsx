@@ -64,9 +64,8 @@ export function ServicesDetailPanel({
     const bookingUrl = `/book-now?service=${encodeURIComponent(service.slug)}&category=${encodeURIComponent(service.category.slug)}&addons=${encodeURIComponent(selectedAddOnsQuery)}&totalEstimate=${grandTotal}`;
 
     return (
-        <aside className={`bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl shadow-md overflow-hidden flex flex-col ${
-            isMobileModal ? 'w-full max-h-[90vh]' : 'w-full max-h-[calc(100vh-7rem)]'
-        }`}>
+        <aside className={`bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl shadow-md overflow-hidden flex flex-col ${isMobileModal ? 'w-full max-h-[90vh]' : 'w-full max-h-[calc(100vh-7rem)]'
+            }`}>
             {/* Header Banner & Close Control */}
             <div className="relative h-32 w-full bg-[#EFEAD8] shrink-0">
                 {service.images && service.images[0] && (
@@ -141,16 +140,15 @@ export function ServicesDetailPanel({
                                     <label
                                         key={addon.id}
                                         onClick={() => toggleAddOn(addon.id)}
-                                        className={`flex items-start space-x-2 p-2 rounded-lg border cursor-pointer transition-all ${
-                                            isChecked
+                                        className={`flex items-start space-x-2 p-2 rounded-lg border cursor-pointer transition-all ${isChecked
                                                 ? 'bg-[#3A4F1C]/10 border-[#BC6F07]'
                                                 : 'bg-[#F7F3E8] border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                                        }`}
+                                            }`}
                                     >
                                         <input
                                             type="checkbox"
                                             checked={isChecked}
-                                            onChange={() => {}}
+                                            onChange={() => { }}
                                             className="mt-0.5 rounded text-[#BC6F07] focus:ring-[#BC6F07]"
                                         />
                                         <div className="flex-1 min-w-0">
@@ -198,7 +196,7 @@ export function ServicesDetailPanel({
                     href={bookingUrl}
                     className="w-full py-2 px-3 rounded-full bg-[#3A4F1C] text-[#F7F3E8] font-semibold text-[10px] sm:text-xs uppercase tracking-wider text-center border border-[#BC6F07] shadow-xs hover:bg-[#2A3A14] transition-all block"
                 >
-                    Book Now with Upgrades
+                    Book Now
                 </Link>
             </div>
         </aside>

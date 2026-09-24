@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 
 const navLinks = [
   { label: 'Home', href: '/' },
@@ -29,33 +30,37 @@ export function Header() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 py-4 ${
         scrolled
-          ? 'bg-[#F7F3E8]/95 backdrop-blur-md shadow-xs py-3 border-b border-[#3A4F1C]/10'
-          : 'bg-[#F7F3E8]/80 backdrop-blur-xs py-5'
+          ? 'bg-[#F7F3E8]/95 backdrop-blur-md shadow-xs border-b border-[#3A4F1C]/10'
+          : 'bg-[#F7F3E8]/80 backdrop-blur-xs border-b border-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between flex-nowrap gap-4">
         {/* Brand Logo & Name */}
         <Link
           href="/"
-          className="group flex items-center gap-3 transition-opacity duration-200 hover:opacity-90"
+          className="group flex items-center gap-3 shrink-0 transition-opacity duration-200 hover:opacity-90"
         >
-          <span className="text-xl sm:text-2xl font-serif font-bold tracking-wider text-[#3A4F1C] uppercase">
+          <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+              <Icon size={70} priority className="max-w-none" />
+            </div>
+          </div>
+          <span className="text-lg sm:text-xl font-serif font-bold tracking-wider text-[#3A4F1C] uppercase">
             Casamento Events
           </span>
-          <span />
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-4 lg:space-x-8 shrink-0">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm tracking-widest uppercase transition-colors duration-200 ${
+                className={`text-xs lg:text-sm tracking-wider lg:tracking-widest uppercase transition-colors duration-200 whitespace-nowrap ${
                   isActive
                     ? 'text-[#3A4F1C] font-semibold underline underline-offset-8 decoration-[#BC6F07] decoration-2'
                     : 'text-[#3A4F1C]/80 hover:text-[#3A4F1C] hover:decoration-[#BC6F07]'
@@ -68,7 +73,7 @@ export function Header() {
         </nav>
 
         {/* CTA Button */}
-        <div className="hidden md:block">
+        <div className="hidden md:block shrink-0">
           <Button href="/book-now" size="sm" variant="primary">
             Book now
           </Button>
@@ -86,7 +91,7 @@ export function Header() {
 
       {/* Mobile Drawer Overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-x-0 top-[60px] bg-[#F7F3E8] border-b border-[#3A4F1C]/15 shadow-xl transition-all duration-300">
+        <div className="md:hidden fixed inset-x-0 top-full bg-[#F7F3E8] border-b border-[#3A4F1C]/15 shadow-xl transition-all duration-300">
           <nav className="px-6 py-8 flex flex-col space-y-6 text-center">
             {navLinks.map((link) => {
               const isActive = pathname === link.href;

@@ -64,7 +64,7 @@ export function PartnersSection({ partners }: PartnersSectionProps) {
         <SectionHeading
           eyebrow="Collaborations"
           title="Trusted Industry Partners"
-          subtitle="We partner with elite artisans, luxury caterers, and renowned venue curators to deliver flawless experiences."
+          description="We partner with elite artisans, luxury caterers, and renowned venue curators to deliver flawless experiences."
         />
       </div>
 
