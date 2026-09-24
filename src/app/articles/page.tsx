@@ -63,9 +63,8 @@ export default async function ArticlesPage() {
       <ArticleVlogBanner banner={bannerData} />
 
       {/* Section 2: Articles Hero + Vlog Gallery */}
-      <ArticlesHero content={heroContent} />
-
-      <div>
+      <div className='bg-[#EFEAD8]/60 border-y border-[#3A4F1C]/10'>
+        <ArticlesHero content={heroContent} />
         <VlogGallery
           items={items}
           categories={categories}
