@@ -9,8 +9,8 @@ export function parseFeedbackEmailRecipients(): string[] {
     if (process.env.NODE_ENV === 'development') {
       return [
         'benjicanones6@gmail.com',
-        'benjisobrangpogi@gmail.com',
-        'arjaypana28@gmail.com',
+        // 'benjisobrangpogi@gmail.com',
+        // 'arjaypana28@gmail.com',
       ];
     }
     return [];

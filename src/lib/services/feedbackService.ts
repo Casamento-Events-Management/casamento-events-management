@@ -285,7 +285,7 @@ export async function sendClientApprovalConfirmationEmail(
               ✨ Thank You, ${clientName}!
             </h2>
             <p>We are delighted to let you know that your feedback regarding your <strong>${eventType}</strong> experience with Casamento Events has been approved and posted on our website!</p>
-            <p>Your kind words mean the world to our team and help other couples and clients discover our luxury event planning services.</p>
+            <p>Your kind words mean the world to our team and help other clients discover our services.</p>
             
             <div style="margin: 24px 0; text-align: center;">
               <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/articles" style="display: inline-block; background-color: #3A4F1C; color: #F7F3E8; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">

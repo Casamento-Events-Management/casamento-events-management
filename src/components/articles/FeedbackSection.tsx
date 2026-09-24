@@ -54,7 +54,7 @@ export function FeedbackSection({ feedbacks, totalCount }: FeedbackSectionProps)
 
           {/* Feedback Prompt (placed directly below Share Your Experience button) */}
           <p className="text-xs sm:text-sm text-[#3A4F1C]/75 font-light leading-relaxed">
-            Worked with us? Share your event story to help future couples.
+            Worked with us? Share your event story to help Casamento.
           </p>
 
           {/* Read More Client Stories Link (strictly no count) */}

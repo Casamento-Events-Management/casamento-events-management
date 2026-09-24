@@ -10,7 +10,7 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
     name: '',
     email: '',
     phone: '',
-    eventType: 'Luxury Wedding',
+    eventType: '',
     rating: 5,
     message: '',
   });
@@ -166,7 +166,7 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
           required
           value={formData.eventType}
           onChange={handleChange}
-          placeholder="e.g. Luxury Wedding, 18th Debut, Corporate Event"
+          placeholder="e.g. Wedding, 18th Debut, Corporate Event"
           className="w-full px-4 py-2.5 bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl text-xs text-[#3A4F1C] placeholder-[#3A4F1C]/40 focus:outline-none focus:border-[#BC6F07] focus:ring-1 focus:ring-[#BC6F07] transition-all"
         />
       </div>

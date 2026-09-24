@@ -1,10 +1,10 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Star, MessageSquare } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { FeedbackCard } from '@/components/articles/FeedbackCard';
-import { FeedbackForm } from '@/components/articles/FeedbackForm';
+import { ShareExperienceTrigger } from '@/components/articles/ShareExperienceTrigger';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { getHomePageContent } from '@/lib/services/homeService';
 import {
@@ -103,93 +103,75 @@ export default async function FeedbackPage() {
         <SectionHeading
           eyebrow="CLIENT REVIEWS & TESTIMONIALS"
           title="What Our Clients Say"
-          description="Read full experiences and honest feedback from our valued clients and couples."
+          description="Read full experiences and honest feedback from our valued clients."
           theme="light"
         />
 
-        {/* Aggregate Rating Banner */}
-        <div className="mb-12 max-w-2xl mx-auto bg-[#EFEAD8]/80 border border-[#3A4F1C]/15 rounded-2xl p-6 sm:p-8 text-center shadow-xs">
-          <div className="flex items-center justify-center gap-1.5 mb-2">
+        {/* Rating Display (No card container — directly centered below hero) */}
+        <div className="flex items-center justify-center gap-2 mb-12 text-center -mt-4 sm:-mt-6">
+          <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
-              <Star key={star} className="w-5 h-5 fill-[#BC6F07] text-[#BC6F07]" />
+              <Star key={star} className="w-4 sm:w-5 h-4 sm:h-5 fill-[#BC6F07] text-[#BC6F07]" />
             ))}
           </div>
-          <p className="text-2xl font-serif font-bold text-[#3A4F1C]">
-            {aggregate.average.toFixed(1)} <span className="text-sm font-normal text-[#3A4F1C]/70">/ 5.0</span>
-          </p>
-          <p className="text-xs text-[#3A4F1C]/70 font-light mt-1">
-            Based on {totalCount} verified client reviews
-          </p>
+          <span className="text-sm sm:text-base font-serif font-semibold text-[#3A4F1C]">
+            5.0 Rating out of {totalCount} feedbacks
+          </span>
         </div>
 
         {/* Feedback Cards Grid */}
         {feedbacks && feedbacks.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-16">
             {feedbacks.map((item, index) => (
               <FeedbackCard key={item._id} feedback={item} index={index} compact={false} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 px-6 bg-[#EFEAD8]/50 rounded-2xl border border-[#3A4F1C]/10 max-w-xl mx-auto mb-12">
+          <div className="text-center py-12 px-6 bg-[#EFEAD8]/50 rounded-2xl border border-[#3A4F1C]/10 max-w-xl mx-auto mb-16">
             <p className="text-base text-[#3A4F1C]/70 font-light italic">
               No reviews published yet. Be the first to share your event story below!
             </p>
           </div>
         )}
 
+        {/* Share Your Experience Action Button & Prompt */}
+        <ShareExperienceTrigger />
+
         {/* Pagination Nav */}
-        {totalPages > 1 && (
-          <nav
-            aria-label="Feedback pages"
-            className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 py-8 mb-16 border-t border-[#3A4F1C]/10"
-          >
-            <div className="flex justify-center md:justify-start">
+        <nav
+          aria-label="Feedback pages"
+          className="grid grid-cols-1 md:grid-cols-3 items-center gap-4 py-8 border-t border-[#3A4F1C]/10"
+        >
+          {/* Left: Back link */}
+          <div className="flex justify-center md:justify-start">
+            <Link
+              href="/articles"
+              className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors uppercase tracking-wider"
+            >
+              ← Back to Hub
+            </Link>
+          </div>
+
+          {/* Center: Page Counter */}
+          <div className="flex justify-center text-center">
+            <span className="text-xs font-medium tracking-wider text-[#3A4F1C]/60 uppercase">
+              Page {pageNum} of {totalPages}
+            </span>
+          </div>
+
+          {/* Right: Next Page */}
+          <div className="flex items-center justify-center md:justify-end">
+            {hasNext && (
               <Link
-                href="/articles"
+                href="/articles/feedback/page/2"
+                rel="next"
                 className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors uppercase tracking-wider"
               >
-                ← Back to Hub
+                Next Page →
               </Link>
-            </div>
-
-            <div className="flex justify-center text-center">
-              <span className="text-xs font-medium tracking-wider text-[#3A4F1C]/60 uppercase">
-                Page 1 of {totalPages}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-center md:justify-end">
-              {hasNext && (
-                <Link
-                  href="/articles/feedback/page/2"
-                  rel="next"
-                  className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors uppercase tracking-wider"
-                >
-                  Next Page →
-                </Link>
-              )}
-            </div>
-          </nav>
-        )}
-
-        {/* Always-visible Inline Form at Bottom */}
-        <section className="mt-16 pt-12 border-t border-[#3A4F1C]/15 max-w-3xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#3A4F1C]/10 text-[#3A4F1C] mb-3">
-              <MessageSquare className="w-6 h-6 text-[#BC6F07]" />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#3A4F1C] mb-2">
-              Share Your Experience
-            </h2>
-            <p className="text-xs sm:text-sm text-[#3A4F1C]/75 font-light">
-              Have you worked with Casamento Events? Leave your testimonial below to help future couples.
-            </p>
+            )}
           </div>
-
-          <div className="bg-[#EFEAD8]/80 border border-[#3A4F1C]/15 rounded-3xl p-6 sm:p-10 shadow-sm">
-            <FeedbackForm />
-          </div>
-        </section>
+        </nav>
       </div>
 
       <ConnectSection socialLinks={homeContent.socialLinks} />
