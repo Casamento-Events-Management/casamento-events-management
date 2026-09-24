@@ -2,6 +2,7 @@ import { defineField, defineType } from 'sanity'
 
 /**
  * Reusable object schema for embedding YouTube, Vimeo, or external video URLs inside Portable Text.
+ * Auto-fetches YouTube high-res thumbnail.
  */
 export const videoEmbed = defineType({
   name: 'videoEmbed',
@@ -12,7 +13,7 @@ export const videoEmbed = defineType({
       name: 'url',
       title: 'Video URL',
       type: 'url',
-      description: 'Paste YouTube link (e.g. https://www.youtube.com/watch?v=...) or Vimeo / Cloudflare video link',
+      description: 'Paste YouTube link (e.g. https://www.youtube.com/watch?v=...) or Vimeo link',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
