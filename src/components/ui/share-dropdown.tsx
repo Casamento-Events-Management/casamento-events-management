@@ -116,16 +116,16 @@ export function ShareDropdown({
             </button>
 
             {isOpen && (
-                <div className={`${positionClass} flex items-center gap-1.5 p-1.5 rounded-full bg-[#1A2310] border border-[#BC6F07]/40 shadow-xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-150`}>
+                <div className={`${positionClass} flex items-center gap-1.5 p-1.5 rounded-full bg-[#1A2310] border border-[#BC6F07]/40 shadow-xl backdrop-blur-md w-max whitespace-nowrap animate-in fade-in zoom-in-95 duration-150`}>
                     {/* Copy Link */}
                     <button
                         type="button"
                         onClick={handleCopy}
                         title={isCopied ? 'Link Copied!' : 'Copy Direct Link'}
                         aria-label={isCopied ? 'Link Copied' : 'Copy Direct Link'}
-                        className="p-2 rounded-full text-[#F7F3E8]/80 hover:text-white hover:bg-[#BC6F07] transition-all duration-200 transform hover:scale-110 focus:outline-none cursor-pointer"
+                        className="p-2 rounded-full text-[#F7F3E8]/80 hover:text-white hover:bg-[#BC6F07] transition-all duration-200 transform hover:scale-110 focus:outline-none cursor-pointer flex items-center justify-center shrink-0"
                     >
-                        <SocialIcon platform={isCopied ? 'check' : 'copylink'} className="w-4 h-4 text-[#BC6F07]" />
+                        <SocialIcon platform={isCopied ? 'check' : 'copylink'} className="w-5 h-5 text-[#BC6F07]" />
                     </button>
 
                     {/* Facebook */}
@@ -134,9 +134,9 @@ export function ShareDropdown({
                         onClick={handleFB}
                         title="Share on Facebook"
                         aria-label="Share on Facebook"
-                        className="p-2 rounded-full text-[#F7F3E8]/80 hover:text-white hover:bg-[#BC6F07] transition-all duration-200 transform hover:scale-110 focus:outline-none cursor-pointer"
+                        className="p-2 rounded-full text-[#F7F3E8]/80 hover:bg-[#BC6F07]/30 transition-all duration-200 transform hover:scale-110 focus:outline-none cursor-pointer flex items-center justify-center shrink-0"
                     >
-                        <SocialIcon platform="facebook" className="w-4 h-4" />
+                        <SocialIcon platform="facebook" className="w-5 h-5" />
                     </button>
 
                     {/* X (Twitter) */}
@@ -145,9 +145,9 @@ export function ShareDropdown({
                         onClick={handleTwitter}
                         title="Share on X"
                         aria-label="Share on X"
-                        className="p-2 rounded-full text-[#F7F3E8]/80 hover:text-white hover:bg-[#BC6F07] transition-all duration-200 transform hover:scale-110 focus:outline-none cursor-pointer"
+                        className="p-2 rounded-full text-[#F7F3E8]/80 hover:bg-[#BC6F07]/30 transition-all duration-200 transform hover:scale-110 focus:outline-none cursor-pointer flex items-center justify-center shrink-0"
                     >
-                        <SocialIcon platform="x" className="w-4 h-4" />
+                        <SocialIcon platform="x" className="w-5 h-5" />
                     </button>
 
                     {/* Instagram */}
@@ -156,9 +156,9 @@ export function ShareDropdown({
                         onClick={handleIG}
                         title="Share on Instagram"
                         aria-label="Share on Instagram"
-                        className="p-2 rounded-full text-[#F7F3E8]/80 hover:text-white hover:bg-[#BC6F07] transition-all duration-200 transform hover:scale-110 focus:outline-none cursor-pointer"
+                        className="p-2 rounded-full text-[#F7F3E8]/80 hover:bg-[#BC6F07]/30 transition-all duration-200 transform hover:scale-110 focus:outline-none cursor-pointer flex items-center justify-center shrink-0"
                     >
-                        <SocialIcon platform="instagram" className="w-4 h-4" />
+                        <SocialIcon platform="instagram" className="w-5 h-5" />
                     </button>
 
                     {/* TikTok */}
@@ -167,9 +167,9 @@ export function ShareDropdown({
                         onClick={handleTikTok}
                         title="Share on TikTok"
                         aria-label="Share on TikTok"
-                        className="p-2 rounded-full text-[#F7F3E8]/80 hover:text-white hover:bg-[#BC6F07] transition-all duration-200 transform hover:scale-110 focus:outline-none cursor-pointer"
+                        className="p-2 rounded-full text-[#F7F3E8]/80 hover:bg-[#BC6F07]/30 transition-all duration-200 transform hover:scale-110 focus:outline-none cursor-pointer flex items-center justify-center shrink-0"
                     >
-                        <SocialIcon platform="tiktok" className="w-4 h-4" />
+                        <SocialIcon platform="tiktok" className="w-5 h-5" />
                     </button>
                 </div>
             )}

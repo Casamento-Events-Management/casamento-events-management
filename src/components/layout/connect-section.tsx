@@ -48,7 +48,7 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
               rel="noopener noreferrer"
               className="group inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 md:px-6 md:py-3.5 rounded-full bg-[#F7F3E8]/10 hover:bg-[#BC6F07] border border-[#F7F3E8]/20 hover:border-[#BC6F07] text-[#F7F3E8] font-medium text-[9px] md:text-xs tracking-wider uppercase transition-all duration-300 transform hover:-translate-y-0.5 shadow-xs w-full md:w-auto"
             >
-              <SocialIcon platform={link.platform} className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#BC6F07] group-hover:text-white transition-colors shrink-0" />
+              <SocialIcon platform={link.platform} className="w-4 h-4 md:w-5 md:h-5 shrink-0" />
               <span className="truncate">{getSocialLabel(link.platform)}</span>
             </a>
           ))}
