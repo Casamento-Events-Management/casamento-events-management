@@ -96,6 +96,19 @@ export type {
     VlogCategoryFilterProps,
 } from './articleVlog';
 
+// Client Feedback types
+export type {
+    FeedbackStatus,
+    FeedbackRating,
+    ClientFeedback,
+    ClientFeedbackDocument,
+    FeedbackSubmitPayload,
+    FeedbackSectionProps,
+    FeedbackCardProps,
+    FeedbackFormProps,
+} from './feedback';
+
+
 
 
 

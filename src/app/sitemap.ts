@@ -11,13 +11,18 @@
 
 import type { MetadataRoute } from 'next';
 import { getPortfolioCategories } from '@/lib/services/portfolioService';
+import { getApprovedFeedbacksCount } from '@/lib/services/feedbackService';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
     const currentDate = new Date();
 
     // Fetch all published portfolio categories to generate dynamic category subpaths
-    const categories = await getPortfolioCategories();
+    // and feedback count for paginated feedback pages
+    const [categories, feedbackCount] = await Promise.all([
+        getPortfolioCategories(),
+        getApprovedFeedbacksCount(),
+    ]);
 
     const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
         url: `${baseUrl}/portfolio/${cat.slug}`,
@@ -25,6 +30,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'weekly',
         priority: 0.75,
     }));
+
+    const feedbackPagesCount = Math.ceil(feedbackCount / 12);
+    const feedbackRoutes: MetadataRoute.Sitemap = [
+        {
+            url: `${baseUrl}/articles/feedback`,
+            lastModified: currentDate,
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+    ];
+
+    for (let page = 2; page <= feedbackPagesCount; page++) {
+        feedbackRoutes.push({
+            url: `${baseUrl}/articles/feedback/page/${page}`,
+            lastModified: currentDate,
+            changeFrequency: 'weekly',
+            priority: 0.6,
+        });
+    }
 
     return [
         {
@@ -53,6 +77,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: 'weekly',
             priority: 0.8,
         },
+        ...feedbackRoutes,
         {
             url: `${baseUrl}/about`,
             lastModified: currentDate,

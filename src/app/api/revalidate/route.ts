@@ -1,6 +1,7 @@
 import { parseBody } from 'next-sanity/webhook'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
+import { sendClientApprovalConfirmationEmail } from '@/lib/services/feedbackService'
 
 /**
  * Sanity Webhook On-Demand Revalidation Route Handler.
@@ -20,10 +21,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { isValidSignature, body } = await parseBody<{ _type?: string; _id?: string }>(
-      req,
-      secret
-    )
+    const { isValidSignature, body } = await parseBody<{
+      _type?: string
+      _id?: string
+      status?: string
+      email?: string
+      name?: string
+      eventType?: string
+    }>(req, secret)
 
     if (!isValidSignature) {
       console.warn('[api/revalidate] Invalid webhook signature received.')
@@ -48,6 +53,23 @@ export async function POST(req: NextRequest) {
 
     // Selectively revalidate page routes for immediate Edge CDN update
     switch (documentType) {
+      case 'clientFeedback':
+        revalidatePath('/articles')
+        revalidateTag('clientFeedback', 'max')
+        if (body.status === 'approved' && body.email) {
+          console.log(`[api/revalidate] Feedback approved for ${body.email}. Sending confirmation email...`)
+          await sendClientApprovalConfirmationEmail(
+            body.email,
+            body.name || 'Valued Client',
+            body.eventType || 'Event'
+          )
+        }
+        break
+      case 'articleVlog':
+      case 'articleVlogBanner':
+      case 'articlesHero':
+        revalidatePath('/articles')
+        break
       case 'homePage':
         revalidatePath('/')
         break
