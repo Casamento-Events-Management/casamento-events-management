@@ -53,6 +53,9 @@ export const structure: StructureResolver = (S) =>
       S.listItem()
         .title('Article Vlogs')
         .child(S.documentTypeList('articleVlog').title('Article Vlogs')),
+      S.listItem()
+        .title('Client Feedbacks')
+        .child(S.documentTypeList('clientFeedback').title('Client Feedbacks')),
       S.divider(),
       // Services section
       S.listItem()
@@ -72,7 +75,7 @@ export const structure: StructureResolver = (S) =>
       S.divider(),
       // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(
-        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem', 'articleVlogBanner', 'articlesHero', 'articleVlog'].includes(listItem.getId() || '')
+        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem', 'articleVlogBanner', 'articlesHero', 'articleVlog', 'clientFeedback'].includes(listItem.getId() || '')
       ),
     ])
 
