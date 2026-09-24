@@ -66,8 +66,8 @@ async function handleFeedbackSubmit(body: Record<string, unknown>) {
   }
 
   // 3. Create pending document in Sanity CMS
-  const writeToken = process.env.SANITY_WRITE_TOKEN || process.env.SANITY_API_TOKEN;
-  let createdDocumentId = `mock-doc-${Date.now()}`;
+  const writeToken = process.env.SANITY_API_WRITE_TOKEN || process.env.SANITY_API_TOKEN;
+  let createdDocumentId = `doc-${Date.now()}`;
 
   if (writeToken) {
     try {
