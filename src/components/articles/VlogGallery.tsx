@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import type { VlogGalleryProps, ArticleVlogItem } from '@/types';
 import { VlogCategoryFilter } from './VlogCategoryFilter';
 import { VlogItem } from './VlogItem';
+import { VlogModal } from './vlog-modal';
 
 interface VlogGalleryClientProps extends VlogGalleryProps {
   showViewMore: boolean;
@@ -12,11 +13,23 @@ interface VlogGalleryClientProps extends VlogGalleryProps {
 
 export function VlogGallery({ items, categories, totalCount, onSelectVideo, showViewMore }: VlogGalleryClientProps) {
   const [activeSlug, setActiveSlug] = useState<string>('all');
+  const [selectedVideo, setSelectedVideo] = useState<ArticleVlogItem | null>(null);
 
   const filteredItems = useMemo<ArticleVlogItem[]>(() => {
     if (activeSlug === 'all') return items;
     return items.filter((item) => item.category?.slug === activeSlug);
   }, [items, activeSlug]);
+
+  const handlePlayVideo = useCallback(
+    (item: ArticleVlogItem) => {
+      if (onSelectVideo) {
+        onSelectVideo(item);
+      } else {
+        setSelectedVideo(item);
+      }
+    },
+    [onSelectVideo]
+  );
 
   return (
     <section>
@@ -42,7 +55,7 @@ export function VlogGallery({ items, categories, totalCount, onSelectVideo, show
             <VlogItem
               key={item._id}
               item={item}
-              onPlayVideo={onSelectVideo}
+              onPlayVideo={handlePlayVideo}
             />
           ))}
         </div>
@@ -59,6 +72,14 @@ export function VlogGallery({ items, categories, totalCount, onSelectVideo, show
           </Link>
         </div>
       )}
+
+      {/* Pop-up Video Modal */}
+      <VlogModal
+        item={selectedVideo}
+        isOpen={Boolean(selectedVideo)}
+        onClose={() => setSelectedVideo(null)}
+      />
     </section>
   );
 }
+

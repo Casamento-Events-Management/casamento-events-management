@@ -8,6 +8,7 @@ import {
   getAllArticleVlogSlugs,
 } from '@/lib/services/articleVlogService';
 import { CustomPortableText } from '@/components/ui/portable-text';
+import { parseVideoSource } from '@/lib/utils/videoUtils';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -115,19 +116,62 @@ export default async function VlogDetailPage({ params }: PageProps) {
           </p>
         )}
 
-        {/* Thumbnail */}
-        {thumbnailUrl && (
-          <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-10 bg-[#1A2310]">
-            <Image
-              src={thumbnailUrl}
-              alt={item.thumbnail.alt || item.title}
-              fill
-              priority
-              className="object-cover object-center"
-              sizes="(max-width: 1024px) 100vw, 896px"
-            />
-          </div>
-        )}
+        {/* Hero Media Container — Video Player or Image Showcase */}
+        {(() => {
+          if (item.mediaType === 'video' && item.videoSource) {
+            const parsed = parseVideoSource(item.videoSource);
+
+            if (parsed.sourceType === 'sanity' || parsed.sourceType === 'native') {
+              const videoUrl = parsed.directUrl || '';
+              if (videoUrl) {
+                return (
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-10 bg-[#1A2310] shadow-xl">
+                    <video
+                      controls
+                      playsInline
+                      poster={thumbnailUrl}
+                      className="w-full h-full object-contain bg-black"
+                    >
+                      <source src={videoUrl} type="video/mp4" />
+                      Your browser does not support HTML5 video.
+                    </video>
+                  </div>
+                );
+              }
+            }
+
+            if (parsed.sourceType === 'external' && parsed.embedUrl) {
+              return (
+                <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-10 bg-[#1A2310] shadow-xl">
+                  <iframe
+                    src={parsed.embedUrl}
+                    title={item.title}
+                    className="w-full h-full border-0 bg-black"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+              );
+            }
+          }
+
+          if (thumbnailUrl) {
+            return (
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-10 bg-[#1A2310] shadow-lg">
+                <Image
+                  src={thumbnailUrl}
+                  alt={item.thumbnail.alt || item.title}
+                  fill
+                  priority
+                  className="object-cover object-center"
+                  sizes="(max-width: 1024px) 100vw, 896px"
+                />
+              </div>
+            );
+          }
+
+          return null;
+        })()}
 
         {/* Summary */}
         {item.summary && (

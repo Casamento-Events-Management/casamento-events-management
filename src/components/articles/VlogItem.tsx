@@ -30,11 +30,11 @@ export function VlogItem({ item, onPlayVideo }: VlogItemProps) {
       {/* ── Thumbnail ──────────────────────────────────────────────────── */}
       <div
         className="relative w-full overflow-hidden rounded-md bg-[#1A2310] aspect-video cursor-pointer"
-        onClick={() => isVideo && onPlayVideo?.(item)}
-        role={isVideo ? 'button' : undefined}
-        tabIndex={isVideo ? 0 : undefined}
-        aria-label={isVideo ? `Play ${item.title}` : undefined}
-        onKeyDown={(e) => isVideo && e.key === 'Enter' && onPlayVideo?.(item)}
+        onClick={() => onPlayVideo?.(item)}
+        role="button"
+        tabIndex={0}
+        aria-label={`View ${item.title}`}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && onPlayVideo?.(item)}
       >
         {thumbnailUrl && (
           <Image
