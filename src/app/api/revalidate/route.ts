@@ -1,6 +1,7 @@
 import { parseBody } from 'next-sanity/webhook'
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { NextRequest, NextResponse } from 'next/server'
+import { buildFeedbackClientPostedEmail } from '@/lib/email'
 
 interface SanityWebhookPayload {
   _type?: string
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
         revalidatePath('/articles/feedback/page/[n]', 'page')
         revalidatePath('/')
 
-        // Send approval confirmation email to client if feedback is published with status === 'approved'
+        // Send confirmation email to client if feedback is published with status === 'approved'
         if (body.status === 'approved' && body.email) {
           await sendClientApprovalEmail({
             email: body.email,
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * Sends a confirmation email to the client when their feedback has been approved by the Casamento team.
+ * Sends a notification email to the client when their feedback is posted on the site.
  */
 async function sendClientApprovalEmail(payload: {
   email: string
@@ -129,16 +130,14 @@ async function sendClientApprovalEmail(payload: {
   if (!apiKey) {
     if (process.env.NODE_ENV === 'development') {
       console.log(
-        `[api/revalidate] RESEND_API_KEY not configured. Mocking client approval email to ${payload.email}`
+        `[api/revalidate] RESEND_API_KEY not configured. Mocking client posted email to ${payload.email}`
       )
     }
     return
   }
 
   try {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'
-    const clientName = payload.name || 'Valued Client'
-    const eventType = payload.eventType || 'Event'
+    const { subject, html } = buildFeedbackClientPostedEmail(payload)
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -149,27 +148,8 @@ async function sendClientApprovalEmail(payload: {
       body: JSON.stringify({
         from: `Casamento Events <${process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to: [payload.email],
-        subject: `Your Feedback is Now Live! - Casamento Events`,
-        html: `
-          <div style="font-family: Arial, sans-serif; padding: 24px; color: #3A4F1C; background-color: #F7F3E8;">
-            <h2 style="color: #3A4F1C; border-bottom: 2px solid #BC6F07; padding-bottom: 8px; margin-top: 0;">
-              ✨ Thank You, ${clientName}!
-            </h2>
-            <p>We are delighted to let you know that your feedback regarding your <strong>${eventType}</strong> experience with Casamento Events has been approved and published on our website!</p>
-            <p>Your kind words mean the world to our team and help other clients discover our services.</p>
-            
-            <div style="margin: 24px 0; text-align: center;">
-              <a href="${siteUrl}/articles/feedback" style="display: inline-block; background-color: #3A4F1C; color: #F7F3E8; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-                View Your Published Feedback →
-              </a>
-            </div>
-
-            <hr style="border: none; border-top: 1px solid #BC6F07; margin-top: 24px;" />
-            <p style="font-size: 11px; color: #3A4F1C; opacity: 0.7;">
-              Casamento Events Management — Crafting Unforgettable Moments.
-            </p>
-          </div>
-        `,
+        subject,
+        html,
       }),
     })
 
@@ -179,7 +159,7 @@ async function sendClientApprovalEmail(payload: {
       return
     }
 
-    console.log(`[api/revalidate] Client approval confirmation email sent to ${payload.email}`)
+    console.log(`[api/revalidate] Client feedback posted notification email sent to ${payload.email}`)
   } catch (err) {
     console.error('[api/revalidate Client Approval Email Exception]:', err)
   }
