@@ -73,9 +73,19 @@ export const structure: StructureResolver = (S) =>
         .title('Service Items')
         .child(S.documentTypeList('serviceItem').title('Service Items')),
       S.divider(),
+      // Booking section
+      S.listItem()
+        .title('Booking Page Hero')
+        .id('bookingHeroSingleton')
+        .child(
+          S.document()
+            .schemaType('bookingHero')
+            .documentId('bookingHero')
+        ),
+      S.divider(),
       // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(
-        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem', 'articleVlogBanner', 'articlesHero', 'articleVlog', 'clientFeedback'].includes(listItem.getId() || '')
+        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem', 'articleVlogBanner', 'articlesHero', 'articleVlog', 'clientFeedback', 'bookingHero'].includes(listItem.getId() || '')
       ),
     ])
 

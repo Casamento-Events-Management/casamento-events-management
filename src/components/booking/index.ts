@@ -1,0 +1,1 @@
+export { BookingHero } from './BookingHero';
