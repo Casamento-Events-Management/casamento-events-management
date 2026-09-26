@@ -20,12 +20,12 @@ export function Step1ServiceSelect({
 }: Step1ServiceSelectProps) {
   if (!service) {
     return (
-      <div className="bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl p-8 sm:p-12 text-center space-y-6 w-full min-h-[50vh] lg:min-h-[60vh] flex flex-col items-center justify-center shadow-sm">
-        <div className="text-center space-y-3 max-w-lg mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-serif text-[#3A4F1C] font-semibold">
+      <div className="py-12 sm:py-20 text-center space-y-6 sm:space-y-8 w-full min-h-[60vh] lg:min-h-[75vh] flex flex-col items-center justify-center">
+        <div className="text-center space-y-2 sm:space-y-3 max-w-lg mx-auto">
+          <h2 className="text-xl sm:text-3xl font-serif text-[#3A4F1C] font-semibold">
             Choose a Service Package
           </h2>
-          <p className="text-sm sm:text-base text-[#3A4F1C]/80 font-light leading-relaxed">
+          <p className="text-xs sm:text-base text-[#3A4F1C]/80 font-light leading-relaxed">
             Please choose a service from our catalog to view package inclusions, add-on options, and continue your booking inquiry.
           </p>
         </div>

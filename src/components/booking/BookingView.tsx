@@ -121,7 +121,7 @@ export function BookingView({ availableServices }: BookingViewProps) {
   const showRightPanel = selectedService !== null && currentStep !== 3;
 
   return (
-    <section className={`bg-[#EFEAD8]/60 py-8 sm:py-12 border-y border-[#3A4F1C]/10 ${!selectedService ? 'min-h-[50vh] lg:min-h-[60vh] flex flex-col justify-center' : ''}`}>
+    <section className={`bg-[#EFEAD8]/60 py-8 sm:py-12 border-y border-[#3A4F1C]/10 ${!selectedService ? 'min-h-[60vh] lg:min-h-[75vh] flex flex-col justify-center' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Progress Bar Header */}
         <BookingProgressBar
