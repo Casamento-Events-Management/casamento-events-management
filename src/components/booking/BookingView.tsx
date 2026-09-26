@@ -118,8 +118,10 @@ export function BookingView({ availableServices }: BookingViewProps) {
     }, 1500);
   };
 
+  const showRightPanel = selectedService !== null && currentStep !== 3;
+
   return (
-    <section className="bg-[#EFEAD8]/60 py-8 border-y border-[#3A4F1C]/10">
+    <section className={`bg-[#EFEAD8]/60 py-8 sm:py-12 border-y border-[#3A4F1C]/10 ${!selectedService ? 'min-h-[50vh] lg:min-h-[60vh] flex flex-col justify-center' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Progress Bar Header */}
         <BookingProgressBar
@@ -127,10 +129,10 @@ export function BookingView({ availableServices }: BookingViewProps) {
           onStepClick={(step) => setCurrentStep(step)}
         />
 
-        {/* Grid Layout: 70/30 during steps 1 & 2; Full-width during step 3 (Booking Confirmation) */}
+        {/* Grid Layout: 70/30 when service is selected (Steps 1 & 2); 100% Full-width when no service is selected or on Step 3 */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Form Container */}
-          <div className={`w-full ${currentStep === 3 ? 'w-full' : 'lg:w-[68%]'} shrink-0`}>
+          <div className={`w-full ${showRightPanel ? 'lg:w-[68%]' : 'w-full'} shrink-0`}>
             {currentStep === 1 && (
               <Step1ServiceSelect
                 service={selectedService}
@@ -160,8 +162,8 @@ export function BookingView({ availableServices }: BookingViewProps) {
             )}
           </div>
 
-          {/* 30% RIGHT: Service Summary Panel (Hidden during Step 3 Confirmation) */}
-          {currentStep !== 3 && (
+          {/* 30% RIGHT: Service Summary Panel (Only shown when a service is selected & not on Step 3) */}
+          {showRightPanel && (
             <div className="w-full lg:w-[30%] shrink-0">
               <ServicesBookingPanel
                 service={selectedService}
