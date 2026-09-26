@@ -1,8 +1,10 @@
 import React from 'react';
+import Image from 'next/image';
 import type { SocialLink } from '@/types';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { SocialIcon } from '@/components/ui/social-icon';
 import { ContactForm } from '@/components/layout/contact-form';
+import iconImg from '@/app/icon.png';
 
 interface ConnectSectionProps {
   socialLinks: SocialLink[];
@@ -28,7 +30,21 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
 
   return (
     <section className="py-20 md:py-28 bg-[#3A4F1C] text-[#F7F3E8] relative overflow-hidden">
-      <div className="absolute inset-0 opacity-5 bg-[radial-[#BC6F07]_1px,transparent_1px] bg-size-[16px_16px]" />
+      {/* Subtle Dot Matrix Texture */}
+      <div className="absolute inset-0 opacity-5 bg-[radial-[#BC6F07]_1px,transparent_1px] bg-size-[16px_16px] z-0" />
+
+      {/* One Large Overlayed Watermark Logo Background */}
+      <div className="absolute inset-0 flex items-start lg:items-center justify-center pt-2 sm:pt-4 md:pt-6 lg:pt-0 pointer-events-none z-0 overflow-hidden">
+        <div className="relative w-[650px] h-[650px] sm:w-[750px] sm:h-[750px] md:w-[1000px] md:h-[1000px] lg:w-[1200px] lg:h-[1200px] opacity-20 lg:opacity-15 mix-blend-screen select-none">
+          <Image
+            src={iconImg}
+            alt=""
+            fill
+            className="object-contain object-top lg:object-center"
+            priority={false}
+          />
+        </div>
+      </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
         <SectionHeading
@@ -55,7 +71,7 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
         </div>
 
         {/* Contact Us Form Callout */}
-        <div className="p-8 md:p-12 rounded-3xl bg-[#2A3A14] border border-[#BC6F07]/40 max-w-3xl mx-auto shadow-xl">
+        <div className="p-8 md:p-12 rounded-3xl bg-[#2A3A14] border border-[#BC6F07]/40 max-w-3xl mx-auto shadow-xl relative z-10">
           <h3 className="text-2xl font-serif font-semibold text-[#F7F3E8] mb-6 text-center">
             Contact Us
           </h3>
@@ -65,5 +81,3 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
     </section>
   );
 }
-
-
