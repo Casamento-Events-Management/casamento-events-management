@@ -87,7 +87,7 @@ export function Step3PaymentSummary({
               Select Preferred Payment Gateway
             </span>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label
                 onClick={() => onChange({ paymentProvider: 'dragonpay' })}
                 className={`p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'dragonpay'
@@ -129,28 +129,6 @@ export function Step3PaymentSummary({
                 </div>
                 <p className="text-[10px] text-[#3A4F1C]/70 leading-tight">
                   International Credit / Debit Cards & PayPal Balance
-                </p>
-              </label>
-
-              <label
-                onClick={() => onChange({ paymentProvider: 'manual_bank' })}
-                className={`p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'manual_bank'
-                    ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
-                    : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                  }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#3A4F1C]">Bank Transfer</span>
-                  <input
-                    type="radio"
-                    name="paymentProvider"
-                    checked={formData.paymentProvider === 'manual_bank'}
-                    onChange={() => { }}
-                    className="text-[#BC6F07] focus:ring-[#BC6F07]"
-                  />
-                </div>
-                <p className="text-[10px] text-[#3A4F1C]/70 leading-tight">
-                  Direct BDO / BPI / UnionBank Deposit
                 </p>
               </label>
             </div>

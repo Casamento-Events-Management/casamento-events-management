@@ -37,7 +37,7 @@ export interface BookingFormData {
   specialNotes?: string;
 
   // Step 3: Payment Method & Acceptance
-  paymentProvider: 'dragonpay' | 'paypal' | 'manual_bank';
+  paymentProvider: 'dragonpay' | 'paypal';
   termsAccepted: boolean;
 }
 
