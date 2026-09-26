@@ -49,88 +49,116 @@ export function Step3PaymentSummary({
         </div>
       ) : (
         <>
-          {/* Summary Breakdown Card */}
-          <div className="bg-[#EFEAD8]/60 p-4 rounded-xl border border-[#3A4F1C]/15 space-y-3 text-xs text-[#3A4F1C]">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block border-b border-[#3A4F1C]/10 pb-2">
-              Booking Summary Review
-            </span>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <div>
-                <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Client Name</span>
-                <span>{formData.clientFullName} ({formData.clientEmail})</span>
-              </div>
-              <div>
-                <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Contact Phone</span>
-                <span>{formData.clientPhone}</span>
-              </div>
-              <div className="sm:col-span-2">
-                <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Event Date & Target Location</span>
-                <span>
-                  {formData.eventDate} ({formData.venueCity})
-                  {formData.isHolidayDate && <span className="text-[#BC6F07] font-semibold ml-1">[{formData.holidayName}]</span>}
-                </span>
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-[#3A4F1C]/10 flex items-center justify-between font-serif">
-              <span className="text-xs font-semibold text-[#3A4F1C]">Estimated Total Package:</span>
-              <span className="text-lg font-bold text-[#3A4F1C]">
-                ₱{formData.totalEstimate.toLocaleString()}
+          {/* Side-by-Side Grid Layout: Summary Review (Left) vs Select Payment Type (Right) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            
+            
+            {/* Left Column: Booking Summary Review */}
+            <div className="bg-[#EFEAD8]/60 p-5 rounded-xl border border-[#3A4F1C]/15 space-y-4 text-xs text-[#3A4F1C]">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block border-b border-[#3A4F1C]/10 pb-2">
+                Select Payment Type
               </span>
+              <div className="space-y-2 text-xs">
+                <div>
+                  <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Client Name</span>
+                  <span className="font-medium">{formData.clientFullName} ({formData.clientEmail})</span>
+                </div>
+                <div>
+                  <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Contact Phone</span>
+                  <span className="font-medium">{formData.clientPhone}</span>
+                </div>
+                <div>
+                  <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Event Date & Target Location</span>
+                  <span className="font-medium">
+                    {formData.eventDate} ({formData.venueCity})
+                    {formData.isHolidayDate && <span className="text-[#BC6F07] font-semibold ml-1">[{formData.holidayName}]</span>}
+                  </span>
+                </div>
+              </div>
+
+              {/* Costs Breakdown */}
+              <div className="pt-3 border-t border-[#3A4F1C]/15 space-y-2">
+                <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Costs Breakdown</span>
+                <div className="space-y-1 text-xs text-[#3A4F1C]/90">
+                    <span className="font-semibold block text-[10px] text-[#3A4F1C]/60">Base Service Package</span>
+                  <div className="flex justify-between">
+                    <span className="font-medium">({formData.serviceTitle || 'Selected Service'}): ₱{formData.basePrice.toLocaleString()}</span>
+                  </div>
+
+                  {formData.selectedAddOns && formData.selectedAddOns.length > 0 && (
+                    <div className="pl-2 space-y-1 border-l-2 border-[#BC6F07]/40 my-1">
+                      {formData.selectedAddOns.map((addon) => (
+                        <div key={addon.id} className="flex justify-between text-[11px] text-[#3A4F1C]/80">
+                          <span>+ {addon.title}</span>
+                          <span>₱{addon.price.toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-2 border-t border-[#3A4F1C]/15 flex items-center justify-between font-serif">
+                  <span className="text-xs font-semibold text-[#3A4F1C]">Total Cost:</span>
+                  <span className="text-xl font-bold text-[#3A4F1C]">
+                    ₱{formData.totalEstimate.toLocaleString()}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Payment Method Selector */}
-          <div className="space-y-3 pt-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
-              Select Payment Type
-            </span>
+            {/* Right Column: Select Payment Type */}
+            <div className="space-y-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block border-b border-[#3A4F1C]/10 pb-2">
+                Select Payment Type
+              </span>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label
-                onClick={() => onChange({ paymentProvider: 'dragonpay' })}
-                className={`p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'dragonpay'
-                  ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
-                  : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
+              <div className="space-y-3">
+                <label
+                  onClick={() => onChange({ paymentProvider: 'dragonpay' })}
+                  className={`p-3.5 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
+                    formData.paymentProvider === 'dragonpay'
+                      ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
+                      : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
                   }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#3A4F1C]">Dragonpay</span>
-                  <input
-                    type="radio"
-                    name="paymentProvider"
-                    checked={formData.paymentProvider === 'dragonpay'}
-                    onChange={() => { }}
-                    className="text-[#BC6F07] focus:ring-[#BC6F07]"
-                  />
-                </div>
-                <p className="text-[10px] text-[#3A4F1C]/70 leading-tight">
-                  GCash, Maya, ShopeePay, & PH Online Banking
-                </p>
-              </label>
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-[#3A4F1C]">Dragonpay</span>
+                    <input
+                      type="radio"
+                      name="paymentProvider"
+                      checked={formData.paymentProvider === 'dragonpay'}
+                      onChange={() => {}}
+                      className="text-[#BC6F07] focus:ring-[#BC6F07]"
+                    />
+                  </div>
+                  <p className="text-[10px] text-[#3A4F1C]/70 leading-tight">
+                    GCash, Maya, ShopeePay, & PH Online Banking
+                  </p>
+                </label>
 
-              <label
-                onClick={() => onChange({ paymentProvider: 'paypal' })}
-                className={`p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'paypal'
-                  ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
-                  : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
+                <label
+                  onClick={() => onChange({ paymentProvider: 'paypal' })}
+                  className={`p-3.5 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
+                    formData.paymentProvider === 'paypal'
+                      ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
+                      : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
                   }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#3A4F1C]">PayPal</span>
-                  <input
-                    type="radio"
-                    name="paymentProvider"
-                    checked={formData.paymentProvider === 'paypal'}
-                    onChange={() => { }}
-                    className="text-[#BC6F07] focus:ring-[#BC6F07]"
-                  />
-                </div>
-                <p className="text-[10px] text-[#3A4F1C]/70 leading-tight">
-                  International Credit / Debit Cards & PayPal Balance
-                </p>
-              </label>
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-[#3A4F1C]">PayPal</span>
+                    <input
+                      type="radio"
+                      name="paymentProvider"
+                      checked={formData.paymentProvider === 'paypal'}
+                      onChange={() => {}}
+                      className="text-[#BC6F07] focus:ring-[#BC6F07]"
+                    />
+                  </div>
+                  <p className="text-[10px] text-[#3A4F1C]/70 leading-tight">
+                    International Credit / Debit Cards & PayPal Balance
+                  </p>
+                </label>
+              </div>
             </div>
           </div>
 
