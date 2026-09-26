@@ -114,6 +114,14 @@ export type {
     BookingHeroContent,
 } from './booking';
 
+export type {
+    BookingStep,
+    SelectedAddOn,
+    BookingFormData,
+    ServiceSelectionState,
+} from './bookingForm';
+
+
 
 
 

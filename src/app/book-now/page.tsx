@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
-import { BookingHero } from '@/components/booking';
+import { BookingHero, BookingView } from '@/components/booking';
 import { getBookingHeroContent } from '@/lib/services/bookingService';
+import { getServiceItems } from '@/lib/services/serviceService';
 
 export const metadata: Metadata = {
   title: 'Book Your Event | SERVICE BOOKING',
@@ -32,7 +33,10 @@ export const metadata: Metadata = {
 };
 
 export default async function BookNowPage() {
-  const heroContent = await getBookingHeroContent();
+  const [heroContent, availableServices] = await Promise.all([
+    getBookingHeroContent(),
+    getServiceItems('all'),
+  ]);
 
   return (
     <main className="min-h-screen bg-[#F7F3E8]">
@@ -41,6 +45,9 @@ export default async function BookNowPage() {
         title={heroContent.title}
         description={heroContent.description}
       />
+      <Suspense fallback={<div className="p-12 text-center text-xs text-[#3A4F1C]/70">Loading Booking System...</div>}>
+        <BookingView availableServices={availableServices} />
+      </Suspense>
     </main>
   );
 }
