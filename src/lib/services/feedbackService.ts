@@ -1,6 +1,6 @@
 import { client } from '@/sanity/lib/client';
 import { clientFeedbackMockItems } from '@/data/clientFeedbackMock';
-import { parseFeedbackEmailRecipients } from '@/lib/utils/envUtils';
+import { parseFeedbackEmailRecipients, parseFeedbackEmailCC } from '@/lib/utils/envUtils';
 import type { ClientFeedback } from '@/types';
 import type { FeedbackFormData } from '@/lib/schemas/feedback';
 import { buildFeedbackAdminEmail, buildFeedbackClientPostedEmail } from '@/lib/email';
@@ -175,6 +175,7 @@ export async function sendAdminFeedbackNotificationEmail(
 ): Promise<{ success: boolean; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
   const recipients = parseFeedbackEmailRecipients();
+  const ccRecipients = parseFeedbackEmailCC();
 
   if (recipients.length === 0) {
     console.warn('[feedbackService] No feedback email recipients configured. Skipping notification.');
@@ -204,6 +205,7 @@ export async function sendAdminFeedbackNotificationEmail(
       body: JSON.stringify({
         from: `Casamento Feedback System <${process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to: recipients,
+        cc: ccRecipients,
         reply_to: payload.email,
         subject,
         html,

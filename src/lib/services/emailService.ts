@@ -1,5 +1,6 @@
 import type { ContactFormData } from '@/lib/schemas/contact';
 import { buildContactAdminEmail } from '@/lib/email';
+import { parseContactEmailRecipients, parseContactEmailCC } from '@/lib/utils/envUtils';
 
 export interface SendEmailResult {
   success: boolean;
@@ -14,11 +15,17 @@ export async function sendContactEmail(
   payload: ContactFormData
 ): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;
-  const toEmail = process.env.CONTACT_EMAIL_TO || 'onboarding@resend.dev';
+  const recipients = parseContactEmailRecipients();
+  const ccRecipients = parseContactEmailCC();
+
+  if (recipients.length === 0) {
+    console.warn('[emailService] No contact email recipients configured. Skipping dispatch.');
+    return { success: true };
+  }
 
   if (!apiKey) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[emailService] RESEND_API_KEY not configured. Mocking email delivery:', payload);
+      console.log('[emailService] RESEND_API_KEY not configured. Mocking email delivery to:', recipients, payload);
     }
     return { success: true, id: 'mock-email-id' };
   }
@@ -33,8 +40,9 @@ export async function sendContactEmail(
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        from: `Casamento Events <${process.env.CONTACT_EMAIL_FROM}>`,
-        to: [toEmail],
+        from: `Casamento Events <${process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev'}>`,
+        to: recipients,
+        cc: ccRecipients,
         reply_to: payload.email,
         subject,
         html,
