@@ -127,10 +127,10 @@ export function BookingView({ availableServices }: BookingViewProps) {
           onStepClick={(step) => setCurrentStep(step)}
         />
 
-        {/* 70% Left / 30% Right Grid Layout */}
+        {/* Grid Layout: 70/30 during steps 1 & 2; Full-width during step 3 (Booking Confirmation) */}
         <div className="flex flex-col lg:flex-row gap-8 items-start">
-          {/* 70% LEFT: Multi-Step Form */}
-          <div className="w-full lg:w-[68%] shrink-0">
+          {/* Form Container */}
+          <div className={`w-full ${currentStep === 3 ? 'w-full' : 'lg:w-[68%]'} shrink-0`}>
             {currentStep === 1 && (
               <Step1ServiceSelect
                 service={selectedService}
@@ -160,15 +160,17 @@ export function BookingView({ availableServices }: BookingViewProps) {
             )}
           </div>
 
-          {/* 30% RIGHT: Service Summary Panel (Persistent across all steps) */}
-          <div className="w-full lg:w-[30%] shrink-0">
-            <ServicesBookingPanel
-              service={selectedService}
-              selectedAddOns={formData.selectedAddOns}
-              onToggleAddOn={handleToggleAddOn}
-              isInteractiveAddOns={currentStep === 1}
-            />
-          </div>
+          {/* 30% RIGHT: Service Summary Panel (Hidden during Step 3 Confirmation) */}
+          {currentStep !== 3 && (
+            <div className="w-full lg:w-[30%] shrink-0">
+              <ServicesBookingPanel
+                service={selectedService}
+                selectedAddOns={formData.selectedAddOns}
+                onToggleAddOn={handleToggleAddOn}
+                isInteractiveAddOns={currentStep === 1}
+              />
+            </div>
+          )}
         </div>
       </div>
     </section>
