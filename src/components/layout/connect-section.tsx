@@ -55,7 +55,7 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
         />
 
         {/* Social Media Link Buttons (Compact 2x2 Grid on Mobile, Flex on Desktop) */}
-        <div className="grid grid-cols-2 gap-2 max-w-60 mx-auto md:max-w-none md:flex md:flex-wrap md:items-center md:justify-center md:gap-6 mb-12">
+        <div className="grid grid-cols-2 gap-2 max-w-60 mx-auto md:max-w-none md:flex md:flex-wrap md:items-center md:justify-center md:gap-6 mb-12" id="contact-form">
           {socialLinks.map((link) => (
             <a
               key={link.platform}

@@ -347,7 +347,7 @@ export default function AboutPage() {
                 Explore Services
               </Button>
               <Button
-                href="/#contact"
+                href="/#contact-form"
                 variant="primary"
                 size="md"
                 className="bg-[#BC6F07] hover:bg-[#9E5B04] text-white border-none inline-flex items-center gap-2"
