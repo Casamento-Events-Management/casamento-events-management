@@ -90,11 +90,10 @@ export function Step3PaymentSummary({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <label
                 onClick={() => onChange({ paymentProvider: 'dragonpay' })}
-                className={`p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
-                  formData.paymentProvider === 'dragonpay'
+                className={`p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'dragonpay'
                     ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
                     : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#3A4F1C]">Dragonpay</span>
@@ -102,7 +101,7 @@ export function Step3PaymentSummary({
                     type="radio"
                     name="paymentProvider"
                     checked={formData.paymentProvider === 'dragonpay'}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     className="text-[#BC6F07] focus:ring-[#BC6F07]"
                   />
                 </div>
@@ -113,11 +112,10 @@ export function Step3PaymentSummary({
 
               <label
                 onClick={() => onChange({ paymentProvider: 'paypal' })}
-                className={`p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
-                  formData.paymentProvider === 'paypal'
+                className={`p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'paypal'
                     ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
                     : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#3A4F1C]">PayPal</span>
@@ -125,7 +123,7 @@ export function Step3PaymentSummary({
                     type="radio"
                     name="paymentProvider"
                     checked={formData.paymentProvider === 'paypal'}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     className="text-[#BC6F07] focus:ring-[#BC6F07]"
                   />
                 </div>
@@ -136,11 +134,10 @@ export function Step3PaymentSummary({
 
               <label
                 onClick={() => onChange({ paymentProvider: 'manual_bank' })}
-                className={`p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
-                  formData.paymentProvider === 'manual_bank'
+                className={`p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'manual_bank'
                     ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
                     : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#3A4F1C]">Bank Transfer</span>
@@ -148,7 +145,7 @@ export function Step3PaymentSummary({
                     type="radio"
                     name="paymentProvider"
                     checked={formData.paymentProvider === 'manual_bank'}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     className="text-[#BC6F07] focus:ring-[#BC6F07]"
                   />
                 </div>
@@ -177,17 +174,23 @@ export function Step3PaymentSummary({
           {/* Short Text-only Data Privacy Disclaimer (RA 10173) */}
           <DataPrivacyDisclaimer />
 
-          <div className="pt-4 flex items-center justify-between">
-            <Button onClick={onPrevStep} variant="secondary" size="md">
-              &larr; Back
+          <div className="pt-4 flex items-center justify-between gap-3">
+            <Button
+              onClick={onPrevStep}
+              variant="secondary"
+              size="sm"
+              className="text-xs sm:text-sm px-3.5 sm:px-6 py-2 sm:py-3"
+            >
+              Back
             </Button>
             <Button
               onClick={handleFinalSubmit}
               disabled={!formData.termsAccepted || isSubmitting}
               variant="primary"
-              size="md"
+              size="sm"
+              className="text-xs sm:text-sm px-3.5 sm:px-6 py-2 sm:py-3"
             >
-              {isSubmitting ? 'Processing...' : 'Proceed to Secure Payment \u2192'}
+              {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
             </Button>
           </div>
         </>

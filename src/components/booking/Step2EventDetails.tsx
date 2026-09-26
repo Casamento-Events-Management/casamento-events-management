@@ -170,15 +170,21 @@ export function Step2EventDetails({
       {/* Short Text-only Data Privacy Disclaimer (RA 10173) */}
       <DataPrivacyDisclaimer />
 
-      <div className="pt-4 flex items-center justify-between">
-        <Button onClick={onPrevStep} variant="secondary" size="md">
-          &larr; Back
+      <div className="pt-4 flex items-center justify-between gap-3">
+        <Button
+          onClick={onPrevStep}
+          variant="secondary"
+          size="sm"
+          className="text-xs sm:text-sm px-3.5 sm:px-6 py-2 sm:py-3"
+        >
+          Back
         </Button>
         <Button
           onClick={onNextStep}
           disabled={!isFormValid}
           variant="primary"
-          size="md"
+          size="sm"
+          className="text-xs sm:text-sm px-3.5 sm:px-6 py-2 sm:py-3"
         >
           Payment & Review &rarr;
         </Button>

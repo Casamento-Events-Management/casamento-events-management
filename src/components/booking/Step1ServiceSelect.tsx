@@ -120,7 +120,12 @@ export function Step1ServiceSelect({
       )}
 
       <div className="pt-4 flex justify-end">
-        <Button onClick={onNextStep} variant="primary" size="md">
+        <Button
+          onClick={onNextStep}
+          variant="primary"
+          size="sm"
+          className="w-full sm:w-auto text-xs sm:text-sm px-4 sm:px-6 py-2.5 sm:py-3"
+        >
           Event Details &rarr;
         </Button>
       </div>
