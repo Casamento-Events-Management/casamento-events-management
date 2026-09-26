@@ -79,6 +79,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ---
 
-## 7. Agent's Autonomous Behavior
+## 7. Default Content Scope - For Marketing
+- Refer to `.agents/skills/default-content-scope.md` to read how you handle default content. 
+
+---
+
+## 8. Agent's Autonomous Behavior
 - Wait for my explicit approval or go signal before applying any changes or modifications to the codebase.
 - Once the user explicitly ask for your implementation proposal, that means the user needed to review your plan and you MUST wait for explicit approval. If no approval, abandon the plan.
