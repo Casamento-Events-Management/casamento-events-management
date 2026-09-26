@@ -40,7 +40,7 @@ export function Step2EventDetails({
   return (
     <div className="bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl p-6 sm:p-8 space-y-6">
       <div className="border-b border-[#3A4F1C]/15 pb-4">
-        <h2 className="text-2xl font-serif text-[#3A4F1C] font-semibold">
+        <h2 className="text-xl sm:text-2xl font-serif text-[#3A4F1C] font-semibold">
           Tell Us About Your Event
         </h2>
       </div>

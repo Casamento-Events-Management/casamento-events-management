@@ -43,30 +43,27 @@ export function Step1ServiceSelect({
 
   return (
     <div className="bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl p-6 sm:p-8 space-y-6">
-      <div className="flex items-center justify-between border-b border-[#3A4F1C]/15 pb-4">
-        <div>
-          <span className="text-xs font-semibold tracking-widest text-[#BC6F07] uppercase block">
-            Selected Service Package
-          </span>
-          <h2 className="text-2xl font-serif text-[#3A4F1C] font-semibold">
-            {service.title}
-          </h2>
+      <div className="border-b border-[#3A4F1C]/15 pb-4 space-y-1">
+        <div className="flex items-center justify-end">
+          <Link
+            href="/services"
+            className="text-xs font-medium text-[#BC6F07] hover:underline"
+          >
+            Change Service
+          </Link>
         </div>
-        <Link
-          href="/services"
-          className="text-xs font-medium text-[#BC6F07] hover:underline"
-        >
-          Change Service
-        </Link>
+        <h2 className="text-xl sm:text-2xl font-serif text-[#3A4F1C] font-semibold">
+          {service.title}
+        </h2>
       </div>
 
       <div className="space-y-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
           Base Package Inclusions
         </span>
-        <div className="bg-[#EFEAD8]/60 p-4 rounded-lg border border-[#3A4F1C]/10 space-y-1.5">
+        <div className="bg-[#EFEAD8]/60 p-3 sm:p-4 rounded-lg border border-[#3A4F1C]/10 space-y-1.5">
           {service.defaultInclusions.map((item, idx) => (
-            <div key={idx} className="text-xs flex items-start space-x-2 text-[#3A4F1C]">
+            <div key={idx} className="text-[11px] sm:text-xs flex items-start space-x-2 text-[#3A4F1C]">
               <span className="text-[#BC6F07] font-bold">✓</span>
               <span>{item}</span>
             </div>
@@ -86,7 +83,7 @@ export function Step1ServiceSelect({
                 <label
                   key={addon.id}
                   onClick={() => onToggleAddOn(addon)}
-                  className={`flex items-start space-x-3 p-3 rounded-lg border cursor-pointer transition-all ${isChecked
+                  className={`flex items-start space-x-2.5 p-2.5 sm:p-3 rounded-lg border cursor-pointer transition-all ${isChecked
                       ? 'bg-[#3A4F1C]/10 border-[#BC6F07]'
                       : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
                     }`}
@@ -95,19 +92,19 @@ export function Step1ServiceSelect({
                     type="checkbox"
                     checked={isChecked}
                     onChange={() => { }}
-                    className="mt-1 rounded text-[#BC6F07] focus:ring-[#BC6F07]"
+                    className="mt-0.5 rounded text-[#BC6F07] focus:ring-[#BC6F07]"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-[#3A4F1C]">
+                      <span className="text-[11px] sm:text-xs font-semibold text-[#3A4F1C]">
                         {addon.title}
                       </span>
-                      <span className="text-xs font-bold text-[#BC6F07]">
+                      <span className="text-[11px] sm:text-xs font-bold text-[#BC6F07] ml-2 shrink-0">
                         {addon.priceFormatted || (addon.price ? `+₱${addon.price.toLocaleString()}` : '')}
                       </span>
                     </div>
                     {addon.description && (
-                      <p className="text-xs text-[#3A4F1C]/80 mt-0.5 font-light">
+                      <p className="text-[10px] sm:text-xs text-[#3A4F1C]/80 mt-0.5 font-light leading-snug">
                         {addon.description}
                       </p>
                     )}
