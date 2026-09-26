@@ -76,3 +76,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - **Serverless Execution Cap**: Keep Route Handlers and Server Actions well under **10 s**. Do not approach the limit — target comfortably below it.
 - **External CDN & Bandwidth**: Deliver video and heavy media via external CDNs (Sanity CDN, Cloudflare Stream, YouTube/Vimeo). **NEVER** proxy raw media through Next.js API routes.
 - **Database Connection Pooling**: Use Supabase `@supabase/ssr` with the connection pooler (Transaction mode) in serverless contexts to prevent exhaustion and timeouts.
+
+---
+
+## 7. Agent's Autonomous Behavior
+- Wait for my explicit approval or go signal before applying any changes or modifications to the codebase.
+- Once the user explicitly ask for your implementation proposal, that means the user needed to review your plan and you MUST wait for explicit approval. If no approval, abandon the plan.
