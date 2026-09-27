@@ -188,7 +188,7 @@ export function Step2EventDetails({
       </div>
 
       {/* Bottom Action Bar */}
-      <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-4">
+      <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-end justify-between gap-4">
         <Button
           onClick={onPrevStep}
           variant="secondary"

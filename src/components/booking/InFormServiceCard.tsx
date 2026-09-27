@@ -23,7 +23,7 @@ export function InFormServiceCard({
   return (
     <div
       onClick={onOpenModal}
-      className="group bg-[#EFEAD8]/60 border border-[#3A4F1C]/15 rounded-xl p-3 sm:p-4 flex flex-row items-center gap-3 sm:gap-4 cursor-pointer transition-all duration-300 hover:border-[#BC6F07]/60 hover:shadow-md hover:bg-[#EFEAD8]/90"
+      className="group bg-[#EFEAD8]/60 border border-[#3A4F1C]/15 rounded-xl p-3 sm:p-4 flex flex-row items-start gap-3 sm:gap-4 cursor-pointer transition-all duration-300 hover:border-[#BC6F07]/60 hover:shadow-md hover:bg-[#EFEAD8]/90"
       role="button"
       tabIndex={0}
       aria-label={`View ${service.title} details`}
@@ -48,10 +48,9 @@ export function InFormServiceCard({
         </div>
       </div>
 
-      {/* RIGHT: Category, Name (Title), and Price */}
+      {/* RIGHT: Category, Name (Title) */}
       <div className="flex-1 min-w-0 space-y-1">
         <span className="text-[10px] font-bold uppercase tracking-wider text-[#BC6F07] flex items-center gap-1">
-          <Sparkles className="w-3 h-3 text-[#BC6F07] shrink-0" />
           <span className="truncate">{service.category?.title || 'Service Package'}</span>
         </span>
 

@@ -119,23 +119,24 @@ export function ServicesDetailModal({
             </div>
           )}
 
-          {/* Gallery Thumbnails if available */}
+          {/* Gallery Thumbnails if available (Horizontal Side Scroll) */}
           {service.images && service.images.length > 1 && (
             <div className="space-y-3 pt-2 border-t border-[#3A4F1C]/15">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70">
-                Photo Gallery ({service.images.length} Photos)
+                Photo Gallery
               </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-[#3A4F1C]/20 snap-x snap-mandatory">
                 {service.images.map((img, idx) => (
                   <div
                     key={idx}
-                    className="relative h-24 rounded-lg overflow-hidden border border-[#3A4F1C]/15"
+                    className="relative w-36 sm:w-44 h-24 sm:h-28 shrink-0 rounded-lg overflow-hidden border border-[#3A4F1C]/15 snap-start shadow-sm group"
                   >
                     <Image
                       src={img.url}
                       alt={img.alt || `${service.title} photo ${idx + 1}`}
                       fill
-                      className="object-cover hover:scale-105 transition-transform duration-300"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="176px"
                     />
                   </div>
                 ))}
