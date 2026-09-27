@@ -50,7 +50,7 @@ export function Step1ServiceSelect({
 
   return (
     <div className="bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl p-6 sm:p-8 space-y-6">
-      {/* Header */}
+      {/* Form Header */}
       <div className="border-b border-[#3A4F1C]/15 pb-4 flex items-center justify-between">
         <h2 className="text-xl sm:text-2xl font-serif text-[#3A4F1C] font-semibold">
           Checkout your Package
@@ -63,10 +63,18 @@ export function Step1ServiceSelect({
         </Link>
       </div>
 
-      {/* Parent 2-Column Grid (Equal 50/50 split on desktop) */}
+      {/* 2-Column Grid: On Mobile, Selected Service appears FIRST (order-1), Deliverables SECOND (order-2). On Desktop, Deliverables Left (md:order-1), Selected Service Right (md:order-2) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        {/* Left Column: Deliverables & Inclusions */}
-        <div className="space-y-2">
+        {/* Selected Service Overview (order-1 on Mobile, md:order-2 on Desktop) */}
+        <div className="space-y-2 order-1 md:order-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
+            Selected Service Overview
+          </span>
+          <InFormServiceCard service={service} onOpenModal={onOpenModal} />
+        </div>
+
+        {/* Deliverables & Inclusions (order-2 on Mobile, md:order-1 on Desktop) */}
+        <div className="space-y-2 order-2 md:order-1">
           <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
             Deliverables & Inclusions
           </span>
@@ -82,14 +90,6 @@ export function Step1ServiceSelect({
               <p className="text-xs text-[#3A4F1C]/70 italic">Standard event package inclusions apply.</p>
             )}
           </div>
-        </div>
-
-        {/* Right Column: Child 2-Grid Service Card (Left image, Right specs) */}
-        <div className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
-            Selected Service Overview
-          </span>
-          <InFormServiceCard service={service} onOpenModal={onOpenModal} />
         </div>
       </div>
 
@@ -157,7 +157,6 @@ export function Step1ServiceSelect({
                 ₱{totalPrice.toLocaleString()}
               </span>
             </span>
-
           </div>
 
           <Button

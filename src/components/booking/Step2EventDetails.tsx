@@ -44,16 +44,25 @@ export function Step2EventDetails({
 
   return (
     <div className="bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl p-6 sm:p-8 space-y-6">
+      {/* Form Header */}
       <div className="border-b border-[#3A4F1C]/15 pb-4">
         <h2 className="text-xl sm:text-2xl font-serif text-[#3A4F1C] font-semibold">
           Tell Us About Your Event
         </h2>
       </div>
 
-      {/* 2-Column Grid: Contact Fields & Schedule (Left) vs Clickable Service Photo (Right) */}
+      {/* 2-Column Grid: On Mobile, Selected Service appears FIRST (order-1), Contact Details SECOND (order-2). On Desktop, Contact Details Left (md:order-1), Selected Service Right (md:order-2) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        {/* Left Column: Input Fields */}
-        <div className="space-y-4">
+        {/* Selected Service Package (order-1 on Mobile, md:order-2 on Desktop) */}
+        <div className="space-y-2 order-1 md:order-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
+            Selected Service Package
+          </span>
+          <InFormServiceCard service={service} onOpenModal={onOpenModal} />
+        </div>
+
+        {/* Contact Details (order-2 on Mobile, md:order-1 on Desktop) */}
+        <div className="space-y-4 order-2 md:order-1">
           <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
             Contact Details
           </span>
@@ -116,14 +125,6 @@ export function Step2EventDetails({
               />
             </div>
           </div>
-        </div>
-
-        {/* Right Column: In-Form Clickable Service Photo */}
-        <div className="space-y-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
-            Selected Service Package
-          </span>
-          <InFormServiceCard service={service} onOpenModal={onOpenModal} />
         </div>
       </div>
 
