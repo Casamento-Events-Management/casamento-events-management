@@ -3,21 +3,26 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { DataPrivacyDisclaimer } from './DataPrivacyDisclaimer';
-import type { BookingFormData } from '@/types';
+import { InFormServiceCard } from './InFormServiceCard';
+import type { BookingFormData, ServiceItem } from '@/types';
 
 interface Step3PaymentSummaryProps {
   formData: BookingFormData;
+  service: ServiceItem | null;
   onChange: (updated: Partial<BookingFormData>) => void;
   onSubmit: () => void;
   onPrevStep: () => void;
+  onOpenModal: () => void;
   isSubmitting?: boolean;
 }
 
 export function Step3PaymentSummary({
   formData,
+  service,
   onChange,
   onSubmit,
   onPrevStep,
+  onOpenModal,
   isSubmitting = false,
 }: Step3PaymentSummaryProps) {
   const [submittedMessage, setSubmittedMessage] = useState(false);
@@ -49,14 +54,12 @@ export function Step3PaymentSummary({
         </div>
       ) : (
         <>
-          {/* Side-by-Side Grid Layout: Summary Review (Left) vs Select Payment Type (Right) */}
+          {/* 2-Column Grid: Booking Summary Review (Left) vs Clickable Service Photo (Right) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            
-            
             {/* Left Column: Booking Summary Review */}
             <div className="bg-[#EFEAD8]/60 p-5 rounded-xl border border-[#3A4F1C]/15 space-y-4 text-xs text-[#3A4F1C]">
               <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block border-b border-[#3A4F1C]/10 pb-2">
-                Select Payment Type
+                Booking Summary Review
               </span>
               <div className="space-y-2 text-xs">
                 <div>
@@ -80,7 +83,7 @@ export function Step3PaymentSummary({
               <div className="pt-3 border-t border-[#3A4F1C]/15 space-y-2">
                 <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Costs Breakdown</span>
                 <div className="space-y-1 text-xs text-[#3A4F1C]/90">
-                    <span className="font-semibold block text-[10px] text-[#3A4F1C]/60">Base Service Package</span>
+                  <span className="font-semibold block text-[10px] text-[#3A4F1C]/60">Base Service Package</span>
                   <div className="flex justify-between">
                     <span className="font-medium">({formData.serviceTitle || 'Selected Service'}): ₱{formData.basePrice.toLocaleString()}</span>
                   </div>
@@ -106,59 +109,67 @@ export function Step3PaymentSummary({
               </div>
             </div>
 
-            {/* Right Column: Select Payment Type */}
-            <div className="space-y-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block border-b border-[#3A4F1C]/10 pb-2">
-                Select Payment Type
+            {/* Right Column: In-Form Clickable Service Photo */}
+            <div className="space-y-2">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
+                Selected Service Overview
               </span>
+              <InFormServiceCard service={service} onOpenModal={onOpenModal} />
+            </div>
+          </div>
 
-              <div className="space-y-3">
-                <label
-                  onClick={() => onChange({ paymentProvider: 'dragonpay' })}
-                  className={`p-3.5 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
-                    formData.paymentProvider === 'dragonpay'
-                      ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
-                      : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#3A4F1C]">Dragonpay</span>
-                    <input
-                      type="radio"
-                      name="paymentProvider"
-                      checked={formData.paymentProvider === 'dragonpay'}
-                      onChange={() => {}}
-                      className="text-[#BC6F07] focus:ring-[#BC6F07]"
-                    />
-                  </div>
-                  <p className="text-[10px] text-[#3A4F1C]/70 leading-tight">
-                    GCash, Maya, ShopeePay, & PH Online Banking
-                  </p>
-                </label>
+          {/* Select Payment Type Options Section (Below 2-Grid) */}
+          <div className="space-y-3 pt-4 border-t border-[#3A4F1C]/15">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
+              Select Payment Gateway
+            </span>
 
-                <label
-                  onClick={() => onChange({ paymentProvider: 'paypal' })}
-                  className={`p-3.5 rounded-lg border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
-                    formData.paymentProvider === 'paypal'
-                      ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
-                      : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-[#3A4F1C]">PayPal</span>
-                    <input
-                      type="radio"
-                      name="paymentProvider"
-                      checked={formData.paymentProvider === 'paypal'}
-                      onChange={() => {}}
-                      className="text-[#BC6F07] focus:ring-[#BC6F07]"
-                    />
-                  </div>
-                  <p className="text-[10px] text-[#3A4F1C]/70 leading-tight">
-                    International Credit / Debit Cards & PayPal Balance
-                  </p>
-                </label>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <label
+                onClick={() => onChange({ paymentProvider: 'dragonpay' })}
+                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
+                  formData.paymentProvider === 'dragonpay'
+                    ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
+                    : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[#3A4F1C]">Dragonpay</span>
+                  <input
+                    type="radio"
+                    name="paymentProvider"
+                    checked={formData.paymentProvider === 'dragonpay'}
+                    onChange={() => {}}
+                    className="text-[#BC6F07] focus:ring-[#BC6F07]"
+                  />
+                </div>
+                <p className="text-[11px] text-[#3A4F1C]/70 leading-relaxed font-light">
+                  GCash, Maya, ShopeePay, & Philippine Online Banking
+                </p>
+              </label>
+
+              <label
+                onClick={() => onChange({ paymentProvider: 'paypal' })}
+                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
+                  formData.paymentProvider === 'paypal'
+                    ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
+                    : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[#3A4F1C]">PayPal</span>
+                  <input
+                    type="radio"
+                    name="paymentProvider"
+                    checked={formData.paymentProvider === 'paypal'}
+                    onChange={() => {}}
+                    className="text-[#BC6F07] focus:ring-[#BC6F07]"
+                  />
+                </div>
+                <p className="text-[11px] text-[#3A4F1C]/70 leading-relaxed font-light">
+                  International Credit / Debit Cards & PayPal Wallet Balance
+                </p>
+              </label>
             </div>
           </div>
 
@@ -177,27 +188,40 @@ export function Step3PaymentSummary({
             </label>
           </div>
 
-          {/* Short Text-only Data Privacy Disclaimer (RA 10173) */}
+          {/* Short Text-only Data Privacy Disclaimer */}
           <DataPrivacyDisclaimer />
 
-          <div className="pt-4 flex items-center justify-between gap-3">
+          {/* Bottom Action Bar */}
+          <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-4">
             <Button
               onClick={onPrevStep}
               variant="secondary"
               size="sm"
-              className="text-xs sm:text-sm px-3.5 sm:px-6 py-2 sm:py-3"
+              className="text-xs sm:text-sm px-4 sm:px-6 py-2.5 sm:py-3"
             >
               Back
             </Button>
-            <Button
-              onClick={handleFinalSubmit}
-              disabled={!formData.termsAccepted || isSubmitting}
-              variant="primary"
-              size="sm"
-              className="text-xs sm:text-sm px-3.5 sm:px-6 py-2 sm:py-3"
-            >
-              {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
-            </Button>
+
+            <div className="flex flex-col items-end gap-2 text-right">
+              <div className="text-right">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A4F1C]/70 block">
+                  TOTAL PRICE
+                </span>
+                <span className="text-lg sm:text-xl font-serif font-bold text-[#3A4F1C]">
+                  ₱{formData.totalEstimate.toLocaleString()}
+                </span>
+              </div>
+
+              <Button
+                onClick={handleFinalSubmit}
+                disabled={!formData.termsAccepted || isSubmitting}
+                variant="primary"
+                size="sm"
+                className="text-xs sm:text-sm px-5 sm:px-7 py-2.5 sm:py-3 shadow-md"
+              >
+                {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
+              </Button>
+            </div>
           </div>
         </>
       )}

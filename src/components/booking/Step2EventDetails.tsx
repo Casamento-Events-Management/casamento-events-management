@@ -4,20 +4,25 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { DataPrivacyDisclaimer } from './DataPrivacyDisclaimer';
 import { checkPhilippineHoliday } from '@/lib/utils/holidayUtils';
-import type { BookingFormData } from '@/types';
+import { InFormServiceCard } from './InFormServiceCard';
+import type { BookingFormData, ServiceItem } from '@/types';
 
 interface Step2EventDetailsProps {
   formData: BookingFormData;
+  service: ServiceItem | null;
   onChange: (updated: Partial<BookingFormData>) => void;
   onNextStep: () => void;
   onPrevStep: () => void;
+  onOpenModal: () => void;
 }
 
 export function Step2EventDetails({
   formData,
+  service,
   onChange,
   onNextStep,
   onPrevStep,
+  onOpenModal,
 }: Step2EventDetailsProps) {
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -45,70 +50,85 @@ export function Step2EventDetails({
         </h2>
       </div>
 
-      <div className="space-y-4">
-        <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
-          Contact Details
-        </span>
+      {/* 2-Column Grid: Contact Fields & Schedule (Left) vs Clickable Service Photo (Right) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        {/* Left Column: Input Fields */}
+        <div className="space-y-4">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
+            Contact Details
+          </span>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-[#3A4F1C]">
-              Full Name <span className="text-red-600">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Maria Santos"
-              value={formData.clientFullName}
-              onChange={(e) => onChange({ clientFullName: e.target.value })}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C]"
-            />
-          </div>
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-[#3A4F1C]">
+                Full Name <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="e.g. Maria Santos"
+                value={formData.clientFullName}
+                onChange={(e) => onChange({ clientFullName: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C]"
+              />
+            </div>
 
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-[#3A4F1C]">
-              Email Address <span className="text-red-600">*</span>
-            </label>
-            <input
-              type="email"
-              required
-              placeholder="maria@example.com"
-              value={formData.clientEmail}
-              onChange={(e) => onChange({ clientEmail: e.target.value })}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C]"
-            />
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-[#3A4F1C]">
+                  Email Address <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="email"
+                  required
+                  placeholder="maria@example.com"
+                  value={formData.clientEmail}
+                  onChange={(e) => onChange({ clientEmail: e.target.value })}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C]"
+                />
+              </div>
 
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-[#3A4F1C]">
-              Mobile Phone <span className="text-red-600">*</span>
-            </label>
-            <input
-              type="tel"
-              required
-              placeholder="+63 917 123 4567"
-              value={formData.clientPhone}
-              onChange={(e) => onChange({ clientPhone: e.target.value })}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C]"
-            />
-          </div>
+              <div className="space-y-1">
+                <label className="block text-xs font-medium text-[#3A4F1C]">
+                  Mobile Phone <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="+63 917 123 4567"
+                  value={formData.clientPhone}
+                  onChange={(e) => onChange({ clientPhone: e.target.value })}
+                  className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C]"
+                />
+              </div>
+            </div>
 
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-[#3A4F1C]">
-              Company / Organization <span className="text-[#3A4F1C]/50">(Optional)</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Company or Group Name"
-              value={formData.companyName || ''}
-              onChange={(e) => onChange({ companyName: e.target.value })}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C]"
-            />
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-[#3A4F1C]">
+                Company / Organization <span className="text-[#3A4F1C]/50">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Company or Group Name"
+                value={formData.companyName || ''}
+                onChange={(e) => onChange({ companyName: e.target.value })}
+                className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C]"
+              />
+            </div>
           </div>
+        </div>
+
+        {/* Right Column: In-Form Clickable Service Photo */}
+        <div className="space-y-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
+            Selected Service Package
+          </span>
+          <InFormServiceCard service={service} onOpenModal={onOpenModal} />
         </div>
       </div>
 
-      <div className="space-y-4 pt-2 border-t border-[#3A4F1C]/15">
+      {/* Schedule & Location Section */}
+      <div className="space-y-4 pt-4 border-t border-[#3A4F1C]/15">
         <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
           Event Schedule & Location
         </span>
@@ -167,27 +187,40 @@ export function Step2EventDetails({
         </div>
       </div>
 
-      {/* Short Text-only Data Privacy Disclaimer (RA 10173) */}
+      {/* Short Text-only Data Privacy Disclaimer */}
       <DataPrivacyDisclaimer />
 
-      <div className="pt-4 flex items-center justify-between gap-3">
+      {/* Bottom Action Bar */}
+      <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-4">
         <Button
           onClick={onPrevStep}
           variant="secondary"
           size="sm"
-          className="text-xs sm:text-sm px-3.5 sm:px-6 py-2 sm:py-3"
+          className="text-xs sm:text-sm px-4 sm:px-6 py-2.5 sm:py-3"
         >
           Back
         </Button>
-        <Button
-          onClick={onNextStep}
-          disabled={!isFormValid}
-          variant="primary"
-          size="sm"
-          className="text-xs sm:text-sm px-3.5 sm:px-6 py-2 sm:py-3"
-        >
-          Payment & Review &rarr;
-        </Button>
+
+        <div className="flex flex-col items-end gap-2 text-right">
+          <div className="text-right">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A4F1C]/70 block">
+              TOTAL PRICE
+            </span>
+            <span className="text-lg sm:text-xl font-serif font-bold text-[#3A4F1C]">
+              ₱{formData.totalEstimate.toLocaleString()}
+            </span>
+          </div>
+
+          <Button
+            onClick={onNextStep}
+            disabled={!isFormValid}
+            variant="primary"
+            size="sm"
+            className="text-xs sm:text-sm px-5 sm:px-7 py-2.5 sm:py-3 shadow-md"
+          >
+            Payment & Review &rarr;
+          </Button>
+        </div>
       </div>
     </div>
   );

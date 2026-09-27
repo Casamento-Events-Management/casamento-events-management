@@ -6,7 +6,7 @@ import { BookingProgressBar } from './BookingProgressBar';
 import { Step1ServiceSelect } from './Step1ServiceSelect';
 import { Step2EventDetails } from './Step2EventDetails';
 import { Step3PaymentSummary } from './Step3PaymentSummary';
-import { ServicesBookingPanel } from './ServicesBookingPanel';
+import { ServicesDetailModal } from './ServicesDetailModal';
 import { INITIAL_BOOKING_FORM_DATA } from '@/data/bookingMock';
 import type {
   ServiceItem,
@@ -26,6 +26,7 @@ export function BookingView({ availableServices }: BookingViewProps) {
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   const [formData, setFormData] = useState<BookingFormData>(INITIAL_BOOKING_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   const [, startTransition] = React.useTransition();
 
@@ -111,14 +112,11 @@ export function BookingView({ availableServices }: BookingViewProps) {
 
   const handleFormSubmit = () => {
     setIsSubmitting(true);
-    // Prepared for future serverless backend API POST /api/bookings/create
     console.log('[BookingView] Submitting booking payload to backend slot:', formData);
     setTimeout(() => {
       setIsSubmitting(false);
     }, 1500);
   };
-
-  const showRightPanel = selectedService !== null && currentStep !== 3;
 
   return (
     <section className={`bg-[#EFEAD8]/60 py-8 sm:py-12 border-y border-[#3A4F1C]/10 ${!selectedService ? 'min-h-[60vh] lg:min-h-[75vh] flex flex-col justify-center' : ''}`}>
@@ -129,52 +127,49 @@ export function BookingView({ availableServices }: BookingViewProps) {
           onStepClick={(step) => setCurrentStep(step)}
         />
 
-        {/* Grid Layout: 70/30 when service is selected (Steps 1 & 2); 100% Full-width when no service is selected or on Step 3 */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-          {/* Form Container */}
-          <div className={`w-full ${showRightPanel ? 'lg:w-[68%]' : 'w-full'} shrink-0`}>
-            {currentStep === 1 && (
-              <Step1ServiceSelect
-                service={selectedService}
-                selectedAddOns={formData.selectedAddOns}
-                onToggleAddOn={handleToggleAddOn}
-                onNextStep={() => setCurrentStep(2)}
-              />
-            )}
+        {/* Single Centered Form Card (80% section width on desktop) */}
+        <div className="w-full lg:w-[80%] max-w-5xl mx-auto">
+          {currentStep === 1 && (
+            <Step1ServiceSelect
+              service={selectedService}
+              selectedAddOns={formData.selectedAddOns}
+              onToggleAddOn={handleToggleAddOn}
+              onNextStep={() => setCurrentStep(2)}
+              onOpenModal={() => setIsDetailModalOpen(true)}
+            />
+          )}
 
-            {currentStep === 2 && (
-              <Step2EventDetails
-                formData={formData}
-                onChange={updateFormData}
-                onNextStep={() => setCurrentStep(3)}
-                onPrevStep={() => setCurrentStep(1)}
-              />
-            )}
+          {currentStep === 2 && (
+            <Step2EventDetails
+              formData={formData}
+              service={selectedService}
+              onChange={updateFormData}
+              onNextStep={() => setCurrentStep(3)}
+              onPrevStep={() => setCurrentStep(1)}
+              onOpenModal={() => setIsDetailModalOpen(true)}
+            />
+          )}
 
-            {currentStep === 3 && (
-              <Step3PaymentSummary
-                formData={formData}
-                onChange={updateFormData}
-                onSubmit={handleFormSubmit}
-                onPrevStep={() => setCurrentStep(2)}
-                isSubmitting={isSubmitting}
-              />
-            )}
-          </div>
-
-          {/* 30% RIGHT: Service Summary Panel (Only shown when a service is selected & not on Step 3) */}
-          {showRightPanel && (
-            <div className="w-full lg:w-[30%] shrink-0">
-              <ServicesBookingPanel
-                service={selectedService}
-                selectedAddOns={formData.selectedAddOns}
-                onToggleAddOn={handleToggleAddOn}
-                isInteractiveAddOns={currentStep === 1}
-              />
-            </div>
+          {currentStep === 3 && (
+            <Step3PaymentSummary
+              formData={formData}
+              service={selectedService}
+              onChange={updateFormData}
+              onSubmit={handleFormSubmit}
+              onPrevStep={() => setCurrentStep(2)}
+              onOpenModal={() => setIsDetailModalOpen(true)}
+              isSubmitting={isSubmitting}
+            />
           )}
         </div>
       </div>
+
+      {/* Service Detail Popup Modal */}
+      <ServicesDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        service={selectedService}
+      />
     </section>
   );
 }
