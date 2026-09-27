@@ -108,6 +108,20 @@ export type {
     FeedbackFormProps,
 } from './feedback';
 
+// Booking page types
+export type {
+    SanityBookingHero,
+    BookingHeroContent,
+} from './booking';
+
+export type {
+    BookingStep,
+    SelectedAddOn,
+    BookingFormData,
+} from './bookingForm';
+
+
+
 
 
 
