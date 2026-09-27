@@ -27,6 +27,14 @@ export function Step2EventDetails({
   const countriesList = useMemo(() => getCountriesList(), []);
   const selectedCountryCode = formData.eventCountry || 'PH';
 
+  const todayDateString = useMemo(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const code = e.target.value;
     const match = countriesList.find((c) => c.code === code);
@@ -44,6 +52,9 @@ export function Step2EventDetails({
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
+    if (val && val < todayDateString) {
+      return;
+    }
     const holidayCheck = checkCountryHoliday(val, selectedCountryCode);
 
     onChange({
@@ -195,6 +206,7 @@ export function Step2EventDetails({
             <input
               type="date"
               required
+              min={todayDateString}
               value={formData.eventDate}
               onChange={handleDateChange}
               onClick={(e) => {
