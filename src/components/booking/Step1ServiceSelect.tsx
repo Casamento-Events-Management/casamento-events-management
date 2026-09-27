@@ -103,19 +103,28 @@ export function Step1ServiceSelect({
             {service.addOns.map((addon) => {
               const isChecked = selectedAddOnIds.includes(addon.id);
               return (
-                <label
+                <div
                   key={addon.id}
                   onClick={() => onToggleAddOn(addon)}
-                  className={`flex items-start space-x-2.5 p-3 rounded-lg border cursor-pointer transition-all ${isChecked
-                      ? 'bg-[#3A4F1C]/10 border-[#BC6F07]'
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onToggleAddOn(addon);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  className={`flex items-start space-x-2.5 p-3 rounded-lg border cursor-pointer transition-all ${
+                    isChecked
+                      ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
                       : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                    }`}
+                  }`}
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => { }}
-                    className="mt-0.5 rounded text-[#BC6F07] focus:ring-[#BC6F07]"
+                    readOnly
+                    className="mt-0.5 rounded text-[#BC6F07] focus:ring-[#BC6F07] pointer-events-none"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
@@ -132,7 +141,7 @@ export function Step1ServiceSelect({
                       </p>
                     )}
                   </div>
-                </label>
+                </div>
               );
             })}
           </div>
