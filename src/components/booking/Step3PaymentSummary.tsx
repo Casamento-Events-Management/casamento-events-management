@@ -56,56 +56,39 @@ export function Step3PaymentSummary({
         <>
           {/* 2-Column Grid: Booking Summary Review (Left) vs Clickable Service Photo (Right) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            {/* Left Column: Booking Summary Review */}
-            <div className="bg-[#EFEAD8]/60 p-5 rounded-xl border border-[#3A4F1C]/15 space-y-4 text-xs text-[#3A4F1C]">
+            {/* Left Column: Booking Summary Review (No Costs Breakdown) */}
+            <div className="bg-[#EFEAD8]/60 p-5 rounded-xl border border-[#3A4F1C]/15 space-y-3 text-xs text-[#3A4F1C]">
               <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block border-b border-[#3A4F1C]/10 pb-2">
                 Booking Summary Review
               </span>
-              <div className="space-y-2 text-xs">
+              <div className="space-y-2.5 text-xs">
                 <div>
                   <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Client Name</span>
-                  <span className="font-medium">{formData.clientFullName} ({formData.clientEmail})</span>
+                  <span className="font-medium text-[#3A4F1C]">{formData.clientFullName} ({formData.clientEmail})</span>
                 </div>
                 <div>
                   <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Contact Phone</span>
-                  <span className="font-medium">{formData.clientPhone}</span>
+                  <span className="font-medium text-[#3A4F1C]">{formData.clientPhone}</span>
                 </div>
+                {formData.companyName && (
+                  <div>
+                    <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Company / Organization</span>
+                    <span className="font-medium text-[#3A4F1C]">{formData.companyName}</span>
+                  </div>
+                )}
                 <div>
                   <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Event Date & Target Location</span>
-                  <span className="font-medium">
+                  <span className="font-medium text-[#3A4F1C]">
                     {formData.eventDate} ({formData.venueCity})
                     {formData.isHolidayDate && <span className="text-[#BC6F07] font-semibold ml-1">[{formData.holidayName}]</span>}
                   </span>
                 </div>
-              </div>
-
-              {/* Costs Breakdown */}
-              <div className="pt-3 border-t border-[#3A4F1C]/15 space-y-2">
-                <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Costs Breakdown</span>
-                <div className="space-y-1 text-xs text-[#3A4F1C]/90">
-                  <span className="font-semibold block text-[10px] text-[#3A4F1C]/60">Base Service Package</span>
-                  <div className="flex justify-between">
-                    <span className="font-medium">({formData.serviceTitle || 'Selected Service'}): ₱{formData.basePrice.toLocaleString()}</span>
+                {formData.specialNotes && (
+                  <div>
+                    <span className="font-semibold block text-[10px] text-[#3A4F1C]/60 uppercase">Special Requirements</span>
+                    <span className="font-light italic text-[#3A4F1C]/80 block line-clamp-2">{formData.specialNotes}</span>
                   </div>
-
-                  {formData.selectedAddOns && formData.selectedAddOns.length > 0 && (
-                    <div className="pl-2 space-y-1 border-l-2 border-[#BC6F07]/40 my-1">
-                      {formData.selectedAddOns.map((addon) => (
-                        <div key={addon.id} className="flex justify-between text-[11px] text-[#3A4F1C]/80">
-                          <span>+ {addon.title}</span>
-                          <span>₱{addon.price.toLocaleString()}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-2 border-t border-[#3A4F1C]/15 flex items-center justify-between font-serif">
-                  <span className="text-xs font-semibold text-[#3A4F1C]">Total Cost:</span>
-                  <span className="text-xl font-bold text-[#3A4F1C]">
-                    ₱{formData.totalEstimate.toLocaleString()}
-                  </span>
-                </div>
+                )}
               </div>
             </div>
 
@@ -118,7 +101,7 @@ export function Step3PaymentSummary({
             </div>
           </div>
 
-          {/* Select Payment Type Options Section (Below 2-Grid) */}
+          {/* Select Payment Gateway Section (Below 2-Grid) */}
           <div className="space-y-3 pt-4 border-t border-[#3A4F1C]/15">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
               Select Payment Gateway
@@ -191,8 +174,8 @@ export function Step3PaymentSummary({
           {/* Short Text-only Data Privacy Disclaimer */}
           <DataPrivacyDisclaimer />
 
-          {/* Bottom Action Bar */}
-          <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-4">
+          {/* Bottom Action Bar: Right-Aligned Costs Breakdown & Total Price stacked ABOVE Proceed Button (No Card) */}
+          <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-end justify-between gap-4">
             <Button
               onClick={onPrevStep}
               variant="secondary"
@@ -203,13 +186,32 @@ export function Step3PaymentSummary({
             </Button>
 
             <div className="flex flex-col items-end gap-2 text-right">
-              <div className="text-right">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A4F1C]/70 block">
-                  TOTAL PRICE
-                </span>
-                <span className="text-lg sm:text-xl font-serif font-bold text-[#3A4F1C]">
-                  ₱{formData.totalEstimate.toLocaleString()}
-                </span>
+              {/* Costs Breakdown (Clean Right-Aligned Text, NO Card) */}
+              <div className="space-y-1 text-right text-xs text-[#3A4F1C]">
+                <div className="text-[11px] text-[#3A4F1C]/80">
+                  <span>Base Package ({formData.serviceTitle || 'Selected Service'}): </span>
+                  <span className="font-semibold text-[#3A4F1C]">₱{formData.basePrice.toLocaleString()}</span>
+                </div>
+
+                {formData.selectedAddOns && formData.selectedAddOns.length > 0 && (
+                  <div className="space-y-0.5">
+                    {formData.selectedAddOns.map((addon) => (
+                      <div key={addon.id} className="text-[11px] text-[#3A4F1C]/80">
+                        <span>+ {addon.title}: </span>
+                        <span className="font-semibold text-[#3A4F1C]">₱{addon.price.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="pt-1.5 border-t border-[#3A4F1C]/15 mt-1">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A4F1C]/70 block">
+                    TOTAL PRICE
+                  </span>
+                  <span className="text-xl sm:text-2xl font-serif font-bold text-[#3A4F1C]">
+                    ₱{formData.totalEstimate.toLocaleString()}
+                  </span>
+                </div>
               </div>
 
               <Button
@@ -217,7 +219,7 @@ export function Step3PaymentSummary({
                 disabled={!formData.termsAccepted || isSubmitting}
                 variant="primary"
                 size="sm"
-                className="text-xs sm:text-sm px-5 sm:px-7 py-2.5 sm:py-3 shadow-md"
+                className="w-full sm:w-auto text-xs sm:text-sm px-6 sm:px-8 py-3 shadow-md mt-1"
               >
                 {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
               </Button>
