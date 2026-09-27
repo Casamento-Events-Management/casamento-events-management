@@ -1,7 +1,6 @@
 export { BookingHero } from './BookingHero';
 export { BookingView } from './BookingView';
 export { BookingProgressBar } from './BookingProgressBar';
-export { ServicesBookingPanel } from './ServicesBookingPanel';
 export { ServicesDetailModal } from './ServicesDetailModal';
 export { InFormServiceCard } from './InFormServiceCard';
 export { DataPrivacyDisclaimer } from './DataPrivacyDisclaimer';
