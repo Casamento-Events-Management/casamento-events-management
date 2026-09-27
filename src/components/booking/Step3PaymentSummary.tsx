@@ -56,7 +56,7 @@ export function Step3PaymentSummary({
         <>
           {/* 2-Column Grid: Booking Summary Review (Left) vs Clickable Service Photo (Right) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-            {/* Left Column: Booking Summary Review (No Costs Breakdown) */}
+            {/* Left Column: Booking Summary Review */}
             <div className="bg-[#EFEAD8]/60 p-5 rounded-xl border border-[#3A4F1C]/15 space-y-3 text-xs text-[#3A4F1C]">
               <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block border-b border-[#3A4F1C]/10 pb-2">
                 Booking Summary Review
@@ -110,11 +110,10 @@ export function Step3PaymentSummary({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label
                 onClick={() => onChange({ paymentProvider: 'dragonpay' })}
-                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
-                  formData.paymentProvider === 'dragonpay'
+                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'dragonpay'
                     ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
                     : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#3A4F1C]">Dragonpay</span>
@@ -122,7 +121,7 @@ export function Step3PaymentSummary({
                     type="radio"
                     name="paymentProvider"
                     checked={formData.paymentProvider === 'dragonpay'}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     className="text-[#BC6F07] focus:ring-[#BC6F07]"
                   />
                 </div>
@@ -133,11 +132,10 @@ export function Step3PaymentSummary({
 
               <label
                 onClick={() => onChange({ paymentProvider: 'paypal' })}
-                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
-                  formData.paymentProvider === 'paypal'
+                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'paypal'
                     ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
                     : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#3A4F1C]">PayPal</span>
@@ -145,7 +143,7 @@ export function Step3PaymentSummary({
                     type="radio"
                     name="paymentProvider"
                     checked={formData.paymentProvider === 'paypal'}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     className="text-[#BC6F07] focus:ring-[#BC6F07]"
                   />
                 </div>
@@ -171,10 +169,7 @@ export function Step3PaymentSummary({
             </label>
           </div>
 
-          {/* Short Text-only Data Privacy Disclaimer */}
-          <DataPrivacyDisclaimer />
-
-          {/* Bottom Action Bar: Right-Aligned Costs Breakdown & Total Price stacked ABOVE Proceed Button (No Card) */}
+          {/* Bottom Action Bar */}
           <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-end justify-between gap-4">
             <Button
               onClick={onPrevStep}
@@ -206,10 +201,9 @@ export function Step3PaymentSummary({
 
                 <div className="pt-1.5 border-t border-[#3A4F1C]/15 mt-1">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A4F1C]/70 block">
-                    TOTAL PRICE
-                  </span>
-                  <span className="text-xl sm:text-2xl font-serif font-bold text-[#3A4F1C]">
-                    ₱{formData.totalEstimate.toLocaleString()}
+                    TOTAL PRICE: <span className="text-xl sm:text-2xl font-serif font-bold text-[#3A4F1C]">
+                      ₱{formData.totalEstimate.toLocaleString()}
+                    </span>
                   </span>
                 </div>
               </div>
@@ -225,6 +219,9 @@ export function Step3PaymentSummary({
               </Button>
             </div>
           </div>
+
+          {/* Privacy Disclaimer rendered at the Form Footer */}
+          <DataPrivacyDisclaimer />
         </>
       )}
     </div>

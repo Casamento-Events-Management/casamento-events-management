@@ -187,9 +187,6 @@ export function Step2EventDetails({
         </div>
       </div>
 
-      {/* Short Text-only Data Privacy Disclaimer */}
-      <DataPrivacyDisclaimer />
-
       {/* Bottom Action Bar */}
       <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-4">
         <Button
@@ -204,10 +201,9 @@ export function Step2EventDetails({
         <div className="flex flex-col items-end gap-2 text-right">
           <div className="text-right">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A4F1C]/70 block">
-              TOTAL PRICE
-            </span>
-            <span className="text-lg sm:text-xl font-serif font-bold text-[#3A4F1C]">
-              ₱{formData.totalEstimate.toLocaleString()}
+              TOTAL PRICE: <span className="text-lg sm:text-xl font-serif font-bold text-[#3A4F1C]">
+                ₱{formData.totalEstimate.toLocaleString()}
+              </span>
             </span>
           </div>
 
@@ -222,6 +218,9 @@ export function Step2EventDetails({
           </Button>
         </div>
       </div>
+
+      {/* Privacy Disclaimer rendered at the Form Footer */}
+      <DataPrivacyDisclaimer />
     </div>
   );
 }

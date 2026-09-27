@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { InFormServiceCard } from './InFormServiceCard';
+import { DataPrivacyDisclaimer } from './DataPrivacyDisclaimer';
 import type { ServiceItem, ServiceAddOn, SelectedAddOn } from '@/types';
 
 interface Step1ServiceSelectProps {
@@ -105,16 +106,15 @@ export function Step1ServiceSelect({
                 <label
                   key={addon.id}
                   onClick={() => onToggleAddOn(addon)}
-                  className={`flex items-start space-x-2.5 p-3 rounded-lg border cursor-pointer transition-all ${
-                    isChecked
+                  className={`flex items-start space-x-2.5 p-3 rounded-lg border cursor-pointer transition-all ${isChecked
                       ? 'bg-[#3A4F1C]/10 border-[#BC6F07]'
                       : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                  }`}
+                    }`}
                 >
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     className="mt-0.5 rounded text-[#BC6F07] focus:ring-[#BC6F07]"
                   />
                   <div className="flex-1 min-w-0">
@@ -144,11 +144,11 @@ export function Step1ServiceSelect({
         <div className="flex flex-col items-end gap-2 text-right">
           <div className="text-right">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A4F1C]/70 block">
-              TOTAL PRICE
+              TOTAL PRICE: <span className="text-lg sm:text-xl font-serif font-bold text-[#3A4F1C]">
+                ₱{totalPrice.toLocaleString()}
+              </span>
             </span>
-            <span className="text-lg sm:text-xl font-serif font-bold text-[#3A4F1C]">
-              ₱{totalPrice.toLocaleString()}
-            </span>
+
           </div>
 
           <Button
@@ -161,6 +161,9 @@ export function Step1ServiceSelect({
           </Button>
         </div>
       </div>
+
+      {/* Privacy Disclaimer rendered at the Form Footer */}
+      <DataPrivacyDisclaimer />
     </div>
   );
 }
