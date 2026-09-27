@@ -102,20 +102,19 @@ export function Step3PaymentSummary({
             </div>
           </div>
 
-          {/* Select Payment Gateway Section (Below 2-Grid) */}
+          {/* Select Payment Type Section (Below 2-Grid) */}
           <div className="space-y-3 pt-4 border-t border-[#3A4F1C]/15">
             <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
-              Select Payment Gateway
+              Select Payment Type
             </span>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label
                 onClick={() => onChange({ paymentProvider: 'dragonpay' })}
-                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
-                  formData.paymentProvider === 'dragonpay'
+                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'dragonpay'
                     ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
                     : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#3A4F1C]">Dragonpay</span>
@@ -123,7 +122,7 @@ export function Step3PaymentSummary({
                     type="radio"
                     name="paymentProvider"
                     checked={formData.paymentProvider === 'dragonpay'}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     className="text-[#BC6F07] focus:ring-[#BC6F07]"
                   />
                 </div>
@@ -134,11 +133,10 @@ export function Step3PaymentSummary({
 
               <label
                 onClick={() => onChange({ paymentProvider: 'paypal' })}
-                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${
-                  formData.paymentProvider === 'paypal'
+                className={`p-4 rounded-xl border cursor-pointer transition-all flex flex-col justify-between space-y-2 ${formData.paymentProvider === 'paypal'
                     ? 'bg-[#3A4F1C]/10 border-[#BC6F07] ring-1 ring-[#BC6F07]'
                     : 'bg-[#EFEAD8]/40 border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
-                }`}
+                  }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-semibold text-[#3A4F1C]">PayPal</span>
@@ -146,7 +144,7 @@ export function Step3PaymentSummary({
                     type="radio"
                     name="paymentProvider"
                     checked={formData.paymentProvider === 'paypal'}
-                    onChange={() => {}}
+                    onChange={() => { }}
                     className="text-[#BC6F07] focus:ring-[#BC6F07]"
                   />
                 </div>

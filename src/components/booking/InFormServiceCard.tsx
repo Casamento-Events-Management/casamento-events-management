@@ -60,7 +60,7 @@ export function InFormServiceCard({
 
         <div className="pt-0.5">
           <span className="text-[10px] font-medium text-[#3A4F1C]/60 uppercase tracking-wider block">
-            Base Rate
+            Package Starting Rate
           </span>
           <span className="text-xs sm:text-sm font-bold text-[#3A4F1C]">
             {service.priceFormatted || (service.startingPrice ? `₱${service.startingPrice.toLocaleString()}` : '')}
