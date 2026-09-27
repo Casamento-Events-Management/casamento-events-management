@@ -25,10 +25,12 @@ export const INITIAL_BOOKING_FORM_DATA: BookingFormData = {
   clientEmail: '',
   clientPhone: '',
   companyName: '',
+  eventCountry: 'PH',
+  eventCountryName: 'Philippines',
   eventDate: '',
   isHolidayDate: false,
   holidayName: '',
-  venueCity: 'Metro Manila',
+  venueCity: '',
   venueAddress: '',
   specialNotes: '',
 

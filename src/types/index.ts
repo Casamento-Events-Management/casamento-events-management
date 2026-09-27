@@ -118,7 +118,6 @@ export type {
     BookingStep,
     SelectedAddOn,
     BookingFormData,
-    ServiceSelectionState,
 } from './bookingForm';
 
 

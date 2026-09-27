@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { DataPrivacyDisclaimer } from './DataPrivacyDisclaimer';
-import { checkPhilippineHoliday } from '@/lib/utils/holidayUtils';
+import { checkCountryHoliday, getCountriesList } from '@/lib/utils/holidayUtils';
 import { InFormServiceCard } from './InFormServiceCard';
 import type { BookingFormData, ServiceItem } from '@/types';
 
@@ -24,9 +24,27 @@ export function Step2EventDetails({
   onPrevStep,
   onOpenModal,
 }: Step2EventDetailsProps) {
+  const countriesList = useMemo(() => getCountriesList(), []);
+  const selectedCountryCode = formData.eventCountry || 'PH';
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const code = e.target.value;
+    const match = countriesList.find((c) => c.code === code);
+    const countryName = match ? match.name : code;
+
+    const holidayCheck = checkCountryHoliday(formData.eventDate, code);
+
+    onChange({
+      eventCountry: code,
+      eventCountryName: countryName,
+      isHolidayDate: holidayCheck.isHoliday,
+      holidayName: holidayCheck.name || '',
+    });
+  };
+
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    const holidayCheck = checkPhilippineHoliday(val);
+    const holidayCheck = checkCountryHoliday(val, selectedCountryCode);
 
     onChange({
       eventDate: val,
@@ -51,7 +69,7 @@ export function Step2EventDetails({
         </h2>
       </div>
 
-      {/* 2-Column Grid: On Mobile, Selected Service appears FIRST (order-1), Contact Details SECOND (order-2). On Desktop, Contact Details Left (md:order-1), Selected Service Right (md:order-2) */}
+      {/* 2-Column Grid: On Mobile, Selected Service appears FIRST (order-1), Contact Details SECOND (order-2) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         {/* Selected Service Package (order-1 on Mobile, md:order-2 on Desktop) */}
         <div className="space-y-2 order-1 md:order-2">
@@ -128,29 +146,36 @@ export function Step2EventDetails({
         </div>
       </div>
 
-      {/* Schedule & Location Section */}
+      {/* Schedule & Location Section (3-Grid Layout) */}
       <div className="space-y-4 pt-4 border-t border-[#3A4F1C]/15">
         <span className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C]/70 block">
           Event Schedule & Location
         </span>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* 3-Grid Row: Target Event Country | Target Venue Address | Target Event Date */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Target Event Country */}
           <div className="space-y-1">
             <label className="block text-xs font-medium text-[#3A4F1C]">
-              Target Event Date <span className="text-red-600">*</span>
+              Target Event Country <span className="text-red-600">*</span>
             </label>
-            <input
-              type="date"
-              required
-              value={formData.eventDate}
-              onChange={handleDateChange}
-              className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C]"
-            />
+            <select
+              value={selectedCountryCode}
+              onChange={handleCountryChange}
+              className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C] cursor-pointer"
+            >
+              {countriesList.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name} ({c.code})
+                </option>
+              ))}
+            </select>
           </div>
 
+          {/* Target Venue Address */}
           <div className="space-y-1">
             <label className="block text-xs font-medium text-[#3A4F1C]">
-              Target Venue / City <span className="text-red-600">*</span>
+              Target Venue Address <span className="text-red-600">*</span>
             </label>
             <input
               type="text"
@@ -161,6 +186,34 @@ export function Step2EventDetails({
               className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C]"
             />
           </div>
+
+          {/* Target Event Date */}
+          <div className="space-y-1">
+            <label className="block text-xs font-medium text-[#3A4F1C]">
+              Target Event Date <span className="text-red-600">*</span>
+            </label>
+            <input
+              type="date"
+              required
+              value={formData.eventDate}
+              onChange={handleDateChange}
+              onClick={(e) => {
+                try {
+                  e.currentTarget.showPicker?.();
+                } catch {
+                  // Fallback for older browsers
+                }
+              }}
+              onFocus={(e) => {
+                try {
+                  e.currentTarget.showPicker?.();
+                } catch {
+                  // Fallback for older browsers
+                }
+              }}
+              className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C] cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+            />
+          </div>
         </div>
 
         {formData.isHolidayDate && (
@@ -169,7 +222,7 @@ export function Step2EventDetails({
               Public Holiday Detected: {formData.holidayName}
             </span>
             <p className="text-[11px] font-light leading-snug">
-              The selected date lands on a recognized Philippine public holiday. Our team will verify vendor availability and applicable holiday rates during consultation.
+              The selected date lands on a recognized public holiday in {formData.eventCountryName || 'Philippines'}. Our team will verify vendor availability and applicable holiday rates during consultation.
             </p>
           </div>
         )}
@@ -188,7 +241,7 @@ export function Step2EventDetails({
         </div>
       </div>
 
-      {/* Bottom Action Bar: Right-Aligned Costs Breakdown & Total Price stacked ABOVE Action Button (No Card) */}
+      {/* Bottom Action Bar */}
       <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-end justify-between gap-4">
         <Button
           onClick={onPrevStep}

@@ -29,6 +29,8 @@ export interface BookingFormData {
   companyName?: string;
   eventType?: string;
   eventTitle?: string;
+  eventCountry: string; // ISO country code (e.g. 'PH')
+  eventCountryName?: string;
   eventDate: string; // YYYY-MM-DD format
   isHolidayDate: boolean;
   holidayName?: string;
@@ -39,10 +41,4 @@ export interface BookingFormData {
   // Step 3: Payment Method & Acceptance
   paymentProvider: 'dragonpay' | 'paypal';
   termsAccepted: boolean;
-}
-
-export interface ServiceSelectionState {
-  serviceSlug: string | null;
-  categorySlug: string | null;
-  addOnIds: string[];
 }
