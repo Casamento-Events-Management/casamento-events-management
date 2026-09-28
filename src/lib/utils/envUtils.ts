@@ -13,7 +13,7 @@ export function parseEmailList(envValue?: string, fallback: string[] = []): stri
     .split(',')
     .map((addr) => addr.trim())
     .filter((addr) => addr.length > 0 && addr.includes('@'));
-}
+} 
 
 /**
  * Parses admin recipients for Feedback notifications from FEEDBACK_EMAIL_RECIPIENTS.
