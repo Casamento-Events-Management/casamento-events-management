@@ -17,7 +17,14 @@ export const sanityImageWithPriority = defineType({
       title: 'Alternative Text (Alt Text)',
       type: 'string',
       description: 'Important for accessibility and SEO.',
-      validation: (Rule) => Rule.required().error('Alt text is required for accessibility and SEO.'),
+      validation: (Rule) =>
+        Rule.custom((alt, context) => {
+          const parent = context.parent as { asset?: unknown } | undefined
+          if (parent?.asset && (!alt || typeof alt !== 'string' || !alt.trim())) {
+            return 'Alt text is required for accessibility and SEO when an image is selected.'
+          }
+          return true
+        }),
     }),
     defineField({
       name: 'caption',

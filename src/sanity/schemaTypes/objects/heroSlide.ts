@@ -64,6 +64,16 @@ export const heroSlide = defineType({
       type: 'sanityImageWithPriority',
       description: 'High quality background / display image for the right pane.',
       hidden: ({ parent }) => parent?.mediaType === 'video',
+      validation: (Rule) =>
+        Rule.custom((image, context) => {
+          const parent = context.parent as { mediaType?: string; image?: { asset?: unknown } } | undefined
+          if (parent?.mediaType === 'image' || !parent?.mediaType) {
+            if (!image || !(image as { asset?: unknown })?.asset) {
+              return 'Slide image is required when Media Type is set to Image.'
+            }
+          }
+          return true
+        }),
     }),
     defineField({
       name: 'video',
@@ -71,6 +81,21 @@ export const heroSlide = defineType({
       type: 'videoSource',
       description: 'Video source showcasing this service.',
       hidden: ({ parent }) => parent?.mediaType !== 'video',
+      validation: (Rule) =>
+        Rule.custom((video, context) => {
+          const parent = context.parent as { mediaType?: string } | undefined
+          if (parent?.mediaType === 'video') {
+            if (!video) return 'Video source is required for Video slides.'
+            const v = video as { sourceType?: string; asset?: unknown; url?: string }
+            if (v.sourceType === 'external' && (!v.url || !v.url.trim())) {
+              return 'External video URL is required for external video slides.'
+            }
+            if (v.sourceType === 'sanity' && !v.asset) {
+              return 'Video file asset upload is required for Sanity CDN video slides.'
+            }
+          }
+          return true
+        }),
     }),
     defineField({
       name: 'videoPoster',
@@ -78,6 +103,16 @@ export const heroSlide = defineType({
       type: 'sanityImageWithPriority',
       description: 'Poster thumbnail image displayed before video playback (required for Video slides).',
       hidden: ({ parent }) => parent?.mediaType !== 'video',
+      validation: (Rule) =>
+        Rule.custom((videoPoster, context) => {
+          const parent = context.parent as { mediaType?: string } | undefined
+          if (parent?.mediaType === 'video') {
+            if (!videoPoster || !(videoPoster as { asset?: unknown })?.asset) {
+              return 'Thumbnail / poster image is required for Video slides.'
+            }
+          }
+          return true
+        }),
     }),
   ],
   preview: {
