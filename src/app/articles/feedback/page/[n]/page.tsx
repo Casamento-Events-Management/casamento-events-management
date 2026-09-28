@@ -7,7 +7,7 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { FeedbackCard } from '@/components/articles/FeedbackCard';
 import { ShareExperienceTrigger } from '@/components/articles/ShareExperienceTrigger';
 import { ConnectSection } from '@/components/layout/connect-section';
-import { getHomePageContent } from '@/lib/services/homeService';
+import { getContactSectionContent } from '@/lib/services/contactService';
 import {
   getApprovedFeedbacksPage,
   getApprovedFeedbacksCount,
@@ -57,11 +57,11 @@ export default async function FeedbackPageN({ params }: PageProps) {
 
   if (isNaN(pageNum) || pageNum < 2) return notFound();
 
-  const [feedbacks, totalCount, aggregate, homeContent] = await Promise.all([
+  const [feedbacks, totalCount, aggregate, contactData] = await Promise.all([
     getApprovedFeedbacksPage(pageNum, ITEMS_PER_PAGE),
     getApprovedFeedbacksCount(),
     getAggregateRating(),
-    getHomePageContent(),
+    getContactSectionContent(),
   ]);
 
   if (!feedbacks || feedbacks.length === 0) return notFound();
@@ -138,12 +138,6 @@ export default async function FeedbackPageN({ params }: PageProps) {
         </div>
 
         {/* Feedback Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-16">
-          {feedbacks.map((item, index) => (
-            <FeedbackCard key={item._id} feedback={item} index={index} compact={false} />
-          ))}
-        </div>
-
         {/* Share Your Experience Action Button & Prompt */}
         <ShareExperienceTrigger />
 
@@ -185,7 +179,12 @@ export default async function FeedbackPageN({ params }: PageProps) {
         </nav>
       </div>
 
-      <ConnectSection socialLinks={homeContent.socialLinks} />
+      <ConnectSection
+        eyebrow={contactData.eyebrow}
+        title={contactData.title}
+        description={contactData.description}
+        socialLinks={contactData.socialLinks}
+      />
     </main>
   );
 }

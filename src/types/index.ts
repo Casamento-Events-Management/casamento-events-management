@@ -3,9 +3,6 @@
 //
 // Single entry-point for all application types. Import from '@/types' instead
 // of individual files so that internal file renames don't break consumers.
-//
-// Usage:
-//   import type { HomePageContent, SanityImageWithPriority, TeaserVideo } from '@/types';
 // =============================================================================
 
 // Sanity primitives & utilities
@@ -47,9 +44,15 @@ export type {
 export type {
     HeroSection,
     HeroSlide,
-    UpcomingEvent,
+    HomeHeroContent,
+    FeaturedTeaserContent,
     HomePageContent,
 } from './home';
+
+// Contact Section types
+export type {
+    ContactSectionContent,
+} from './contact';
 
 // Portfolio types
 export type {
@@ -58,6 +61,8 @@ export type {
     SanityPortfolioHero,
     PortfolioItem,
     PortfolioHeroContent,
+    UpcomingEvent,
+    PortfolioUpcomingEventsContent,
     PortfolioModalState,
     PortfolioPageData,
     PortfolioPageProps,
@@ -119,10 +124,3 @@ export type {
     SelectedAddOn,
     BookingFormData,
 } from './bookingForm';
-
-
-
-
-
-
-

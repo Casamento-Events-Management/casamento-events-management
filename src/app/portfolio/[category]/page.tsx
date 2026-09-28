@@ -12,8 +12,8 @@ import {
     getPortfolioCategoryBySlug,
     getPortfolioHeroContent,
     getPortfolioItems,
+    getPortfolioUpcomingEvents,
 } from '@/lib/services/portfolioService';
-import { getHomePageContent } from '@/lib/services/homeService';
 import { PortfolioHero } from '@/components/portfolio/portfolio-hero';
 import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { PortfolioJsonLd } from '@/components/portfolio/portfolio-json-ld';
@@ -84,11 +84,11 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
 export default async function CategoryPage({ params }: CategoryPageProps) {
     const { category: categorySlug } = await params;
 
-    const [category, categories, items, homeContent, heroContent] = await Promise.all([
+    const [category, categories, items, upcomingEventsData, heroContent] = await Promise.all([
         getPortfolioCategoryBySlug(categorySlug),
         getPortfolioCategories(),
         getPortfolioItems('all'), // Pass all items to PortfolioView so tab switching remains instant
-        getHomePageContent(),
+        getPortfolioUpcomingEvents(),
         getPortfolioHeroContent(),
     ]);
 
@@ -103,10 +103,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 description={category.description}
             />
             <UpcomingEventsSection
-                events={homeContent.upcomingEvents}
-                eyebrow={heroContent.upcomingEventsEyebrow}
-                title={heroContent.upcomingEventsTitle}
-                description={heroContent.upcomingEventsDescription}
+                events={upcomingEventsData.upcomingEvents}
+                eyebrow={upcomingEventsData.eyebrow || heroContent.upcomingEventsEyebrow}
+                title={upcomingEventsData.title || heroContent.upcomingEventsTitle}
+                description={upcomingEventsData.description || heroContent.upcomingEventsDescription}
             />
             <PortfolioView
                 categories={categories}

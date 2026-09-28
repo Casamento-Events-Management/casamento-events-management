@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { getHomePageContent } from '@/lib/services/homeService';
+import { getHomeHeroContent, getFeaturedTeaserContent } from '@/lib/services/homeService';
+import { getContactSectionContent } from '@/lib/services/contactService';
 import { HeroSectionComponent } from '@/components/home/hero-section';
 import { PartnersSection } from '@/components/home/partners-section';
 import { ConnectSection } from '@/components/layout/connect-section';
@@ -8,8 +9,8 @@ import { HomeJsonLd } from '@/components/home/home-json-ld';
 import { TeaserVideosSection } from '@/components/home/teaser-videos-section';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const content = await getHomePageContent();
-  const firstSlide = content.hero?.slides?.[0];
+  const heroContent = await getHomeHeroContent();
+  const firstSlide = heroContent.hero?.slides?.[0];
   const pageDescription =
     firstSlide?.description ||
     'Crafting unforgettable celebrations that last a lifetime. Luxury event management and production across the Philippines.';
@@ -44,28 +45,50 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const content = await getHomePageContent();
+  const [heroContent, teaserContent, contactContent] = await Promise.all([
+    getHomeHeroContent(),
+    getFeaturedTeaserContent(),
+    getContactSectionContent(),
+  ]);
+
+  const compositeJsonLdContent = {
+    _id: heroContent._id,
+    _type: 'homePage' as const,
+    _createdAt: heroContent._createdAt,
+    _updatedAt: heroContent._updatedAt,
+    hero: heroContent.hero,
+    teaserVideosEyebrow: teaserContent.teaserVideosEyebrow,
+    teaserVideosTitle: teaserContent.teaserVideosTitle,
+    teaserVideosDescription: teaserContent.teaserVideosDescription,
+    teaserVideos: teaserContent.teaserVideos,
+    partners: heroContent.partners,
+  };
 
   return (
     <>
-      <HomeJsonLd content={content} />
+      <HomeJsonLd content={compositeJsonLdContent} />
       <article className="flex flex-col w-full">
         {/* Section 1: Hero / Landing Section */}
-        <HeroSectionComponent hero={content.hero} />
+        <HeroSectionComponent hero={heroContent.hero} />
 
         {/* Section 2: Teaser Videos Section */}
         <TeaserVideosSection
-          teaserVideos={content.teaserVideos}
-          eyebrow={content.teaserVideosEyebrow}
-          title={content.teaserVideosTitle}
-          description={content.teaserVideosDescription}
+          teaserVideos={teaserContent.teaserVideos}
+          eyebrow={teaserContent.teaserVideosEyebrow}
+          title={teaserContent.teaserVideosTitle}
+          description={teaserContent.teaserVideosDescription}
         />
 
         {/* Section 3: Partners: 1 whole section */}
-        <PartnersSection partners={content.partners} />
+        <PartnersSection partners={heroContent.partners} />
 
         {/* Section 4: Connect With Us Section */}
-        <ConnectSection socialLinks={content.socialLinks} />
+        <ConnectSection
+          eyebrow={contactContent.eyebrow}
+          title={contactContent.title}
+          description={contactContent.description}
+          socialLinks={contactContent.socialLinks}
+        />
       </article>
     </>
   );

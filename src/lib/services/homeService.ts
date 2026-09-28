@@ -1,13 +1,12 @@
 import { client } from '@/sanity/lib/client';
 import { homeMockData } from '@/data/homeMock';
-import type { HomePageContent } from '@/types';
+import type { FeaturedTeaserContent, HomeHeroContent, HomePageContent } from '@/types';
 
 /**
- * GROQ Query targeting the `homePage` singleton document.
- * Projects resolved image URLs (`asset->url`) and normalizes `sourceType` for video fields.
+ * GROQ Query targeting the `homeHero` singleton document.
  */
-export const GROQ_HOME_PAGE = `
-  *[_type == "homePage"][0] {
+export const GROQ_HOME_HERO = `
+  *[_type in ["homeHero", "homePage"]][0] {
     _id,
     _type,
     _createdAt,
@@ -53,10 +52,36 @@ export const GROQ_HOME_PAGE = `
         }
       }
     },
+    partners[] | order(priority desc) {
+      _key,
+      name,
+      url,
+      priority,
+      logo {
+        "asset": {
+          "url": asset->url
+        },
+        alt
+      }
+    }
+  }
+`;
 
+/**
+ * GROQ Query targeting the `featuredTeaser` singleton document.
+ */
+export const GROQ_FEATURED_TEASER = `
+  *[_type in ["featuredTeaser", "homePage"]][0] {
+    _id,
+    _type,
+    _createdAt,
+    _updatedAt,
     teaserVideosEyebrow,
     teaserVideosTitle,
     teaserVideosDescription,
+    "eyebrow": coalesce(eyebrow, teaserVideosEyebrow),
+    "title": coalesce(title, teaserVideosTitle),
+    "description": coalesce(description, teaserVideosDescription),
     teaserVideos[] | order(priority desc) {
       _key,
       title,
@@ -84,76 +109,96 @@ export const GROQ_HOME_PAGE = `
         alt,
         priority
       }
-    },
-    upcomingEvents[] | order(priority desc) {
-      _key,
-      title,
-      slug,
-      slug,
-      date,
-      location,
-      status,
-      priority,
-      coverImage {
-        "asset": {
-          "url": asset->url
-        },
-        alt
-      }
-    },
-    partners[] | order(priority desc) {
-      _key,
-      name,
-      url,
-      priority,
-      logo {
-        "asset": {
-          "url": asset->url
-        },
-        alt
-      }
-    },
-    socialLinks[] {
-      _key,
-      platform,
-      url
     }
   }
 `;
 
 /**
- * Service module for retrieving Home Page content.
- * Queries Sanity CMS via GROQ with ISR caching (revalidate: 3600),
- * falling back to local mock data if the CMS query is empty or fails.
+ * Service function to retrieve Home Page Hero & Partners content.
  */
-export async function getHomePageContent(): Promise<HomePageContent> {
+export async function getHomeHeroContent(): Promise<HomeHeroContent> {
   try {
-    const cmsData = await client.fetch<HomePageContent | null>(
-      GROQ_HOME_PAGE,
+    const cmsData = await client.fetch<HomeHeroContent | null>(
+      GROQ_HOME_HERO,
       {},
-      { next: { revalidate: 3600, tags: ['homePage'] } }
+      { next: { revalidate: 3600, tags: ['homeHero'] } }
     );
 
     if (cmsData && cmsData.hero) {
-      // Return populated CMS document
       return {
         ...cmsData,
-        teaserVideos: cmsData.teaserVideos || [],
-        upcomingEvents: cmsData.upcomingEvents || [],
         partners: cmsData.partners || [],
-        socialLinks: cmsData.socialLinks || [],
       };
     }
   } catch (err) {
-    console.warn('[homeService] Failed to fetch homePage from Sanity, using mock data fallback:', err);
+    console.warn('[homeService] Failed to fetch homeHero from Sanity, using mock data fallback:', err);
   }
 
-  // Fallback to local mock data if CMS content is not found or fetch fails
-  const mockData: HomePageContent = JSON.parse(JSON.stringify(homeMockData));
-  mockData.teaserVideos.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
-  mockData.upcomingEvents.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
-  mockData.partners.sort((a, b) => (b.priority ?? 0) - (a.priority ?? 0));
-
-  return mockData;
+  return {
+    _id: homeMockData._id,
+    _type: 'homeHero',
+    _createdAt: homeMockData._createdAt,
+    _updatedAt: homeMockData._updatedAt,
+    hero: homeMockData.hero,
+    partners: homeMockData.partners,
+  };
 }
 
+/**
+ * Service function to retrieve Featured Teaser content.
+ */
+export async function getFeaturedTeaserContent(): Promise<FeaturedTeaserContent> {
+  try {
+    const cmsData = await client.fetch<FeaturedTeaserContent | null>(
+      GROQ_FEATURED_TEASER,
+      {},
+      { next: { revalidate: 3600, tags: ['featuredTeaser'] } }
+    );
+
+    if (cmsData && cmsData.teaserVideos) {
+      return {
+        ...cmsData,
+        teaserVideosEyebrow: cmsData.teaserVideosEyebrow || cmsData.eyebrow || 'Visual Stories',
+        teaserVideosTitle: cmsData.teaserVideosTitle || cmsData.title || 'Featured Teaser Highlights',
+        teaserVideosDescription: cmsData.teaserVideosDescription || cmsData.description || 'Experience the emotional intensity and cinematic splendor of our handcrafted celebrations.',
+        teaserVideos: cmsData.teaserVideos || [],
+      };
+    }
+  } catch (err) {
+    console.warn('[homeService] Failed to fetch featuredTeaser from Sanity, using mock data fallback:', err);
+  }
+
+  return {
+    _id: homeMockData._id,
+    _type: 'featuredTeaser',
+    _createdAt: homeMockData._createdAt,
+    _updatedAt: homeMockData._updatedAt,
+    teaserVideosEyebrow: homeMockData.teaserVideosEyebrow,
+    teaserVideosTitle: homeMockData.teaserVideosTitle,
+    teaserVideosDescription: homeMockData.teaserVideosDescription,
+    teaserVideos: homeMockData.teaserVideos,
+  };
+}
+
+/**
+ * Composite legacy helper function for backward compatibility.
+ */
+export async function getHomePageContent(): Promise<HomePageContent> {
+  const [heroContent, teaserContent] = await Promise.all([
+    getHomeHeroContent(),
+    getFeaturedTeaserContent(),
+  ]);
+
+  return {
+    _id: heroContent._id,
+    _type: 'homePage',
+    _createdAt: heroContent._createdAt,
+    _updatedAt: heroContent._updatedAt,
+    hero: heroContent.hero,
+    teaserVideosEyebrow: teaserContent.teaserVideosEyebrow,
+    teaserVideosTitle: teaserContent.teaserVideosTitle,
+    teaserVideosDescription: teaserContent.teaserVideosDescription,
+    teaserVideos: teaserContent.teaserVideos,
+    partners: heroContent.partners,
+  };
+}

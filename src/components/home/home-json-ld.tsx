@@ -17,13 +17,10 @@ interface HomeJsonLdProps {
 }
 
 export function HomeJsonLd({ content }: HomeJsonLdProps) {
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
 
     // -------------------------------------------------------------------------
     // 1. ProfessionalService schema
-    //    - Replaces bare Organization to get LocalBusiness-level search features
-    //    - areaServed covers both Philippines regions AND international/worldwide
-    //      because Casamento serves international clients
     // -------------------------------------------------------------------------
     const organizationSchema = {
         '@context': 'https://schema.org',
@@ -37,16 +34,14 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
             height: 512,
         },
         description:
-            content.hero.slides?.[0]?.description ||
+            content.hero?.slides?.[0]?.description ||
             'Crafting unforgettable celebrations that last a lifetime.',
-        // Physical HQ address (Metro Manila, Philippines)
         address: {
             '@type': 'PostalAddress',
             addressLocality: 'Metro Manila',
             addressRegion: 'NCR',
             addressCountry: 'PH',
         },
-        // Service area: Philippines regions + worldwide for international clients
         areaServed: [
             {
                 '@type': 'Country',
@@ -68,13 +63,11 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
                 '@type': 'AdministrativeArea',
                 name: 'Boracay',
             },
-            // International / destination events
             {
                 '@type': 'AdministrativeArea',
                 name: 'Worldwide',
             },
         ],
-        // Core service offerings
         hasOfferCatalog: {
             '@type': 'OfferCatalog',
             name: 'Event Management Services',
@@ -86,12 +79,10 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
                 { '@type': 'Offer', itemOffered: { '@type': 'Service', name: 'LED Lighting & Visual Design' } },
             ],
         },
-        // Social media profile links
-        sameAs: content.socialLinks.map((s) => s.url),
-        // Hero carousel image as the primary photo
+        sameAs: (content.socialLinks || []).map((s) => s.url),
         image: [
-            content.hero.slides?.[0]?.image?.asset?.url ||
-            content.hero.slides?.[0]?.videoPoster?.asset?.url ||
+            content.hero?.slides?.[0]?.image?.asset?.url ||
+            content.hero?.slides?.[0]?.videoPoster?.asset?.url ||
             `${siteUrl}/icon.png`
         ],
     };
@@ -99,7 +90,8 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
     // -------------------------------------------------------------------------
     // 2. Event schema — one per upcoming published event
     // -------------------------------------------------------------------------
-    const eventSchemas = content.upcomingEvents.map((event) => ({
+    const upcomingList = content.upcomingEvents || [];
+    const eventSchemas = upcomingList.map((event) => ({
         '@context': 'https://schema.org',
         '@type': 'Event',
         name: event.title,
@@ -148,7 +140,7 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
             />
-            {eventSchemas.map((eventJson, index) => (
+            {eventSchemas.map((eventJson, index: number) => (
                 <script
                     key={index}
                     type="application/ld+json"

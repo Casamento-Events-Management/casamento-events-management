@@ -5,22 +5,51 @@ export const structure: StructureResolver = (S) =>
   S.list()
     .title('Casamento Content Studio')
     .items([
-      // Singleton: Home Page
+      // 1. Home Page Documents
       S.listItem()
-        .title('Home Page')
-        .id('homePageSingleton')
+        .title('Home Page Hero')
+        .id('homeHeroSingleton')
         .child(
           S.document()
-            .schemaType('homePage')
-            .documentId('homePage')
+            .schemaType('homeHero')
+            .documentId('homeHero')
+        ),
+      S.listItem()
+        .title('Featured Teaser')
+        .id('featuredTeaserSingleton')
+        .child(
+          S.document()
+            .schemaType('featuredTeaser')
+            .documentId('featuredTeaser')
         ),
       S.divider(),
-      // Media Categories
+
+      // 2. Contact Section Documents
+      S.listItem()
+        .title('Contact Section Hero')
+        .id('contactSectionHeroSingleton')
+        .child(
+          S.document()
+            .schemaType('contactSection')
+            .documentId('contactSection')
+        ),
+      S.listItem()
+        .title('Social Links')
+        .id('socialLinksSingleton')
+        .child(
+          S.document()
+            .schemaType('contactSection')
+            .documentId('contactSection')
+        ),
+      S.divider(),
+
+      // 3. Media Categories
       S.listItem()
         .title('Media Categories')
         .child(S.documentTypeList('portfolioCategory').title('Media Categories')),
       S.divider(),
-      // Portfolio section
+
+      // 4. Portfolio Section Documents
       S.listItem()
         .title('Portfolio Page Hero')
         .id('portfolioHeroSingleton')
@@ -30,10 +59,19 @@ export const structure: StructureResolver = (S) =>
             .documentId('portfolioHero')
         ),
       S.listItem()
+        .title('Portfolio Upcoming Events')
+        .id('portfolioUpcomingEventsSingleton')
+        .child(
+          S.document()
+            .schemaType('portfolioUpcomingEvents')
+            .documentId('portfolioUpcomingEvents')
+        ),
+      S.listItem()
         .title('Portfolio Items')
         .child(S.documentTypeList('portfolioItem').title('Portfolio Items')),
       S.divider(),
-      // Articles section
+
+      // 5. Articles Section Documents
       S.listItem()
         .title('Article Vlog Banner')
         .id('articleVlogBannerSingleton')
@@ -57,7 +95,8 @@ export const structure: StructureResolver = (S) =>
         .title('Client Feedbacks')
         .child(S.documentTypeList('clientFeedback').title('Client Feedbacks')),
       S.divider(),
-      // Services section
+
+      // 6. Services Section Documents
       S.listItem()
         .title('Services Page Hero')
         .id('servicesHeroSingleton')
@@ -73,7 +112,8 @@ export const structure: StructureResolver = (S) =>
         .title('Service Items')
         .child(S.documentTypeList('serviceItem').title('Service Items')),
       S.divider(),
-      // Booking section
+
+      // 7. Booking Section Documents
       S.listItem()
         .title('Booking Page Hero')
         .id('bookingHeroSingleton')
@@ -83,9 +123,27 @@ export const structure: StructureResolver = (S) =>
             .documentId('bookingHero')
         ),
       S.divider(),
+
       // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(
-        (listItem) => !['homePage', 'portfolioHero', 'portfolioCategory', 'portfolioItem', 'servicesHero', 'serviceCategory', 'serviceItem', 'articleVlogBanner', 'articlesHero', 'articleVlog', 'clientFeedback', 'bookingHero'].includes(listItem.getId() || '')
+        (listItem) =>
+          ![
+            'homeHero',
+            'featuredTeaser',
+            'contactSection',
+            'portfolioHero',
+            'portfolioUpcomingEvents',
+            'portfolioCategory',
+            'portfolioItem',
+            'servicesHero',
+            'serviceCategory',
+            'serviceItem',
+            'articleVlogBanner',
+            'articlesHero',
+            'articleVlog',
+            'clientFeedback',
+            'bookingHero',
+            'homePage',
+          ].includes(listItem.getId() || '')
       ),
     ])
-

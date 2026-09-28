@@ -8,7 +8,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { getServiceCategories, getServiceItems, getServicesHeroContent } from '@/lib/services/serviceService';
-import { getHomePageContent } from '@/lib/services/homeService';
+import { getContactSectionContent } from '@/lib/services/contactService';
 import { ServicesHero } from '@/components/services/services-hero';
 import { ServicesView } from '@/components/services/services-view';
 import { ServicesJsonLd } from '@/components/services/services-json-ld';
@@ -43,10 +43,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ServicesPage() {
-    const [categories, services, homeContent, heroContent] = await Promise.all([
+    const [categories, services, contactData, heroContent] = await Promise.all([
         getServiceCategories(),
         getServiceItems('all'),
-        getHomePageContent(),
+        getContactSectionContent(),
         getServicesHeroContent(),
     ]);
 
@@ -65,7 +65,12 @@ export default async function ServicesPage() {
                 description={heroContent.servicesDescription}
             />
             <ServicesJsonLd services={services} />
-            <ConnectSection socialLinks={homeContent.socialLinks} />
+            <ConnectSection
+                eyebrow={contactData.eyebrow}
+                title={contactData.title}
+                description={contactData.description}
+                socialLinks={contactData.socialLinks}
+            />
         </main>
     );
 }

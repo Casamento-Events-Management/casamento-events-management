@@ -24,7 +24,7 @@ export interface SanityDocument {
     /** ISO-8601 timestamp of last document write. */
     _updatedAt: string;
     /** Revision hash — changes on every save. Useful for cache invalidation. */
-    _rev: string;
+    _rev?: string;
 }
 
 // ---------------------------------------------------------------------------

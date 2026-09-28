@@ -4,7 +4,7 @@ import { BookingHero, BookingView } from '@/components/booking';
 import { getBookingHeroContent } from '@/lib/services/bookingService';
 import { getServiceItems } from '@/lib/services/serviceService';
 import { ConnectSection } from '@/components/layout/connect-section';
-import { getHomePageContent } from '@/lib/services/homeService';
+import { getContactSectionContent } from '@/lib/services/contactService';
 
 export const metadata: Metadata = {
   title: 'Book Your Event | SERVICE BOOKING',
@@ -35,10 +35,10 @@ export const metadata: Metadata = {
 };
 
 export default async function BookNowPage() {
-  const [heroContent, availableServices, homeContent] = await Promise.all([
+  const [heroContent, availableServices, contactData] = await Promise.all([
     getBookingHeroContent(),
     getServiceItems('all'),
-    getHomePageContent()
+    getContactSectionContent()
   ]);
 
   return (
@@ -51,7 +51,12 @@ export default async function BookNowPage() {
       <Suspense fallback={<div className="p-12 text-center text-xs text-[#3A4F1C]/70">Loading Booking System...</div>}>
         <BookingView availableServices={availableServices} />
       </Suspense>
-      <ConnectSection socialLinks={homeContent.socialLinks} />
+      <ConnectSection
+        eyebrow={contactData.eyebrow}
+        title={contactData.title}
+        description={contactData.description}
+        socialLinks={contactData.socialLinks}
+      />
     </main>
   );
 }

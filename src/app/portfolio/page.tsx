@@ -7,14 +7,16 @@
 
 import type { Metadata } from 'next';
 import {
-    getPortfolioCategories, getPortfolioHeroContent,
-    getPortfolioItems
+    getPortfolioCategories,
+    getPortfolioHeroContent,
+    getPortfolioItems,
+    getPortfolioUpcomingEvents
 } from '@/lib/services/portfolioService';
+import { getContactSectionContent } from '@/lib/services/contactService';
 
 import { PortfolioHero } from '@/components/portfolio/portfolio-hero';
 import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { PortfolioJsonLd } from '@/components/portfolio/portfolio-json-ld';
-import { getHomePageContent } from '@/lib/services/homeService';
 import { UpcomingEventsSection } from '@/components/home/upcoming-events-section';
 import { ConnectSection } from '@/components/layout/connect-section';
 
@@ -46,11 +48,12 @@ export const metadata: Metadata = {
 };
 
 export default async function PortfolioPage() {
-    const [categories, items, heroContent, content] = await Promise.all([
+    const [categories, items, heroContent, upcomingEventsData, contactData] = await Promise.all([
         getPortfolioCategories(),
         getPortfolioItems('all'),
         getPortfolioHeroContent(),
-        getHomePageContent(),
+        getPortfolioUpcomingEvents(),
+        getContactSectionContent(),
     ]);
 
     return (
@@ -61,10 +64,10 @@ export default async function PortfolioPage() {
             />
 
             <UpcomingEventsSection
-                events={content.upcomingEvents}
-                eyebrow={heroContent.upcomingEventsEyebrow}
-                title={heroContent.upcomingEventsTitle}
-                description={heroContent.upcomingEventsDescription}
+                events={upcomingEventsData.upcomingEvents}
+                eyebrow={upcomingEventsData.eyebrow || heroContent.upcomingEventsEyebrow}
+                title={upcomingEventsData.title || heroContent.upcomingEventsTitle}
+                description={upcomingEventsData.description || heroContent.upcomingEventsDescription}
             />
 
             <PortfolioView
@@ -76,7 +79,12 @@ export default async function PortfolioPage() {
                 galleryDescription={heroContent.galleryDescription}
             />
             <PortfolioJsonLd items={items} />
-            <ConnectSection socialLinks={content.socialLinks} />
+            <ConnectSection
+                eyebrow={contactData.eyebrow}
+                title={contactData.title}
+                description={contactData.description}
+                socialLinks={contactData.socialLinks}
+            />
         </main>
     );
 }

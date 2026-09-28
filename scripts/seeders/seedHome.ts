@@ -1,8 +1,11 @@
 /**
  * scripts/seeders/seedHome.ts
  *
- * Transforms `homeMockData` from src/data/homeMock.ts into a Sanity `homePage`
- * singleton document and upserts it using createOrReplace.
+ * Transforms `homeMockData` from src/data/homeMock.ts into Sanity singleton documents:
+ * - `homeHero`
+ * - `featuredTeaser`
+ * - `contactSection`
+ * - `portfolioUpcomingEvents`
  */
 
 import { homeMockData } from '../../src/data/homeMock'
@@ -11,8 +14,10 @@ import { createWriteClient, generateKey, uploadImageFromUrl } from './helpers'
 export async function seedHome(dryRun: boolean): Promise<void> {
     const client = createWriteClient()
     const mock = homeMockData
+    const upcomingEvents = mock.upcomingEvents || []
+    const socialLinks = mock.socialLinks || []
 
-    console.log('\n🏠 Seeding homePage singleton...\n')
+    console.log('\n🏠 Seeding Home, Contact, and Portfolio Upcoming Events singletons...\n')
 
     // ── Hero slide images & posters ──────────────────────────────────────────
     console.log('▸ Uploading hero slide media assets...')
@@ -60,7 +65,7 @@ export async function seedHome(dryRun: boolean): Promise<void> {
     // ── Upcoming event cover images ──────────────────────────────────────────
     console.log('\n▸ Uploading upcoming event cover images...')
     const eventCoverRefs = await Promise.all(
-        mock.upcomingEvents.map(async (evt, i) => {
+        upcomingEvents.map(async (evt, i) => {
             const ref = await uploadImageFromUrl(
                 client,
                 evt.coverImage.asset.url!,
@@ -85,11 +90,10 @@ export async function seedHome(dryRun: boolean): Promise<void> {
         }),
     )
 
-    // ── Build Sanity document ────────────────────────────────────────────────
-    const document = {
-        _id: 'homePage',
-        _type: 'homePage',
-
+    // ── 1. Build homeHero document ───────────────────────────────────────────
+    const homeHeroDoc = {
+        _id: 'homeHero',
+        _type: 'homeHero',
         hero: {
             _type: 'heroSection',
             autoPlayInterval: mock.hero.autoPlayInterval || 3,
@@ -133,11 +137,29 @@ export async function seedHome(dryRun: boolean): Promise<void> {
                 }
             }),
         },
+        partners: mock.partners.map((partner, i) => ({
+            _key: generateKey(`partner-${partner.name}`),
+            _type: 'partner',
+            name: partner.name,
+            url: partner.url,
+            priority: partner.priority,
+            ...(partnerLogoRefs[i] && {
+                logo: {
+                    _type: 'image',
+                    asset: partnerLogoRefs[i],
+                    alt: partner.logo.alt,
+                },
+            }),
+        })),
+    }
 
-        // ── Teaser videos header & items ────────────────────────────────────
-        teaserVideosEyebrow: mock.teaserVideosEyebrow || 'Visual Stories',
-        teaserVideosTitle: mock.teaserVideosTitle || 'Featured Teaser Highlights',
-        teaserVideosDescription:
+    // ── 2. Build featuredTeaser document ─────────────────────────────────────
+    const featuredTeaserDoc = {
+        _id: 'featuredTeaser',
+        _type: 'featuredTeaser',
+        eyebrow: mock.teaserVideosEyebrow || 'Visual Stories',
+        title: mock.teaserVideosTitle || 'Featured Teaser Highlights',
+        description:
             mock.teaserVideosDescription ||
             'Experience the emotional intensity and cinematic splendor of our handcrafted celebrations.',
         teaserVideos: mock.teaserVideos.map((tv, i) => {
@@ -165,9 +187,33 @@ export async function seedHome(dryRun: boolean): Promise<void> {
                 }),
             }
         }),
+    }
 
-        // ── Upcoming events ────────────────────────────────────────────────
-        upcomingEvents: mock.upcomingEvents.map((evt, i) => ({
+    // ── 3. Build contactSection document ─────────────────────────────────────
+    const contactSectionDoc = {
+        _id: 'contactSection',
+        _type: 'contactSection',
+        eyebrow: 'Join Our Journey',
+        title: 'Connect With Us',
+        description:
+            'Follow our latest event highlights, behind-the-scenes stories, and creative inspirations across our official channels.',
+        socialLinks: socialLinks.map((sl) => ({
+            _key: generateKey(`social-${sl.platform}`),
+            _type: 'socialLink',
+            platform: sl.platform,
+            url: sl.url,
+        })),
+    }
+
+    // ── 4. Build portfolioUpcomingEvents document ───────────────────────────
+    const portfolioUpcomingEventsDoc = {
+        _id: 'portfolioUpcomingEvents',
+        _type: 'portfolioUpcomingEvents',
+        eyebrow: 'Calendar & Events',
+        title: 'Upcoming & Featured Events',
+        description:
+            'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
+        upcomingEvents: upcomingEvents.map((evt, i) => ({
             _key: generateKey(`event-${evt.slug.current}`),
             _type: 'upcomingEvent',
             title: evt.title,
@@ -184,43 +230,32 @@ export async function seedHome(dryRun: boolean): Promise<void> {
                 },
             }),
         })),
-
-        // ── Partners ───────────────────────────────────────────────────────
-        partners: mock.partners.map((partner, i) => ({
-            _key: generateKey(`partner-${partner.name}`),
-            _type: 'partner',
-            name: partner.name,
-            url: partner.url,
-            priority: partner.priority,
-            ...(partnerLogoRefs[i] && {
-                logo: {
-                    _type: 'image',
-                    asset: partnerLogoRefs[i],
-                    alt: partner.logo.alt,
-                },
-            }),
-        })),
-
-        // ── Social links ───────────────────────────────────────────────────
-        socialLinks: mock.socialLinks.map((sl) => ({
-            _key: generateKey(`social-${sl.platform}`),
-            _type: 'socialLink',
-            platform: sl.platform,
-            url: sl.url,
-        })),
     }
 
     if (dryRun) {
-        console.log('\n[dry-run] Would upsert homePage document:')
-        console.log(JSON.stringify(document, null, 2))
+        console.log('\n[dry-run] Would upsert homeHero, featuredTeaser, contactSection, portfolioUpcomingEvents:')
+        console.log(JSON.stringify({ homeHeroDoc, featuredTeaserDoc, contactSectionDoc, portfolioUpcomingEventsDoc }, null, 2))
         return
     }
 
-    // Delete any stale draft document so Sanity Studio displays the seeded published document immediately
-    await client.delete('drafts.homePage').catch(() => {
-        /* ignore if draft does not exist */
-    })
+    // Clear draft documents if any exist
+    await Promise.all([
+        client.delete('drafts.homeHero').catch(() => {}),
+        client.delete('drafts.featuredTeaser').catch(() => {}),
+        client.delete('drafts.contactSection').catch(() => {}),
+        client.delete('drafts.portfolioUpcomingEvents').catch(() => {}),
+    ])
 
-    await client.createOrReplace(document)
-    console.log('\n✅ homePage singleton upserted successfully (id: homePage)')
+    // Upsert singletons into Sanity
+    await client.createOrReplace(homeHeroDoc)
+    console.log('✅ homeHero singleton upserted successfully')
+
+    await client.createOrReplace(featuredTeaserDoc)
+    console.log('✅ featuredTeaser singleton upserted successfully')
+
+    await client.createOrReplace(contactSectionDoc)
+    console.log('✅ contactSection singleton upserted successfully')
+
+    await client.createOrReplace(portfolioUpcomingEventsDoc)
+    console.log('✅ portfolioUpcomingEvents singleton upserted successfully')
 }

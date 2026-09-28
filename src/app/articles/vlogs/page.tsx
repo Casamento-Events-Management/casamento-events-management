@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ArticlesHero } from '@/components/articles/ArticlesHero';
 import { VlogGallery } from '@/components/articles/VlogGallery';
 import { ConnectSection } from '@/components/layout/connect-section';
-import { getHomePageContent } from '@/lib/services/homeService';
+import { getContactSectionContent } from '@/lib/services/contactService';
 import {
   getArticlesHero,
   getArticleVlogsForGallery,
@@ -30,12 +30,12 @@ export const metadata: Metadata = {
 };
 
 export default async function ArticlesVlogsPage() {
-  const [heroContent, items, categories, totalCount, homeContent] = await Promise.all([
+  const [heroContent, items, categories, totalCount, contactData] = await Promise.all([
     getArticlesHero(),
     getArticleVlogsForGallery(undefined, 1, ITEMS_PER_PAGE),
     getPortfolioCategories(),
     getArticleVlogTotalCount(),
-    getHomePageContent(),
+    getContactSectionContent(),
   ]);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
@@ -91,8 +91,12 @@ export default async function ArticlesVlogsPage() {
         </div>
       </nav>
 
-      <ConnectSection socialLinks={homeContent.socialLinks} />
+      <ConnectSection
+        eyebrow={contactData.eyebrow}
+        title={contactData.title}
+        description={contactData.description}
+        socialLinks={contactData.socialLinks}
+      />
     </main>
   );
 }
-

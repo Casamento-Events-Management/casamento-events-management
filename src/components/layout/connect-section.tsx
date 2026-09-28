@@ -7,10 +7,18 @@ import { ContactForm } from '@/components/layout/contact-form';
 import iconImg from '@/app/icon.png';
 
 interface ConnectSectionProps {
+  eyebrow?: string;
+  title?: string;
+  description?: string;
   socialLinks: SocialLink[];
 }
 
-export function ConnectSection({ socialLinks }: ConnectSectionProps) {
+export function ConnectSection({
+  eyebrow = 'Join Our Journey',
+  title = 'Connect With Us',
+  description = 'Follow our latest event highlights, behind-the-scenes stories, and creative inspirations across our official channels.',
+  socialLinks,
+}: ConnectSectionProps) {
   const getSocialLabel = (platform: string) => {
     switch (platform.toLowerCase()) {
       case 'instagram':
@@ -48,9 +56,9 @@ export function ConnectSection({ socialLinks }: ConnectSectionProps) {
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
         <SectionHeading
-          eyebrow="Join Our Journey"
-          title="Connect With Us"
-          description="Follow our latest event highlights, behind-the-scenes stories, and creative inspirations across our official channels."
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
           theme="dark"
         />
 

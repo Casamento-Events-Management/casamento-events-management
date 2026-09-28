@@ -5,13 +5,17 @@ import { articleVlogBanner } from './documents/articleVlogBanner'
 import { articlesHero } from './documents/articlesHero'
 import { articleVlog } from './documents/articleVlog'
 import { bookingHero } from './documents/bookingHero'
-import { homePage } from './documents/homePage'
+import { homeHero } from './documents/homeHero'
+import { featuredTeaser } from './documents/featuredTeaser'
+import { contactSection } from './documents/contactSection'
 import { portfolioCategory } from './documents/portfolioCategory'
 import { portfolioHero } from './documents/portfolioHero'
+import { portfolioUpcomingEvents } from './documents/portfolioUpcomingEvents'
 import { portfolioItem } from './documents/portfolioItem'
 import { serviceCategory } from './documents/serviceCategory'
 import { servicesHero } from './documents/servicesHero'
 import { serviceItem } from './documents/serviceItem'
+import { clientFeedback } from './documents/clientFeedback'
 
 // Objects
 import { heroSection } from './objects/heroSection'
@@ -26,8 +30,6 @@ import { videoSource } from './objects/videoSource'
 import { videoEmbed } from './objects/videoEmbed'
 import { videoFile } from './objects/videoFile'
 
-import { clientFeedback } from './documents/clientFeedback'
-
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
     // Documents
@@ -36,9 +38,12 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     articleVlog,
     bookingHero,
     clientFeedback,
-    homePage,
+    homeHero,
+    featuredTeaser,
+    contactSection,
     portfolioCategory,
     portfolioHero,
+    portfolioUpcomingEvents,
     portfolioItem,
     serviceCategory,
     servicesHero,
@@ -58,4 +63,3 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     videoFile,
   ],
 }
-

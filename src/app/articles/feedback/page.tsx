@@ -6,7 +6,7 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { FeedbackCard } from '@/components/articles/FeedbackCard';
 import { ShareExperienceTrigger } from '@/components/articles/ShareExperienceTrigger';
 import { ConnectSection } from '@/components/layout/connect-section';
-import { getHomePageContent } from '@/lib/services/homeService';
+import { getContactSectionContent } from '@/lib/services/contactService';
 import {
   getApprovedFeedbacksPage,
   getApprovedFeedbacksCount,
@@ -40,11 +40,11 @@ export const metadata: Metadata = {
 
 export default async function FeedbackPage() {
   const pageNum = 1;
-  const [feedbacks, totalCount, aggregate, homeContent] = await Promise.all([
+  const [feedbacks, totalCount, aggregate, contactData] = await Promise.all([
     getApprovedFeedbacksPage(pageNum, ITEMS_PER_PAGE),
     getApprovedFeedbacksCount(),
     getAggregateRating(),
-    getHomePageContent(),
+    getContactSectionContent(),
   ]);
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
@@ -174,7 +174,12 @@ export default async function FeedbackPage() {
         </nav>
       </div>
 
-      <ConnectSection socialLinks={homeContent.socialLinks} />
+      <ConnectSection
+        eyebrow={contactData.eyebrow}
+        title={contactData.title}
+        description={contactData.description}
+        socialLinks={contactData.socialLinks}
+      />
     </main>
   );
 }

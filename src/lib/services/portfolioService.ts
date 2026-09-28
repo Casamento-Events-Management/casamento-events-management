@@ -1,16 +1,15 @@
 // =============================================================================
 // portfolioService.ts — Portfolio Data Service Layer
 //
-// Decoupled service layer for retrieving Portfolio Categories and Portfolio Items.
+// Decoupled service layer for retrieving Portfolio Categories, Portfolio Items,
+// Portfolio Hero, and Portfolio Upcoming Events.
 // Serves as the single data provider for Next.js App Router server components.
-//
-// Complies with architecture guardrails: page routes import from this service layer
-// rather than directly importing mock JSON or raw CMS queries.
 // =============================================================================
 
 import { client } from '@/sanity/lib/client';
+import { homeMockData } from '@/data/homeMock';
 import { MOCK_PORTFOLIO_CATEGORIES, MOCK_PORTFOLIO_HERO, MOCK_PORTFOLIO_ITEMS } from '@/data/portfolioMock';
-import type { PortfolioCategory, PortfolioHeroContent, PortfolioItem, SanityPortfolioItem } from '@/types';
+import type { PortfolioCategory, PortfolioHeroContent, PortfolioItem, PortfolioUpcomingEventsContent, SanityPortfolioItem } from '@/types';
 
 // =============================================================================
 // 1. Sanity GROQ Query Templates
@@ -75,6 +74,36 @@ export const GROQ_PORTFOLIO_ITEMS = `
     featured,
     priority,
     "createdAt": _createdAt
+  }
+`;
+
+/**
+ * GROQ Query targeting the `portfolioUpcomingEvents` singleton document.
+ */
+export const GROQ_PORTFOLIO_UPCOMING_EVENTS = `
+  *[_type in ["portfolioUpcomingEvents", "homePage"]][0] {
+    _id,
+    _type,
+    _createdAt,
+    _updatedAt,
+    eyebrow,
+    title,
+    description,
+    upcomingEvents[] | order(priority desc) {
+      _key,
+      title,
+      slug,
+      date,
+      location,
+      status,
+      priority,
+      coverImage {
+        "asset": {
+          "url": asset->url
+        },
+        alt
+      }
+    }
   }
 `;
 
@@ -249,10 +278,6 @@ const PORTFOLIO_HERO_FALLBACK: PortfolioHeroContent = MOCK_PORTFOLIO_HERO;
 
 /**
  * Returns the Portfolio Hero `title` and `description` from Sanity CMS.
- * Falls back to hardcoded defaults when the singleton is not yet published or
- * when the Sanity fetch fails (e.g. during local development without credentials).
- *
- * Cached with ISR at 3600-second revalidation (tagged `portfolioHero`).
  */
 export async function getPortfolioHeroContent(): Promise<PortfolioHeroContent> {
     try {
@@ -282,4 +307,41 @@ export async function getPortfolioHeroContent(): Promise<PortfolioHeroContent> {
     }
 
     return PORTFOLIO_HERO_FALLBACK;
+}
+
+/**
+ * Fetches Portfolio Upcoming Events content from Sanity CMS with fallback to mock data.
+ */
+export async function getPortfolioUpcomingEvents(): Promise<PortfolioUpcomingEventsContent> {
+    try {
+        const cmsData = await client.fetch<PortfolioUpcomingEventsContent | null>(
+            GROQ_PORTFOLIO_UPCOMING_EVENTS,
+            {},
+            { next: { revalidate: 3600, tags: ['portfolioUpcomingEvents'] } }
+        );
+
+        if (cmsData && cmsData.upcomingEvents) {
+            return {
+                ...cmsData,
+                eyebrow: cmsData.eyebrow || 'Calendar & Events',
+                title: cmsData.title || 'Upcoming & Featured Events',
+                description: cmsData.description || 'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
+                upcomingEvents: cmsData.upcomingEvents || [],
+            };
+        }
+    } catch (err) {
+        console.warn('[portfolioService] Failed to fetch portfolioUpcomingEvents from Sanity, using fallback:', err);
+    }
+
+    return {
+        _id: 'drafts.portfolioUpcomingEvents-mock-1',
+        _type: 'portfolioUpcomingEvents',
+        _createdAt: '2024-01-01T00:00:00Z',
+        _updatedAt: '2024-01-02T00:00:00Z',
+        _rev: 'rev-1',
+        eyebrow: 'Calendar & Events',
+        title: 'Upcoming & Featured Events',
+        description: 'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
+        upcomingEvents: homeMockData.upcomingEvents || [],
+    };
 }

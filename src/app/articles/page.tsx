@@ -13,7 +13,7 @@ import {
 } from '@/lib/services/articleVlogService';
 import { getFeaturedFeedbacks, getApprovedFeedbacksCount } from '@/lib/services/feedbackService';
 import { ConnectSection } from '@/components/layout/connect-section';
-import { getHomePageContent } from '@/lib/services/homeService';
+import { getContactSectionContent } from '@/lib/services/contactService';
 
 export const metadata: Metadata = {
   title: 'Articles & Vlogs | Event Planning Guides & Behind the Scenes',
@@ -44,13 +44,13 @@ export const metadata: Metadata = {
 };
 
 export default async function ArticlesPage() {
-  const [bannerData, heroContent, items, categories, totalCount, homeContent, featuredFeedbacks, totalFeedbackCount] = await Promise.all([
+  const [bannerData, heroContent, items, categories, totalCount, contactData, featuredFeedbacks, totalFeedbackCount] = await Promise.all([
     getArticleVlogBanner(),
     getArticlesHero(),
     getArticleVlogsForGallery(undefined, 1, 6),
     getPortfolioCategories(),
     getArticleVlogTotalCount(),
-    getHomePageContent(),
+    getContactSectionContent(),
     getFeaturedFeedbacks(),
     getApprovedFeedbacksCount(),
   ]);
@@ -76,7 +76,12 @@ export default async function ArticlesPage() {
       {/* Section 3: Client Feedback & Testimonials */}
       <FeedbackSection feedbacks={featuredFeedbacks} totalCount={totalFeedbackCount} />
 
-      <ConnectSection socialLinks={homeContent.socialLinks} />
+      <ConnectSection
+        eyebrow={contactData.eyebrow}
+        title={contactData.title}
+        description={contactData.description}
+        socialLinks={contactData.socialLinks}
+      />
     </main>
   );
 }

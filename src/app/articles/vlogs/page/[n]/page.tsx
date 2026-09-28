@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 import { ArticlesHero } from '@/components/articles/ArticlesHero';
 import { VlogGallery } from '@/components/articles/VlogGallery';
 import { ConnectSection } from '@/components/layout/connect-section';
-import { getHomePageContent } from '@/lib/services/homeService';
+import { getContactSectionContent } from '@/lib/services/contactService';
 import {
   getArticlesHero,
   getArticleVlogsForGallery,
@@ -45,12 +45,12 @@ export default async function VlogsPageN({ params }: PageProps) {
 
   if (isNaN(pageNum) || pageNum < 2) return notFound();
 
-  const [heroContent, items, categories, totalCount, homeContent] = await Promise.all([
+  const [heroContent, items, categories, totalCount, contactData] = await Promise.all([
     getArticlesHero(),
     getArticleVlogsForGallery(undefined, pageNum, ITEMS_PER_PAGE),
     getPortfolioCategories(),
     getArticleVlogTotalCount(),
-    getHomePageContent(),
+    getContactSectionContent(),
   ]);
 
   if (items.length === 0) return notFound();
@@ -116,8 +116,12 @@ export default async function VlogsPageN({ params }: PageProps) {
         </div>
       </nav>
 
-      <ConnectSection socialLinks={homeContent.socialLinks} />
+      <ConnectSection
+        eyebrow={contactData.eyebrow}
+        title={contactData.title}
+        description={contactData.description}
+        socialLinks={contactData.socialLinks}
+      />
     </main>
   );
 }
-
