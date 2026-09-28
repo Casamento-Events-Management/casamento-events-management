@@ -26,16 +26,8 @@ export const structure: StructureResolver = (S) =>
 
       // 2. Contact Section Documents
       S.listItem()
-        .title('Contact Section Hero')
-        .id('contactSectionHeroSingleton')
-        .child(
-          S.document()
-            .schemaType('contactSection')
-            .documentId('contactSection')
-        ),
-      S.listItem()
-        .title('Social Links')
-        .id('socialLinksSingleton')
+        .title('Contact Section')
+        .id('contactSectionSingleton')
         .child(
           S.document()
             .schemaType('contactSection')
