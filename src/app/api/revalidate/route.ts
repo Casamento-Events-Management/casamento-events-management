@@ -59,9 +59,19 @@ export async function POST(req: NextRequest) {
     // Selectively revalidate page routes for immediate Edge CDN update
     switch (documentType) {
       case 'homePage':
+      case 'homeHero':
+      case 'featuredTeaser':
         revalidatePath('/')
         break
+      case 'contactSection':
+        revalidatePath('/')
+        revalidatePath('/portfolio')
+        revalidatePath('/services')
+        revalidatePath('/articles')
+        revalidatePath('/book-now')
+        break
       case 'portfolioHero':
+      case 'portfolioUpcomingEvents':
       case 'portfolioItem':
       case 'portfolioCategory':
         revalidatePath('/portfolio')
@@ -73,6 +83,9 @@ export async function POST(req: NextRequest) {
       case 'serviceCategory':
         revalidatePath('/services')
         revalidatePath('/')
+        break
+      case 'bookingHero':
+        revalidatePath('/book-now')
         break
       case 'articleVlogBanner':
       case 'articlesHero':

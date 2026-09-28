@@ -104,9 +104,9 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
             />
             <UpcomingEventsSection
                 events={upcomingEventsData.upcomingEvents}
-                eyebrow={upcomingEventsData.eyebrow || heroContent.upcomingEventsEyebrow}
-                title={upcomingEventsData.title || heroContent.upcomingEventsTitle}
-                description={upcomingEventsData.description || heroContent.upcomingEventsDescription}
+                eyebrow={upcomingEventsData.eyebrow}
+                title={upcomingEventsData.title}
+                description={upcomingEventsData.description}
             />
             <PortfolioView
                 categories={categories}

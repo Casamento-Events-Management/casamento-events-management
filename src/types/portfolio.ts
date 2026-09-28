@@ -196,9 +196,6 @@ export interface SanityPortfolioHero extends SanityDocument {
   galleryEyebrow?: string;
   galleryTitle?: string;
   galleryDescription?: string;
-  upcomingEventsEyebrow?: string;
-  upcomingEventsTitle?: string;
-  upcomingEventsDescription?: string;
 }
 
 /**
@@ -211,7 +208,4 @@ export interface PortfolioHeroContent {
   galleryEyebrow?: string;
   galleryTitle?: string;
   galleryDescription?: string;
-  upcomingEventsEyebrow?: string;
-  upcomingEventsTitle?: string;
-  upcomingEventsDescription?: string;
 }

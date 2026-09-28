@@ -266,10 +266,7 @@ export const GROQ_PORTFOLIO_HERO = `
     description,
     galleryEyebrow,
     galleryTitle,
-    galleryDescription,
-    upcomingEventsEyebrow,
-    upcomingEventsTitle,
-    upcomingEventsDescription
+    galleryDescription
   }
 `;
 
@@ -294,9 +291,6 @@ export async function getPortfolioHeroContent(): Promise<PortfolioHeroContent> {
                 galleryEyebrow: data.galleryEyebrow || PORTFOLIO_HERO_FALLBACK.galleryEyebrow,
                 galleryTitle: data.galleryTitle || PORTFOLIO_HERO_FALLBACK.galleryTitle,
                 galleryDescription: data.galleryDescription || PORTFOLIO_HERO_FALLBACK.galleryDescription,
-                upcomingEventsEyebrow: data.upcomingEventsEyebrow || PORTFOLIO_HERO_FALLBACK.upcomingEventsEyebrow,
-                upcomingEventsTitle: data.upcomingEventsTitle || PORTFOLIO_HERO_FALLBACK.upcomingEventsTitle,
-                upcomingEventsDescription: data.upcomingEventsDescription || PORTFOLIO_HERO_FALLBACK.upcomingEventsDescription,
             };
         }
     } catch (err) {

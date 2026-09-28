@@ -15,10 +15,6 @@ export const MOCK_PORTFOLIO_HERO: PortfolioHeroContent = {
     galleryTitle: 'Explore Our Showcase',
     galleryDescription:
         'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
-    upcomingEventsEyebrow: 'Calendar & Events',
-    upcomingEventsTitle: 'Upcoming & Featured Events',
-    upcomingEventsDescription:
-        'Discover our upcoming celebrations and past milestone galas curated with timeless elegance.',
 };
 
 export const MOCK_MEDIA_CATEGORIES: MediaCategory[] = [
