@@ -25,7 +25,7 @@ export function PortfolioFilterBar({
         categories={categories}
         activeSlug={activeCategory}
         onSelect={onSelectCategory}
-        allLabel="All Work"
+        allLabel="All"
         ariaLabel="Filter portfolio work by category"
         centered={true}
       />
