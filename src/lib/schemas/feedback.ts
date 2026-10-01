@@ -33,6 +33,16 @@ export const feedbackFormSchema = z.object({
     .min(10, 'Feedback message must be at least 10 characters')
     .max(2000, 'Feedback message cannot exceed 2000 characters'),
   recaptchaToken: z.string().optional(),
+  photoRef: z.string().optional(),
+  backgroundImageRef: z.string().optional(),
 });
 
 export type FeedbackFormData = z.infer<typeof feedbackFormSchema>;
+
+export const FILE_CONSTRAINTS = {
+  photo: { maxBytes: 5 * 1024 * 1024, accept: ['image/jpeg', 'image/png', 'image/webp'] },
+  backgroundImage: { maxBytes: 10 * 1024 * 1024, accept: ['image/jpeg', 'image/png', 'image/webp'] },
+} as const;
+
+export type UploadType = keyof typeof FILE_CONSTRAINTS;
+

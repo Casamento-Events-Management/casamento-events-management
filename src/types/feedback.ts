@@ -1,4 +1,4 @@
-import type { SanityDocument, SanityImageWithPriority } from './sanity';
+import type { SanityDocument, SanityImage, SanityImageWithPriority } from './sanity';
 
 export type FeedbackStatus = 'pending' | 'approved' | 'rejected';
 export type FeedbackRating = 1 | 2 | 3 | 4 | 5;
@@ -12,7 +12,8 @@ export interface ClientFeedback extends SanityDocument {
   eventType: string; // Plain string (e.g. "Wedding", "Debut", "Corporate Event")
   rating: FeedbackRating;
   message: string;
-  photo?: SanityImageWithPriority; // Admin-uploaded via Studio; optional
+  photo?: SanityImageWithPriority; // Admin-uploaded via Studio or client-submitted; optional
+  backgroundImage?: SanityImage; // Decorative background image for top 40% card zone; optional
   submittedAt: string; // ISO datetime string
   isFeatured?: boolean;
   priority?: number;
@@ -39,6 +40,24 @@ export interface FeedbackSubmitPayload {
   rating: FeedbackRating;
   message: string;
   recaptchaToken?: string;
+  photoRef?: string;
+  backgroundImageRef?: string;
+}
+
+/**
+ * Payload sent to POST /api/feedback/upload
+ */
+export interface FeedbackUploadPayload {
+  uploadType: 'photo' | 'backgroundImage';
+  recaptchaToken?: string;
+}
+
+/**
+ * Response returned by POST /api/feedback/upload
+ */
+export interface FeedbackUploadResult {
+  assetRef: string;
+  url: string;
 }
 
 /** Component Props */

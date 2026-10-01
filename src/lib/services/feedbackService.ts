@@ -17,6 +17,10 @@ export const GROQ_APPROVED_FEEDBACKS = `
       "asset": { "_ref": asset._ref, "_type": "reference", "url": asset->url },
       alt
     },
+    backgroundImage {
+      "asset": { "_ref": asset._ref, "_type": "reference", "url": asset->url },
+      alt
+    },
     submittedAt,
     isFeatured,
     priority
@@ -34,6 +38,10 @@ export const GROQ_FEATURED_FEEDBACKS = `
       "asset": { "_ref": asset._ref, "_type": "reference", "url": asset->url },
       alt
     },
+    backgroundImage {
+      "asset": { "_ref": asset._ref, "_type": "reference", "url": asset->url },
+      alt
+    },
     submittedAt,
     isFeatured,
     priority
@@ -48,6 +56,10 @@ export const GROQ_ALL_APPROVED_FEEDBACKS_PAGINATED = `
     rating,
     message,
     photo {
+      "asset": { "_ref": asset._ref, "_type": "reference", "url": asset->url },
+      alt
+    },
+    backgroundImage {
       "asset": { "_ref": asset._ref, "_type": "reference", "url": asset->url },
       alt
     },

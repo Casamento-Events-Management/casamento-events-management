@@ -12,6 +12,25 @@ export const clientFeedbackMockItems: ClientFeedback[] = [
     rating: 5,
     message:
       'Casamento Events made our wedding day absolutely seamless and breathtaking. From the initial consultation to the final dance, their team executed every single detail with elegance, precision, and passion. We could not have asked for a better event coordinator!',
+    backgroundImage: {
+      _type: 'image',
+      asset: {
+        _ref: 'image-mock-bg-1',
+        _type: 'reference',
+        url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80',
+      },
+      alt: 'Luxury wedding venue background',
+    },
+    photo: {
+      _type: 'image',
+      asset: {
+        _ref: 'image-mock-photo-1',
+        _type: 'reference',
+        url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      },
+      alt: 'Sophia & Alexander Wright',
+      priority: 10,
+    },
     submittedAt: '2026-08-15T10:00:00Z',
     isFeatured: true,
     priority: 10,
@@ -27,6 +46,15 @@ export const clientFeedbackMockItems: ClientFeedback[] = [
     rating: 5,
     message:
       'My 18th debut was a total dream come true! The stage production, floral design, and coordination were flawless. Everyone was praising how organized the night was. Thank you Casamento team for making me feel like royalty!',
+    backgroundImage: {
+      _type: 'image',
+      asset: {
+        _ref: 'image-mock-bg-2',
+        _type: 'reference',
+        url: 'https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?auto=format&fit=crop&w=800&q=80',
+      },
+      alt: 'Debutante celebration background',
+    },
     submittedAt: '2026-07-22T14:30:00Z',
     isFeatured: true,
     priority: 5,

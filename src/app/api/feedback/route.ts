@@ -86,6 +86,20 @@ async function handleFeedbackSubmit(body: Record<string, unknown>) {
         message: formData.message,
         status: 'pending',
         submittedAt: new Date().toISOString(),
+        ...(formData.photoRef && {
+          photo: {
+            _type: 'image',
+            asset: { _type: 'reference', _ref: formData.photoRef },
+            alt: `${formData.name}'s profile photo`,
+          },
+        }),
+        ...(formData.backgroundImageRef && {
+          backgroundImage: {
+            _type: 'image',
+            asset: { _type: 'reference', _ref: formData.backgroundImageRef },
+            alt: `${formData.name}'s feedback card background`,
+          },
+        }),
       });
 
       createdDocumentId = newDoc._id;

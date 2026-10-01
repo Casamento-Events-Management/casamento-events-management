@@ -60,9 +60,25 @@ export const clientFeedback = defineType({
     }),
     defineField({
       name: 'photo',
-      title: 'Client Photo (Admin Upload)',
+      title: 'Client Photo',
       type: 'image',
-      description: 'Optional photo uploaded by Casamento team. If omitted, public website displays initials avatar.',
+      description: 'Optional photo uploaded by client or Casamento team. If omitted, public website displays initials avatar.',
+      options: {
+        hotspot: true,
+      },
+      fields: [
+        defineField({
+          name: 'alt',
+          title: 'Alternative Text',
+          type: 'string',
+        }),
+      ],
+    }),
+    defineField({
+      name: 'backgroundImage',
+      title: 'Card Background Image (Optional)',
+      type: 'image',
+      description: 'Optional background image displayed on the top 40% of the feedback card.',
       options: {
         hotspot: true,
       },

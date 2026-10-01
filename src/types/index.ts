@@ -108,6 +108,8 @@ export type {
     ClientFeedback,
     ClientFeedbackDocument,
     FeedbackSubmitPayload,
+    FeedbackUploadPayload,
+    FeedbackUploadResult,
     FeedbackSectionProps,
     FeedbackCardProps,
     FeedbackFormProps,
