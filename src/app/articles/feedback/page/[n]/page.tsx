@@ -113,7 +113,7 @@ export default async function FeedbackPageN({ params }: PageProps) {
             href="/articles"
             className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
           >
-            ← Back to Articles Hub
+            ← Back
           </Link>
         </div>
 

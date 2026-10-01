@@ -4,13 +4,45 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { urlFor } from '@/sanity/lib/image';
 import type { FeedbackCardProps } from '@/types';
 
+/** Safe helper to resolve image URL from projected GROQ object, string, or Sanity reference */
+function resolveImageUrl(imageObj?: unknown): string | null {
+  if (!imageObj) return null;
+  if (typeof imageObj === 'string') return imageObj;
+
+  const obj = imageObj as { asset?: { url?: string; _ref?: string }; _ref?: string };
+
+  // Prefer the directly-projected CDN URL (asset->url in GROQ)
+  if (obj.asset?.url) return obj.asset.url;
+
+  // Fallback: use @sanity/image-url builder with the asset reference
+  if (obj.asset?._ref || obj._ref) {
+    try {
+      return urlFor(obj as Parameters<typeof urlFor>[0]).url();
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
+ * FeedbackCard
+ *
+ * Unified layout — ALL cards use the 40% image header / 60% content split.
+ * - When a backgroundImage is present: renders the real photo.
+ * - When no backgroundImage: renders a decorative linen-pattern placeholder so
+ *   the layout remains identical across all cards.
+ *
+ * Read More / Show Less actually collapses/expands the message area.
+ */
 export function FeedbackCard({ feedback, compact = false }: FeedbackCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const photoUrl = feedback.photo?.asset?.url;
-  const bgImageUrl = feedback.backgroundImage?.asset?.url;
+  const photoUrl = resolveImageUrl(feedback.photo);
+  const bgImageUrl = resolveImageUrl(feedback.backgroundImage);
   const initial = feedback.name ? feedback.name.charAt(0).toUpperCase() : 'C';
 
   const formattedDate = feedback.submittedAt
@@ -21,10 +53,16 @@ export function FeedbackCard({ feedback, compact = false }: FeedbackCardProps) {
       }).format(new Date(feedback.submittedAt))
     : null;
 
-  // Reduced profile pic size
+  // Fixed card height — same for all cards
+  const fixedCardHeightClass = compact ? 'h-[380px] sm:h-[390px]' : 'h-[440px] sm:h-[450px]';
+
+  // Profile pic size
   const photoSizeClass = compact ? 'w-10 h-10 text-sm' : 'w-12 h-12 text-base';
   const starSizeClass = compact ? 'w-3.5 h-3.5' : 'w-4 h-4';
-  const paddingClass = compact ? 'p-4 sm:p-5' : 'p-5 sm:p-6';
+  const paddingClass = compact ? 'px-4 pb-4 pt-3 sm:px-5 sm:pb-5' : 'px-5 pb-5 pt-4 sm:px-6 sm:pb-6';
+
+  // Message is "long" if > 130 chars — enables the Read More toggle
+  const isLongMessage = feedback.message && feedback.message.length > 130;
 
   const renderStars = (starClass: string) => (
     <div className="flex items-center gap-0.5">
@@ -62,49 +100,55 @@ export function FeedbackCard({ feedback, compact = false }: FeedbackCardProps) {
       </div>
     );
 
-  // --- CARD VARIANT 1: Background Image Header (Top 40% / Bottom 60%) ---
-  if (bgImageUrl) {
-    return (
-      <div
-        className="flex flex-col h-full bg-[#EFEAD8]/60 hover:bg-[#EFEAD8] border border-[#3A4F1C]/10 hover:border-[#BC6F07]/30 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300"
-      >
-        {/* Top 40%: Background Image Header Zone */}
-        <div className="relative h-36 sm:h-44 w-full overflow-hidden bg-[#1A2310] shrink-0">
-          <Image
-            src={bgImageUrl}
-            alt={feedback.backgroundImage?.alt || `${feedback.name}'s background`}
-            fill
-            className="object-cover object-center"
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          />
-          {/* Legibility Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+  return (
+    <div
+      className={`flex flex-col ${fixedCardHeightClass} w-full bg-[#EFEAD8]/60 hover:bg-[#EFEAD8] border border-[#3A4F1C]/10 hover:border-[#BC6F07]/30 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition-all duration-300`}
+    >
+      {/* ── Top 40%: Image Header Zone ── */}
+      <div className="relative h-[40%] min-h-[140px] w-full overflow-hidden shrink-0 border-b border-[#3A4F1C]/15">
+        {bgImageUrl ? (
+          <>
+            <Image
+              src={bgImageUrl}
+              alt={feedback.backgroundImage?.alt || `${feedback.name}'s background`}
+              fill
+              className="object-cover object-center"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
+            {/* Legibility gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+          </>
+        ) : (
+          /* No-image fallback — transparent, no background colour */
+          null
+        )}
 
-          {/* Overlaid Profile Pic & Star Rating */}
-          <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between gap-2 z-10">
-            {renderProfilePic(photoSizeClass)}
-            <div className="bg-[#1A2310]/80 backdrop-blur-xs px-2.5 py-1 rounded-full border border-white/10 shadow-xs">
-              {renderStars(starSizeClass)}
-            </div>
+        {/* Profile Pic + Star Rating — anchored to bottom of the top zone */}
+        <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between gap-2 z-10">
+          {renderProfilePic(photoSizeClass)}
+          <div className={`px-2.5 py-1 rounded-full border shadow-xs ${
+            bgImageUrl
+              ? 'bg-[#1A2310]/80 backdrop-blur-xs border-white/10'
+              : 'bg-[#EFEAD8]/80 backdrop-blur-xs border-[#3A4F1C]/15'
+          }`}>
+            {renderStars(starSizeClass)}
           </div>
         </div>
+      </div>
 
-        {/* Bottom 60%: Content Zone */}
-        <div className={`flex flex-col flex-1 ${paddingClass}`}>
-          {/* Name & Date */}
-          <div className="mb-2">
-            <h3 className="text-base sm:text-lg font-serif font-semibold text-[#3A4F1C] leading-snug">
-              {feedback.name}
-            </h3>
-            {formattedDate && (
-              <span className="text-[11px] text-[#3A4F1C]/50 block mt-0.5 font-light">
-                {formattedDate}
-              </span>
-            )}
-          </div>
-
-          {/* Event Type Badge */}
-          <div className="flex justify-start mb-3">
+      {/* ── Bottom 60%: Content Zone ── */}
+      <div className={`flex flex-col flex-1 min-h-0 ${paddingClass} overflow-hidden`}>
+        {/* Header Metadata: Name, Date, Event Type Badge */}
+        <div className="shrink-0 mb-2">
+          <h3 className="text-base sm:text-lg font-serif font-semibold text-[#3A4F1C] leading-snug truncate">
+            {feedback.name}
+          </h3>
+          {formattedDate && (
+            <span className="text-[11px] text-[#3A4F1C]/50 block mt-0.5 font-light">
+              {formattedDate}
+            </span>
+          )}
+          <div className="mt-2">
             <Badge
               status="neutral"
               className="text-[10px] py-0.5 px-2.5 font-semibold text-[#3A4F1C]"
@@ -112,90 +156,34 @@ export function FeedbackCard({ feedback, compact = false }: FeedbackCardProps) {
               {feedback.eventType}
             </Badge>
           </div>
+        </div>
 
-          {/* Message Block */}
-          <div className="mt-auto pt-1">
-            <blockquote
-              className={`text-xs sm:text-sm font-serif italic text-[#3A4F1C]/85 leading-relaxed ${
-                compact ? 'line-clamp-3' : !isExpanded ? 'line-clamp-4' : ''
-              }`}
-            >
-              &ldquo;{feedback.message}&rdquo;
-            </blockquote>
+        {/* Scrollable Message Box */}
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden pt-1 relative">
+          <blockquote
+            className={`flex-1 min-h-0 pr-1 text-xs sm:text-sm font-serif italic text-[#3A4F1C]/85 leading-relaxed transition-all duration-300 ${
+              isLongMessage && !isExpanded
+                ? 'overflow-hidden line-clamp-4'
+                : 'overflow-y-auto'
+            }`}
+          >
+            &ldquo;{feedback.message}&rdquo;
+          </blockquote>
 
-            {!compact && feedback.message && feedback.message.length > 180 && (
+          {/* Read More / Show Less — only shown when message is long */}
+          {isLongMessage && (
+            <div className="shrink-0 pt-1.5">
               <button
                 type="button"
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="mt-3 text-xs font-semibold text-[#BC6F07] hover:underline focus:outline-none transition-colors"
+                className="text-xs font-semibold text-[#BC6F07] hover:underline focus:underline focus:outline-none transition-colors cursor-pointer"
               >
-                {isExpanded ? 'Show Less' : 'Read Full Feedback'}
+                {isExpanded ? 'Show Less' : 'Read More...'}
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-      </div>
-    );
-  }
-
-  // --- CARD VARIANT 2: Standard Card Layout (No Background Image) ---
-  return (
-    <div
-      className={`flex flex-col h-full bg-[#EFEAD8]/60 hover:bg-[#EFEAD8] border border-[#3A4F1C]/10 hover:border-[#BC6F07]/30 rounded-2xl ${paddingClass} shadow-xs hover:shadow-md transition-all duration-300`}
-    >
-      {/* 1. Reduced Profile Pic */}
-      <div className="flex items-center justify-center mb-3 sm:mb-4">
-        {renderProfilePic(photoSizeClass)}
-      </div>
-
-      {/* 2. Rating Slot */}
-      <div className="flex items-center justify-center mb-3">
-        {renderStars(starSizeClass)}
-      </div>
-
-      {/* 3. Name & Date Slot */}
-      <div className="text-center mb-2.5">
-        <h3 className="text-base sm:text-lg font-serif font-semibold text-[#3A4F1C] leading-snug">
-          {feedback.name}
-        </h3>
-        {formattedDate && (
-          <span className="text-[11px] text-[#3A4F1C]/50 block mt-0.5 font-light">
-            {formattedDate}
-          </span>
-        )}
-      </div>
-
-      {/* 4. Event Type Badge Slot */}
-      <div className="flex justify-center mb-3">
-        <Badge
-          status="neutral"
-          className="text-[10px] py-0.5 px-2.5 font-semibold text-[#3A4F1C]"
-        >
-          {feedback.eventType}
-        </Badge>
-      </div>
-
-      {/* 5. Message Slot */}
-      <div className="mt-auto pt-1 text-center">
-        <blockquote
-          className={`text-xs sm:text-sm font-serif italic text-[#3A4F1C]/85 leading-relaxed ${
-            compact ? 'line-clamp-3' : !isExpanded ? 'line-clamp-4' : ''
-          }`}
-        >
-          &ldquo;{feedback.message}&rdquo;
-        </blockquote>
-
-        {!compact && feedback.message && feedback.message.length > 180 && (
-          <button
-            type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-3 text-xs font-semibold text-[#BC6F07] hover:underline focus:underline focus:outline-none transition-colors"
-          >
-            {isExpanded ? 'Show Less' : 'Read Full Feedback'}
-          </button>
-        )}
       </div>
     </div>
   );
 }
-
