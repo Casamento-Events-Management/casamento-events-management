@@ -92,12 +92,6 @@ export function ServicesDetailModal({
                   {service.title}
                 </p>
               </div>
-              <div className="bg-[#3A4F1C]/90 backdrop-blur px-3 py-1.5 rounded-lg border border-white/20 text-right">
-                <span className="text-[10px] uppercase text-white/70 block">Base Rate</span>
-                <span className="text-sm font-bold text-[#F7F3E8]">
-                  {service.priceFormatted || (service.startingPrice ? `₱${service.startingPrice.toLocaleString()}` : '')}
-                </span>
-              </div>
             </div>
           </div>
 
@@ -173,9 +167,6 @@ export function ServicesDetailModal({
                         </span>
                       )}
                     </div>
-                    <span className="font-bold text-[#BC6F07] ml-2 shrink-0">
-                      {addon.priceFormatted || (addon.price ? `+ ₱${addon.price.toLocaleString()}` : '')}
-                    </span>
                   </div>
                 ))}
               </div>

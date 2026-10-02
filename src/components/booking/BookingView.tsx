@@ -53,13 +53,8 @@ export function BookingView({ availableServices }: BookingViewProps) {
               .map((addon) => ({
                 id: addon.id,
                 title: addon.title,
-                price: addon.price || 0,
-                priceFormatted: addon.priceFormatted,
               }));
           }
-
-          const basePrice = match.startingPrice || 0;
-          const addOnsTotal = initialAddOns.reduce((sum, item) => sum + item.price, 0);
 
           setFormData((prev) => ({
             ...prev,
@@ -68,9 +63,7 @@ export function BookingView({ availableServices }: BookingViewProps) {
             serviceTitle: match.title,
             categorySlug: match.category.slug,
             categoryTitle: match.category.title,
-            basePrice,
             selectedAddOns: initialAddOns,
-            totalEstimate: basePrice + addOnsTotal,
           }));
         });
       }
@@ -91,17 +84,13 @@ export function BookingView({ availableServices }: BookingViewProps) {
           {
             id: addon.id,
             title: addon.title,
-            price: addon.price || 0,
-            priceFormatted: addon.priceFormatted,
           },
         ];
       }
 
-      const addOnsTotal = updatedAddOns.reduce((sum, item) => sum + item.price, 0);
       return {
         ...prev,
         selectedAddOns: updatedAddOns,
-        totalEstimate: prev.basePrice + addOnsTotal,
       };
     });
   };

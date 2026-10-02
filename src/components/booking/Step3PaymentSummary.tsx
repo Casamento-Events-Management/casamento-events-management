@@ -196,7 +196,7 @@ export function Step3PaymentSummary({
           </div>
 
           {/* Bottom Action Bar */}
-          <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-end justify-between gap-4">
+          <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-4">
             <Button
               onClick={onPrevStep}
               variant="secondary"
@@ -206,44 +206,15 @@ export function Step3PaymentSummary({
               Back
             </Button>
 
-            <div className="flex flex-col items-end gap-2 text-right">
-              {/* Costs Breakdown (Clean Right-Aligned Text, NO Card) */}
-              <div className="space-y-1 text-right text-xs text-[#3A4F1C]">
-                <div className="text-[11px] text-[#3A4F1C]/80">
-                  <span>Base Package ({formData.serviceTitle || 'Selected Service'}): </span>
-                  <span className="font-semibold text-[#3A4F1C]">₱{formData.basePrice.toLocaleString()}</span>
-                </div>
-
-                {formData.selectedAddOns && formData.selectedAddOns.length > 0 && (
-                  <div className="space-y-0.5">
-                    {formData.selectedAddOns.map((addon) => (
-                      <div key={addon.id} className="text-[11px] text-[#3A4F1C]/80">
-                        <span>+ {addon.title}: </span>
-                        <span className="font-semibold text-[#3A4F1C]">₱{addon.price.toLocaleString()}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="pt-1.5 border-t border-[#3A4F1C]/15 mt-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A4F1C]/70 block">
-                    TOTAL PRICE: <span className="text-xl sm:text-2xl font-serif font-bold text-[#3A4F1C]">
-                      ₱{formData.totalEstimate.toLocaleString()}
-                    </span>
-                  </span>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleFinalSubmit}
-                disabled={!formData.termsAccepted || isSubmitting}
-                variant="primary"
-                size="sm"
-                className="w-full sm:w-auto text-xs sm:text-sm px-6 sm:px-8 py-3 shadow-md mt-1"
-              >
-                {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
-              </Button>
-            </div>
+            <Button
+              onClick={handleFinalSubmit}
+              disabled={!formData.termsAccepted || isSubmitting}
+              variant="primary"
+              size="sm"
+              className="text-xs sm:text-sm px-6 sm:px-8 py-3 shadow-md"
+            >
+              {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
+            </Button>
           </div>
 
           {/* Privacy Disclaimer rendered at the Form Footer */}

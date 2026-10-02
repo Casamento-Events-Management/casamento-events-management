@@ -54,15 +54,10 @@ export const GROQ_SERVICE_ITEMS = `
       "height": asset->metadata.dimensions.height,
       "aspectRatio": asset->metadata.dimensions.aspectRatio
     },
-    startingPrice,
-    priceFormatted,
-    priceUnit,
     defaultInclusions,
     addOns[] {
       "title": title,
-      "description": description,
-      "price": price,
-      "priceUnit": priceUnit
+      "description": description
     },
     badge,
     isFeatured,
@@ -83,8 +78,6 @@ export function mapSanityItemToServiceItem(raw: SanityServiceItem): ServiceItem 
     const rawId = (raw as unknown as { id?: string }).id || raw._id || raw.slug?.current || '';
     const rawSlug = typeof raw.slug === 'string' ? raw.slug : raw.slug?.current || '';
 
-    const formattedPrice = raw.priceFormatted || (typeof raw.startingPrice === 'number' ? `₱${raw.startingPrice.toLocaleString()}` : 'Price on request');
-
     return {
         id: rawId,
         title: raw.title,
@@ -104,17 +97,11 @@ export function mapSanityItemToServiceItem(raw: SanityServiceItem): ServiceItem 
             height: img.height,
             aspectRatio: img.aspectRatio,
         })) : [],
-        startingPrice: raw.startingPrice || 0,
-        priceFormatted: formattedPrice,
-        priceUnit: raw.priceUnit || 'starting rate',
         defaultInclusions: raw.defaultInclusions || [],
-        addOns: Array.isArray(raw.addOns) ? raw.addOns.map((addon: { title: string; description?: string; price?: number; priceUnit?: string }, idx: number) => ({
+        addOns: Array.isArray(raw.addOns) ? raw.addOns.map((addon: { title: string; description?: string }, idx: number) => ({
             id: `addon-${idx}`,
             title: addon.title,
             description: addon.description,
-            price: addon.price,
-            priceFormatted: typeof addon.price === 'number' ? `+ ₱${addon.price.toLocaleString()}` : undefined,
-            priceUnit: addon.priceUnit || 'add-on',
         })) : [],
         badge: raw.badge,
         isFeatured: Boolean(raw.isFeatured),
@@ -221,7 +208,7 @@ const SERVICES_HERO_FALLBACK: ServicesHeroContent = {
     servicesEyebrow: 'OUR SERVICE CATALOG',
     servicesTitle: 'Explore Our Service Offerings',
     servicesDescription:
-        'Select a category below to explore package inclusions, optional add-ons, and instant price estimates.',
+        'Select a category below to explore package inclusions, optional add-ons, and custom quote options.',
 };
 
 /**

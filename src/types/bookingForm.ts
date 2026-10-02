@@ -7,8 +7,6 @@ export type BookingStep = 1 | 2 | 3;
 export interface SelectedAddOn {
   id: string;
   title: string;
-  price: number;
-  priceFormatted?: string;
 }
 
 export interface BookingFormData {
@@ -18,9 +16,7 @@ export interface BookingFormData {
   serviceTitle: string;
   categorySlug: string;
   categoryTitle: string;
-  basePrice: number;
   selectedAddOns: SelectedAddOn[];
-  totalEstimate: number;
 
   // Step 2: Client & Event Details
   clientFullName: string;

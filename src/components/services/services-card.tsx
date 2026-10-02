@@ -61,7 +61,7 @@ export function ServicesCard({
     };
 
     // Seamless booking redirect URL with lifted details
-    const bookingUrl = `/book-now?service=${encodeURIComponent(service.slug)}&category=${encodeURIComponent(service.category.slug)}&startingPrice=${service.startingPrice}`;
+    const bookingUrl = `/book-now?service=${encodeURIComponent(service.slug)}&category=${encodeURIComponent(service.category.slug)}`;
 
     return (
         <article
@@ -176,15 +176,8 @@ export function ServicesCard({
                     </div>
                 )}
 
-                {/* 3. Card Footer Price & Reduced Mobile CTA Buttons */}
-                <div className="pt-2 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-1.5">
-                    <div>
-                        <span className="text-[9px] text-[#3A4F1C]/75 font-semibold block uppercase tracking-wider">Starting Rate</span>
-                        <span className="text-sm sm:text-base font-bold font-serif text-[#3A4F1C]">
-                            {service.priceFormatted}
-                        </span>
-                    </div>
-
+                {/* 3. Card Footer Reduced CTA Buttons */}
+                <div className="pt-2 border-t border-[#3A4F1C]/15 flex items-center justify-end gap-1.5">
                     <div className="flex items-center space-x-1.5">
                         {/* Mobile Only: Reduced View Details button */}
                         <button

@@ -58,14 +58,9 @@ export function InFormServiceCard({
           {service.title}
         </h4>
 
-        <div className="pt-0.5">
-          <span className="text-[10px] font-medium text-[#3A4F1C]/60 uppercase tracking-wider block">
-            Package Starting Rate
-          </span>
-          <span className="text-xs sm:text-sm font-bold text-[#3A4F1C]">
-            {service.priceFormatted || (service.startingPrice ? `₱${service.startingPrice.toLocaleString()}` : '')}
-          </span>
-        </div>
+        <p className="text-[11px] text-[#3A4F1C]/80 line-clamp-2 leading-relaxed font-light">
+          {service.shortDescription}
+        </p>
       </div>
     </div>
   );

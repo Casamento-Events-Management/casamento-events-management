@@ -25,30 +25,16 @@ export const serviceAddOn = defineType({
       rows: 2,
       description: 'Explanation of deliverables or scope included with this add-on.',
     }),
-    defineField({
-      name: 'price',
-      title: 'Price Rate (PHP)',
-      type: 'number',
-      description: 'Numeric price amount in PHP for quote estimations.',
-    }),
-    defineField({
-      name: 'priceUnit',
-      title: 'Price Unit / Label',
-      type: 'string',
-      description: 'Pricing note (e.g. "flat fee", "per day", "starting rate").',
-    }),
   ],
   preview: {
     select: {
       title: 'title',
-      price: 'price',
-      priceUnit: 'priceUnit',
+      description: 'description',
     },
-    prepare({ title, price, priceUnit }) {
-      const formattedPrice = typeof price === 'number' ? `₱${price.toLocaleString()}` : 'Price on request'
+    prepare({ title, description }) {
       return {
         title,
-        subtitle: `${formattedPrice}${priceUnit ? ` (${priceUnit})` : ''}`,
+        subtitle: description || 'Optional upgrade',
       }
     },
   },

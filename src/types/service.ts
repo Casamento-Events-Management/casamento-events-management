@@ -60,10 +60,6 @@ export interface SanityServiceAddOn {
     title: string;
     /** Detailed description of what the add-on covers. */
     description?: string;
-    /** Starting rate or additional price for this add-on in PHP. */
-    price?: number;
-    /** Optional price unit or note (e.g., "per day", "flat fee", "starting rate"). */
-    priceUnit?: string;
 }
 
 /**
@@ -76,12 +72,6 @@ export interface ServiceAddOn {
     title: string;
     /** Optional description explaining the add-on. */
     description?: string;
-    /** Numeric price rate if applicable. */
-    price?: number;
-    /** Pre-formatted price string for direct display (e.g., "+ ₱15,000"). */
-    priceFormatted?: string;
-    /** Unit or pricing interval. */
-    priceUnit?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -111,12 +101,6 @@ export interface SanityServiceItem extends SanityDocument {
     fullDescription?: string;
     /** Gallery of images for card carousel & detail modal (hotspot & priority supported). */
     images: SanityImageWithPriority[];
-    /** Numeric starting price rate (e.g., 120000). */
-    startingPrice: number;
-    /** Human-readable starting rate string (e.g., "₱120,000" or "Starting at ₱120,000"). */
-    priceFormatted?: string;
-    /** Pricing interval / rate modifier (e.g., "/ event", "flat fee", "starting rate"). */
-    priceUnit?: string;
     /** Default inclusions packaged in this base service tier. */
     defaultInclusions: string[];
     /** Optional add-on features that can be added to this service. */
@@ -161,12 +145,6 @@ export interface ServiceItem {
         height?: number;
         aspectRatio?: number;
     }[];
-    /** Starting rate integer value. */
-    startingPrice: number;
-    /** Formatted starting rate text (e.g., "₱120,000"). */
-    priceFormatted: string;
-    /** Price unit tag (e.g., "starting rate", "/ event"). */
-    priceUnit: string;
     /** Array of string inclusion bullet points. */
     defaultInclusions: string[];
     /** Array of optional add-ons available for this service. */

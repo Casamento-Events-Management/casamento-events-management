@@ -104,8 +104,6 @@ export async function seedServices(dryRun: boolean): Promise<void> {
             _type: 'serviceAddOn',
             title: addon.title,
             description: addon.description,
-            price: addon.price,
-            priceUnit: addon.priceUnit,
         }))
 
         const document: { _id: string; _type: string; [key: string]: unknown } = {
@@ -121,9 +119,6 @@ export async function seedServices(dryRun: boolean): Promise<void> {
             shortDescription: item.shortDescription,
             fullDescription: item.fullDescription,
             images: imageObjects,
-            startingPrice: item.startingPrice,
-            priceFormatted: item.priceFormatted,
-            priceUnit: item.priceUnit,
             defaultInclusions: item.defaultInclusions,
             addOns: addOnObjects,
             badge: item.badge,

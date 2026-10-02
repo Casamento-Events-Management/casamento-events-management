@@ -69,26 +69,6 @@ export const serviceItem = defineType({
       validation: (Rule) => Rule.required().min(1),
     }),
     defineField({
-      name: 'startingPrice',
-      title: 'Starting Price Rate (PHP)',
-      type: 'number',
-      description: 'Numeric value used for calculation and starting price display.',
-      validation: (Rule) => Rule.required().min(0),
-    }),
-    defineField({
-      name: 'priceFormatted',
-      title: 'Formatted Price Label (Optional)',
-      type: 'string',
-      description: 'Custom formatted string override (e.g., "₱150,000" or "Starting at ₱150,000"). If empty, startingPrice is automatically formatted with PHP currency.',
-    }),
-    defineField({
-      name: 'priceUnit',
-      title: 'Price Unit / Modifier',
-      type: 'string',
-      description: 'Price rate interval (e.g., "starting rate", "/ event", "flat package rate").',
-      initialValue: 'starting rate',
-    }),
-    defineField({
       name: 'defaultInclusions',
       title: 'Default Package Inclusions',
       type: 'array',
@@ -135,15 +115,13 @@ export const serviceItem = defineType({
     select: {
       title: 'title',
       category: 'category.title',
-      startingPrice: 'startingPrice',
       media: 'images.0',
       badge: 'badge',
     },
-    prepare({ title, category, startingPrice, media, badge }) {
-      const formattedPrice = typeof startingPrice === 'number' ? `₱${startingPrice.toLocaleString()}` : 'Price on request'
+    prepare({ title, category, media, badge }) {
       return {
         title: `${badge ? `[${badge}] ` : ''}${title}`,
-        subtitle: `${category || 'Uncategorized'} • ${formattedPrice}`,
+        subtitle: category || 'Uncategorized',
         media,
       }
     },

@@ -17,9 +17,7 @@ export const INITIAL_BOOKING_FORM_DATA: BookingFormData = {
   serviceTitle: '',
   categorySlug: '',
   categoryTitle: '',
-  basePrice: 0,
   selectedAddOns: [],
-  totalEstimate: 0,
 
   clientFullName: '',
   clientEmail: '',

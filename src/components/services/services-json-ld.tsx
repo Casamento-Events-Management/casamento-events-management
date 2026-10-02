@@ -29,17 +29,6 @@ export function ServicesJsonLd({ services }: ServicesJsonLdProps) {
                     name: 'Casamento Events Management',
                     url: siteUrl,
                 },
-                offers: {
-                    '@type': 'Offer',
-                    priceCurrency: 'PHP',
-                    price: service.startingPrice,
-                    priceSpecification: {
-                        '@type': 'UnitPriceSpecification',
-                        priceCurrency: 'PHP',
-                        price: service.startingPrice,
-                        unitText: service.priceUnit || 'starting rate',
-                    },
-                },
                 image: service.images && service.images[0] ? service.images[0].url : undefined,
             },
         })),

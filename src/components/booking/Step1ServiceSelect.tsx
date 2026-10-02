@@ -44,9 +44,6 @@ export function Step1ServiceSelect({
   }
 
   const selectedAddOnIds = selectedAddOns.map((item) => item.id);
-  const basePrice = service.startingPrice || 0;
-  const addOnsTotal = selectedAddOns.reduce((sum, item) => sum + item.price, 0);
-  const totalPrice = basePrice + addOnsTotal;
 
   return (
     <div className="bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl p-6 sm:p-8 space-y-6">
@@ -131,9 +128,6 @@ export function Step1ServiceSelect({
                       <span className="text-[11px] sm:text-xs font-semibold text-[#3A4F1C]">
                         {addon.title}
                       </span>
-                      <span className="text-[11px] sm:text-xs font-bold text-[#BC6F07] ml-2 shrink-0">
-                        {addon.priceFormatted || (addon.price ? `+₱${addon.price.toLocaleString()}` : '')}
-                      </span>
                     </div>
                     {addon.description && (
                       <p className="text-[10px] sm:text-xs text-[#3A4F1C]/80 mt-0.5 font-light leading-snug">
@@ -148,45 +142,24 @@ export function Step1ServiceSelect({
         </div>
       )}
 
-      {/* Bottom Action Bar: Right-Aligned Costs Breakdown & Total Price stacked ABOVE Action Button (No Card) */}
-      <div className="pt-6 border-t border-[#3A4F1C]/15 flex justify-end">
-        <div className="flex flex-col items-end gap-2 text-right">
-          {/* Costs Breakdown (Clean Right-Aligned Text, NO Card) */}
-          <div className="space-y-1 text-right text-xs text-[#3A4F1C]">
-            <div className="text-[11px] text-[#3A4F1C]/80">
-              <span>Base Package ({service.title}): </span>
-              <span className="font-semibold text-[#3A4F1C]">₱{basePrice.toLocaleString()}</span>
-            </div>
+      {/* Bottom Action Bar */}
+      <div className="pt-6 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-4">
+        {selectedAddOns && selectedAddOns.length > 0 ? (
+          <span className="text-xs text-[#3A4F1C]/80 font-medium">
+            <span className="font-semibold text-[#BC6F07]">{selectedAddOns.length}</span> optional upgrade{selectedAddOns.length > 1 ? 's' : ''} selected
+          </span>
+        ) : (
+          <span />
+        )}
 
-            {selectedAddOns && selectedAddOns.length > 0 && (
-              <div className="space-y-0.5">
-                {selectedAddOns.map((addon) => (
-                  <div key={addon.id} className="text-[11px] text-[#3A4F1C]/80">
-                    <span>+ {addon.title}: </span>
-                    <span className="font-semibold text-[#3A4F1C]">₱{addon.price.toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <div className="pt-1.5 border-t border-[#3A4F1C]/15 mt-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A4F1C]/70 block">
-                TOTAL PRICE: <span className="text-xl sm:text-2xl font-serif font-bold text-[#3A4F1C]">
-                  ₱{totalPrice.toLocaleString()}
-                </span>
-              </span>
-            </div>
-          </div>
-
-          <Button
-            onClick={onNextStep}
-            variant="primary"
-            size="sm"
-            className="w-full sm:w-auto text-xs sm:text-sm px-6 sm:px-8 py-3 shadow-md mt-1"
-          >
-            Event Details &rarr;
-          </Button>
-        </div>
+        <Button
+          onClick={onNextStep}
+          variant="primary"
+          size="sm"
+          className="text-xs sm:text-sm px-6 sm:px-8 py-3 shadow-md"
+        >
+          Event Details &rarr;
+        </Button>
       </div>
 
       {/* Privacy Disclaimer rendered at the Form Footer */}

@@ -51,17 +51,9 @@ export function ServicesDetailPanel({
         );
     };
 
-    // Calculate live total price rate
-    const basePrice = service.startingPrice || 0;
-    const addOnsTotal = (service.addOns || [])
-        .filter((addon) => selectedAddOnIds.includes(addon.id))
-        .reduce((sum, addon) => sum + (addon.price || 0), 0);
-
-    const grandTotal = basePrice + addOnsTotal;
-
-    // Seamless booking URL lifting all parameters
+    // Seamless booking URL lifting parameters (without total estimate price)
     const selectedAddOnsQuery = selectedAddOnIds.join(',');
-    const bookingUrl = `/book-now?service=${encodeURIComponent(service.slug)}&category=${encodeURIComponent(service.category.slug)}&addons=${encodeURIComponent(selectedAddOnsQuery)}&totalEstimate=${grandTotal}`;
+    const bookingUrl = `/book-now?service=${encodeURIComponent(service.slug)}&category=${encodeURIComponent(service.category.slug)}${selectedAddOnsQuery ? `&addons=${encodeURIComponent(selectedAddOnsQuery)}` : ''}`;
 
     return (
         <aside className={`bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl shadow-md overflow-hidden flex flex-col ${isMobileModal ? 'w-full max-h-[90vh]' : 'w-full max-h-[calc(100vh-7rem)]'
@@ -156,9 +148,6 @@ export function ServicesDetailPanel({
                                                 <span className="text-[11px] font-semibold text-[#3A4F1C]">
                                                     {addon.title}
                                                 </span>
-                                                <span className="text-[11px] font-bold text-[#BC6F07] ml-1.5 shrink-0">
-                                                    {addon.priceFormatted || (addon.price ? `+₱${addon.price.toLocaleString()}` : '')}
-                                                </span>
                                             </div>
                                             {addon.description && (
                                                 <p className="text-[9px] text-[#3A4F1C]/85 leading-tight mt-0.5 font-medium">
@@ -174,23 +163,16 @@ export function ServicesDetailPanel({
                 )}
             </div>
 
-            {/* Panel Footer - Price & Book Now CTA */}
+            {/* Panel Footer - Book Now CTA */}
             <div className="p-3 bg-[#EFEAD8] border-t border-[#3A4F1C]/15 space-y-2 shrink-0">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <span className="text-[8px] uppercase font-bold tracking-wider text-[#3A4F1C]/60 block">
-                            Estimated Package Total
-                        </span>
-                        <span className="text-lg font-serif font-bold text-[#3A4F1C]">
-                            ₱{grandTotal.toLocaleString()}
-                        </span>
-                    </div>
-                    {selectedAddOnIds.length > 0 && (
-                        <span className="text-[9px] font-medium text-[#BC6F07] bg-[#BC6F07]/10 px-1.5 py-0.5 rounded">
+                {selectedAddOnIds.length > 0 && (
+                    <div className="flex items-center justify-between text-[10px] font-medium text-[#3A4F1C]">
+                        <span>Selected Upgrades:</span>
+                        <span className="font-semibold text-[#BC6F07] bg-[#BC6F07]/10 px-1.5 py-0.5 rounded">
                             {selectedAddOnIds.length} Add-on{selectedAddOnIds.length > 1 ? 's' : ''}
                         </span>
-                    )}
-                </div>
+                    </div>
+                )}
 
                 <Link
                     href={bookingUrl}
