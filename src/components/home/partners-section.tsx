@@ -14,7 +14,7 @@ function PartnerLogo({ partner }: { partner: Partner }) {
   const logoUrl = partner.logo?.asset?.url;
 
   const inner = !imageError && logoUrl ? (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full cursor-pointer">
       <Image
         src={logoUrl}
         alt={partner.logo.alt || partner.name}
@@ -53,14 +53,6 @@ function PartnerLogo({ partner }: { partner: Partner }) {
 export function PartnersSection({ partners }: PartnersSectionProps) {
   if (!partners || partners.length === 0) return null;
 
-  // Split partners into rows matching the screenshot rhythm:
-  // Row 1: up to 8, Row 2: up to 8, Row 3: up to 8, Row 4: remainder (centered)
-  const rowSize = 8;
-  const rows: Partner[][] = [];
-  for (let i = 0; i < partners.length; i += rowSize) {
-    rows.push(partners.slice(i, i + rowSize));
-  }
-
   return (
     <section className="py-20 md:py-28 bg-[#F7F3E8]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8">
@@ -70,25 +62,14 @@ export function PartnersSection({ partners }: PartnersSectionProps) {
           description="We partner with elite artisans, luxury caterers, and renowned venue curators to deliver flawless experiences."
         />
 
-        {/* Logo grid — rows of logos, last row centered */}
-        <div className="mt-10 md:mt-14 flex flex-col gap-6 sm:gap-8">
-          {rows.map((row, rowIdx) => {
-            const isLastRow = rowIdx === rows.length - 1;
-            return (
-              <div
-                key={rowIdx}
-                className={`flex flex-wrap gap-x-6 gap-y-6 sm:gap-x-10 sm:gap-y-8 ${
-                  isLastRow ? 'justify-center' : 'justify-center lg:justify-between'
-                }`}
-              >
-                {row.map((partner) => (
-                  <PartnerLogo key={partner.name} partner={partner} />
-                ))}
-              </div>
-            );
-          })}
+        {/* Single flex-wrap container — logos center-align and wrap naturally */}
+        <div className="mt-10 md:mt-14 flex flex-wrap justify-center gap-x-8 gap-y-6 sm:gap-x-12 sm:gap-y-8">
+          {partners.map((partner) => (
+            <PartnerLogo key={partner.name} partner={partner} />
+          ))}
         </div>
       </div>
     </section>
   );
 }
+
