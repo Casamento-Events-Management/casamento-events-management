@@ -71,8 +71,8 @@ export function Footer() {
               <li>Casamento Events Management Inc.</li>
               <li>Metro Manila & Destination Events</li>
               <li>
-                <a href="mailto:contact@casamentoevents.com" className="hover:text-[#BC6F07] transition-colors">
-                  contact@casamentoevents.com
+                <a href="mailto:hello@casamentoevents.com" className="hover:text-[#BC6F07] transition-colors">
+                  hello@casamentoevents.com
                 </a>
               </li>
             </ul>
