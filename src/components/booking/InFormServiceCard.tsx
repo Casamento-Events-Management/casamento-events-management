@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { Sparkles, Maximize2 } from 'lucide-react';
+import { Maximize2 } from 'lucide-react';
 import type { ServiceItem } from '@/types';
 
 interface InFormServiceCardProps {
