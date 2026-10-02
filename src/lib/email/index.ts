@@ -12,6 +12,7 @@ export { renderDataTable } from './templates/blocks/dataTable';
 export type { DataTableRow } from './templates/blocks/dataTable';
 
 export { buildContactAdminEmail } from './templates/contact-admin';
+export { buildServiceInquiryAdminEmail } from './templates/service-inquiry-admin';
 export { buildFeedbackAdminEmail } from './templates/feedback-admin';
 export { buildFeedbackClientPostedEmail } from './templates/feedback-client';
 export type { ClientFeedbackPostedPayload } from './templates/feedback-client';

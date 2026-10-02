@@ -11,6 +11,7 @@ interface ServicesCardProps {
     isSelected: boolean;
     onSelect: (service: ServiceItem) => void;
     onOpenMobileModal?: (service: ServiceItem) => void;
+    onOpenInquiry?: (service: ServiceItem) => void;
     priority?: boolean;
 }
 
@@ -24,6 +25,7 @@ export function ServicesCard({
     isSelected,
     onSelect,
     onOpenMobileModal,
+    onOpenInquiry,
     priority = false,
 }: ServicesCardProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -177,7 +179,20 @@ export function ServicesCard({
                 )}
 
                 {/* 3. Card Footer Reduced CTA Buttons */}
-                <div className="pt-2 border-t border-[#3A4F1C]/15 flex items-center justify-end gap-1.5">
+                <div className="pt-2 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-1.5">
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            if (onOpenInquiry) {
+                                onOpenInquiry(service);
+                            }
+                        }}
+                        className="px-2.5 py-1 lg:px-3 lg:py-1.5 rounded-full text-[10px] lg:text-xs font-semibold uppercase tracking-wider border border-[#3A4F1C]/30 text-[#3A4F1C] hover:bg-[#3A4F1C] hover:text-[#F7F3E8] transition-all cursor-pointer whitespace-nowrap"
+                    >
+                        Message for Inquiry
+                    </button>
+
                     <div className="flex items-center space-x-1.5">
                         {/* Mobile Only: Reduced View Details button */}
                         <button

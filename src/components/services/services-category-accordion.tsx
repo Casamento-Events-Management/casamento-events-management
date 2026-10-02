@@ -17,6 +17,7 @@ interface ServicesCategoryAccordionProps {
     selectedService: ServiceItem | null;
     onSelectService: (service: ServiceItem) => void;
     onOpenMobileModal: (service: ServiceItem) => void;
+    onOpenInquiry: (service: ServiceItem) => void;
     isFirstPriority?: boolean;
 }
 
@@ -35,10 +36,10 @@ export function ServicesCategoryAccordion({
     selectedService,
     onSelectService,
     onOpenMobileModal,
+    onOpenInquiry,
     isFirstPriority = false,
 }: ServicesCategoryAccordionProps) {
     const accordionRef = React.useRef<HTMLDivElement>(null);
-    const serviceCount = services.length;
 
     // Smooth scroll newly opened category card into viewport with a single fluid glide
     React.useEffect(() => {
@@ -130,6 +131,7 @@ export function ServicesCategoryAccordion({
                                             isSelected={selectedService?.id === service.id}
                                             onSelect={onSelectService}
                                             onOpenMobileModal={onOpenMobileModal}
+                                            onOpenInquiry={onOpenInquiry}
                                             priority={isFirstPriority && index === 0}
                                         />
                                     ))}

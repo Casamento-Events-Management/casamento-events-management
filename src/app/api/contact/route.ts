@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { contactFormSchema } from '@/lib/schemas/contact';
+import { serviceInquirySchema } from '@/lib/schemas/serviceInquiry';
 import { verifyRecaptchaToken } from '@/lib/services/recaptchaService';
-import { sendContactEmail } from '@/lib/services/emailService';
+import { sendContactEmail, sendServiceInquiryEmail } from '@/lib/services/emailService';
 
 /**
  * Domain-consolidated API Route Handler for Communication & Messaging.
@@ -10,7 +11,7 @@ import { sendContactEmail } from '@/lib/services/emailService';
  * Vercel Serverless Function to maximize Vercel Hobby Free Tier quotas (12 function limit).
  *
  * Scalable Action Dispatcher:
- * Supports multiple domain actions via payload.action (e.g. 'contact_submit', 'newsletter_subscribe')
+ * Supports multiple domain actions via payload.action ('contact_submit', 'service_inquiry', 'newsletter_subscribe')
  */
 export async function POST(request: Request) {
   try {
@@ -20,6 +21,9 @@ export async function POST(request: Request) {
     switch (action) {
       case 'contact_submit':
         return await handleContactSubmit(body);
+
+      case 'service_inquiry':
+        return await handleServiceInquirySubmit(body);
 
       // Scalable extension hooks for future functions inside this communication domain
       case 'newsletter_subscribe':
@@ -87,3 +91,49 @@ async function handleContactSubmit(body: Record<string, unknown>) {
     id: emailResult.id,
   });
 }
+
+/**
+ * Action Handler: Service Card Message Inquiry Submission
+ */
+async function handleServiceInquirySubmit(body: Record<string, unknown>) {
+  // 1. Validate payload with Zod
+  const validationResult = serviceInquirySchema.safeParse(body);
+  if (!validationResult.success) {
+    return NextResponse.json(
+      {
+        error: 'Invalid inquiry form data',
+        details: validationResult.error.flatten(),
+      },
+      { status: 400 }
+    );
+  }
+
+  const formData = validationResult.data;
+
+  // 2. Anti-bot reCAPTCHA v3 verification
+  if (formData.recaptchaToken) {
+    const recaptchaResult = await verifyRecaptchaToken(formData.recaptchaToken, 'service_inquiry');
+    if (!recaptchaResult.success) {
+      return NextResponse.json(
+        { error: recaptchaResult.error || 'Anti-bot check failed. Please try again.' },
+        { status: 403 }
+      );
+    }
+  }
+
+  // 3. Dispatch Service Inquiry Email via Resend Service
+  const emailResult = await sendServiceInquiryEmail(formData);
+  if (!emailResult.success) {
+    return NextResponse.json(
+      { error: emailResult.error || 'Failed to dispatch service inquiry email.' },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({
+    success: true,
+    message: 'Thanks for your inquiry. Our team will reply back shortly!',
+    id: emailResult.id,
+  });
+}
+

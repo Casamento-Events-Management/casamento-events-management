@@ -4,6 +4,7 @@ import React, { useState, useEffect, useTransition, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { ServicesCategoryAccordion } from './services-category-accordion';
 import { ServicesDetailPanel } from './services-detail-panel';
+import { ServiceInquiryModal } from './service-inquiry-modal';
 import { SectionHero } from '@/components/ui/section-heading';
 import type { ServiceCategory, ServiceItem, ActiveServiceCategoryFilter } from '@/types';
 
@@ -36,6 +37,9 @@ function ServicesViewContent({
     
     // Mobile modal state
     const [mobileModalService, setMobileModalService] = useState<ServiceItem | null>(null);
+
+    // Message for Inquiry modal state
+    const [inquiryModalService, setInquiryModalService] = useState<ServiceItem | null>(null);
     const [, startTransition] = useTransition();
 
     const serviceParam = searchParams.get('service');
@@ -124,12 +128,9 @@ function ServicesViewContent({
         setMobileModalService(service);
     };
 
-    const handleExpandAll = () => {
-        setOpenCategorySlugs(categories.map((c) => c.slug));
-    };
-
-    const handleCollapseAll = () => {
-        setOpenCategorySlugs([]);
+    const handleOpenInquiry = (service: ServiceItem) => {
+        handleSelectService(service);
+        setInquiryModalService(service);
     };
 
     return (
@@ -166,6 +167,7 @@ function ServicesViewContent({
                                 selectedService={selectedService}
                                 onSelectService={handleSelectService}
                                 onOpenMobileModal={handleOpenMobileModal}
+                                onOpenInquiry={handleOpenInquiry}
                                 isFirstPriority={idx === 0}
                             />
                         );
@@ -185,6 +187,13 @@ function ServicesViewContent({
                     </div>
                 </div>
             )}
+
+            {/* Message for Inquiry Modal */}
+            <ServiceInquiryModal
+                isOpen={Boolean(inquiryModalService)}
+                onClose={() => setInquiryModalService(null)}
+                service={inquiryModalService}
+            />
         </section>
     );
 }
