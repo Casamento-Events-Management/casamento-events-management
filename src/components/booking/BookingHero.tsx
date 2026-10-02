@@ -52,7 +52,7 @@ export function BookingHero({
             View Our Services
           </Button>
           <Button
-            href="/#contact-form"
+            href="#contact-form"
             variant="secondary"
             size="sm"
             className="px-3.5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm whitespace-nowrap"

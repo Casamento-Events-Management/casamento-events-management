@@ -37,7 +37,7 @@ export function ConnectSection({
   };
 
   return (
-    <section className="py-20 md:py-28 bg-[#3A4F1C] text-[#F7F3E8] relative overflow-hidden">
+    <section id="contact-form" className="scroll-mt-16 sm:scroll-mt-20 py-20 md:py-28 bg-[#3A4F1C] text-[#F7F3E8] relative overflow-hidden">
       {/* Subtle Dot Matrix Texture */}
       <div className="absolute inset-0 opacity-5 bg-[radial-[#BC6F07]_1px,transparent_1px] bg-size-[16px_16px] z-0" />
 
@@ -63,7 +63,7 @@ export function ConnectSection({
         />
 
         {/* Social Media Link Buttons (Compact 2x2 Grid on Mobile, Flex on Desktop) */}
-        <div className="grid grid-cols-2 gap-2 max-w-60 mx-auto md:max-w-none md:flex md:flex-wrap md:items-center md:justify-center md:gap-6 mb-12" id="contact-form">
+        <div className="grid grid-cols-2 gap-2 max-w-60 mx-auto md:max-w-none md:flex md:flex-wrap md:items-center md:justify-center md:gap-6 mb-12">
           {socialLinks.map((link) => (
             <a
               key={link.platform}

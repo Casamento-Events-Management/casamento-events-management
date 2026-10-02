@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 
@@ -35,8 +37,24 @@ export function Button({
   const combinedClasses = `${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`;
 
   if (href) {
+    const isHash = href.startsWith('#');
+
+    const handleAnchorClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (isHash) {
+        const targetId = href.substring(1);
+        const element = document.getElementById(targetId);
+        if (element) {
+          e.preventDefault();
+          element.scrollIntoView({ behavior: 'smooth' });
+          if (typeof window !== 'undefined') {
+            window.history.pushState(null, '', href);
+          }
+        }
+      }
+    };
+
     return (
-      <Link href={href} className={combinedClasses}>
+      <Link href={href} onClick={handleAnchorClick} className={combinedClasses}>
         {children}
       </Link>
     );
