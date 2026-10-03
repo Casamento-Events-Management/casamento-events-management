@@ -56,7 +56,7 @@ export function ServicesDetailPanel({
     const bookingUrl = `/book-now?service=${encodeURIComponent(service.slug)}&category=${encodeURIComponent(service.category.slug)}${selectedAddOnsQuery ? `&addons=${encodeURIComponent(selectedAddOnsQuery)}` : ''}`;
 
     return (
-        <aside className={`bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl shadow-md overflow-hidden flex flex-col ${isMobileModal ? 'w-full max-h-[90vh]' : 'w-full max-h-[calc(100vh-7rem)]'
+        <aside className={`bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl shadow-md overflow-hidden flex flex-col ${isMobileModal ? 'w-full max-h-[90vh]' : 'w-full max-h-[498px] lg:max-h-[498px] xl:max-h-[505px]'
             }`}>
             {/* Header Banner & Close Control */}
             <div className="relative w-full shrink-0">
