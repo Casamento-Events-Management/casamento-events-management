@@ -29,6 +29,7 @@ export function ServicesCard({
     priority = false,
 }: ServicesCardProps) {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const cardRef = React.useRef<HTMLElement>(null);
 
     const images = service.images && service.images.length > 0
         ? service.images
@@ -56,6 +57,9 @@ export function ServicesCard({
 
     const handleCardClick = () => {
         onSelect(service);
+        if (cardRef.current) {
+            cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         // Only open mobile modal on mobile screen size (< 1024px)
         if (typeof window !== 'undefined' && window.innerWidth < 1024 && onOpenMobileModal) {
             onOpenMobileModal(service);
@@ -67,8 +71,9 @@ export function ServicesCard({
 
     return (
         <article
+            ref={cardRef}
             onClick={handleCardClick}
-            className={`group flex flex-col rounded-xl bg-[#F7F3E8] border transition-all duration-200 overflow-hidden cursor-pointer ${
+            className={`group flex flex-col rounded-xl bg-[#F7F3E8] border transition-all duration-200 overflow-hidden cursor-pointer scroll-mt-24 ${
                 isSelected
                     ? 'border-[#BC6F07] ring-2 ring-[#BC6F07]/40 shadow-sm'
                     : 'border-[#3A4F1C]/15 hover:border-[#3A4F1C]/40 hover:shadow-xs'
