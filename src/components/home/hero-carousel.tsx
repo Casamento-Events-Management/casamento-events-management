@@ -246,23 +246,6 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
               ))}
             </div>
 
-            {/* Navigation Arrows */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handlePrev}
-                className="p-2.5 rounded-full border border-[#F7F3E8]/20 text-[#F7F3E8] hover:bg-[#BC6F07] hover:border-[#BC6F07] transition-all duration-300 cursor-pointer"
-                title="Previous Slide"
-              >
-                <ChevronLeft size={18} />
-              </button>
-              <button
-                onClick={handleNext}
-                className="p-2.5 rounded-full border border-[#F7F3E8]/20 text-[#F7F3E8] hover:bg-[#BC6F07] hover:border-[#BC6F07] transition-all duration-300 cursor-pointer"
-                title="Next Slide"
-              >
-                <ChevronRight size={18} />
-              </button>
-            </div>
           </div>
         </div>
 
