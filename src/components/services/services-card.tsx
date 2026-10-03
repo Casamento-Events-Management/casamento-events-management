@@ -149,7 +149,7 @@ export function ServicesCard({
                     </h3>
 
                     {/* Tagline & Category */}
-                    <div className="flex items-center text-[10px] sm:text-[11px] font-semibold tracking-wider text-[#BC6F07] uppercase">
+                    <div className="items-center text-[10px] sm:text-[11px] font-semibold tracking-wider text-[#BC6F07]">
                         <span className="text-[#BC6F07] mr-1">•</span>
                         <span>{service.serviceType}</span>
                         <span className="text-[#BC6F07] mx-1">•</span>
@@ -161,23 +161,6 @@ export function ServicesCard({
                     </p>
                 </div>
 
-                {/* Default Inclusions Teaser */}
-                {service.defaultInclusions && service.defaultInclusions.length > 0 && (
-                    <div className="pt-1.5 border-t border-[#3A4F1C]/10 space-y-0.5">
-                        <span className="text-[9px] font-bold uppercase text-[#3A4F1C]/70 tracking-wider">
-                            Key Inclusions:
-                        </span>
-                        <ul className="space-y-0.5">
-                            {service.defaultInclusions.slice(0, 2).map((item, idx) => (
-                                <li key={idx} className="text-[10px] sm:text-[11px] text-[#3A4F1C]/90 font-medium flex items-center space-x-1">
-                                    <span className="text-[#BC6F07] text-[11px] font-bold">✓</span>
-                                    <span className="truncate">{item}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                )}
-
                 {/* 3. Card Footer Reduced CTA Buttons */}
                 <div className="pt-2 border-t border-[#3A4F1C]/15 flex items-center justify-between gap-1.5">
                     <button
@@ -188,7 +171,7 @@ export function ServicesCard({
                                 onOpenInquiry(service);
                             }
                         }}
-                        className="px-2.5 py-1 lg:px-3 lg:py-1.5 rounded-full text-[10px] lg:text-xs font-semibold uppercase tracking-wider border border-[#3A4F1C]/30 text-[#3A4F1C] hover:bg-[#3A4F1C] hover:text-[#F7F3E8] transition-all cursor-pointer whitespace-nowrap"
+                        className="px-2.5 py-1 lg:px-3 lg:py-1.5 rounded-full text-[10px] lg:text-xs font-semibold tracking-wider border border-[#3A4F1C]/30 text-[#3A4F1C] hover:bg-[#3A4F1C] hover:text-[#F7F3E8] transition-all cursor-pointer whitespace-nowrap"
                     >
                         Message for Inquiry
                     </button>
@@ -205,15 +188,6 @@ export function ServicesCard({
                         >
                             View Details
                         </button>
-                        
-                        {/* Reduced Size Book Now Button */}
-                        <Link
-                            href={bookingUrl}
-                            onClick={(e) => e.stopPropagation()}
-                            className="px-2.5 py-1 lg:px-4 lg:py-1.5 rounded-full text-[10px] lg:text-xs font-semibold uppercase tracking-wider bg-[#3A4F1C] text-[#F7F3E8] hover:bg-[#2A3A14] border border-[#BC6F07]/50 shadow-xs transition-all text-center inline-block whitespace-nowrap"
-                        >
-                            Book Now
-                        </Link>
                     </div>
                 </div>
             </div>

@@ -59,17 +59,7 @@ export function ServicesDetailPanel({
         <aside className={`bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-xl shadow-md overflow-hidden flex flex-col ${isMobileModal ? 'w-full max-h-[90vh]' : 'w-full max-h-[calc(100vh-7rem)]'
             }`}>
             {/* Header Banner & Close Control */}
-            <div className="relative h-32 w-full bg-[#EFEAD8] shrink-0">
-                {service.images && service.images[0] && (
-                    <Image
-                        src={service.images[0].url}
-                        alt={service.title}
-                        fill
-                        className="object-cover"
-                    />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
-
+            <div className="relative w-full shrink-0">
                 {onCloseMobile && (
                     <button
                         type="button"
@@ -95,6 +85,9 @@ export function ServicesDetailPanel({
             <div className="p-3.5 overflow-y-auto space-y-3.5 flex-1 text-[#3A4F1C] text-xs">
                 {/* 1. Full Description */}
                 <div>
+                    <h2 className="text-sm mb-2 sm:text-base font-serif font-semibold leading-tight line-clamp-1">
+                        {service.title}
+                    </h2>
                     <h4 className="text-[10px] font-bold tracking-wider uppercase text-[#3A4F1C]/70 mb-1">
                         Package Scope
                     </h4>
@@ -133,8 +126,8 @@ export function ServicesDetailPanel({
                                         key={addon.id}
                                         onClick={() => toggleAddOn(addon.id)}
                                         className={`flex items-start space-x-2 p-2 rounded-lg border cursor-pointer transition-all ${isChecked
-                                                ? 'bg-[#3A4F1C]/10 border-[#BC6F07]'
-                                                : 'bg-[#F7F3E8] border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
+                                            ? 'bg-[#3A4F1C]/10 border-[#BC6F07]'
+                                            : 'bg-[#F7F3E8] border-[#3A4F1C]/15 hover:bg-[#EFEAD8]'
                                             }`}
                                     >
                                         <input
