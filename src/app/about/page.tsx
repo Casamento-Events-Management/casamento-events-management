@@ -333,27 +333,28 @@ export default async function AboutPage() {
         </section>
 
         {/* Section 5: Call to Action */}
-        <section className="py-16 md:py-20 px-6 bg-[#EFEAD8]/60 border-t border-[#3A4F1C]/10 text-[#3A4F1C] text-center relative overflow-hidden">
+        <section className="py-16 md:py-20 px-6 bg-[#3A4F1C] text-[#F7F3E8] text-center relative overflow-hidden">
+          <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#BC6F07_1px,transparent_1px)] bg-size-[16px_16px]" />
           <div className="relative z-10 max-w-3xl mx-auto space-y-6">
             <span className="text-xs md:text-sm font-semibold tracking-widest text-[#BC6F07] uppercase">
               Begin Your Journey
             </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-[#3A4F1C] tracking-tight font-medium">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-[#F7F3E8] tracking-tight">
               Ready to Celebrate Your Story?
             </h2>
             <div className="w-12 h-0.5 bg-[#BC6F07] mx-auto" />
-            <p className="text-base sm:text-lg text-[#3A4F1C]/80 leading-relaxed font-light max-w-xl mx-auto">
+            <p className="text-base sm:text-lg text-[#F7F3E8]/80 leading-relaxed font-light max-w-xl mx-auto">
               From intimate celebrations to grand nationwide productions, our team brings heart, precision, and purpose to every detail.
             </p>
             <div className="pt-4 flex flex-wrap items-center justify-center gap-4">
-              <Button href="/services" variant="outline" size="md">
+              <Button href="/services" variant="secondary" size="md">
                 Explore Services
               </Button>
               <Button
                 href="#contact-form"
                 variant="primary"
                 size="md"
-                className="inline-flex items-center gap-2 shadow-md"
+                className="bg-[#BC6F07] hover:bg-[#9E5B04] text-white border-none inline-flex items-center gap-2"
               >
                 <span>Get in Touch</span>
                 <ArrowRight className="w-4 h-4" />
@@ -368,6 +369,7 @@ export default async function AboutPage() {
           title={contactData.title}
           description={contactData.description}
           socialLinks={contactData.socialLinks}
+          bgColor="bg-[#243313] border-t border-[#BC6F07]/20"
         />
       </article>
     </>

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, CheckCircle2, Send, Loader2, Sparkles, ShieldCheck } from 'lucide-react';
 import type { ServiceItem } from '@/types';
 import { Button } from '@/components/ui/button';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface ServiceInquiryModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export function ServiceInquiryModal({
   onClose,
   service,
 }: ServiceInquiryModalProps) {
+  useScrollLock(isOpen);
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
@@ -40,9 +42,6 @@ export function ServiceInquiryModal({
         setSubmitError(null);
         setIsSuccess(false);
       });
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
     }
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -53,7 +52,6 @@ export function ServiceInquiryModal({
     window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, service?.id, onClose]);
@@ -130,9 +128,6 @@ export function ServiceInquiryModal({
         {/* Modal Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between px-5 py-4 bg-[#F7F3E8]/95 backdrop-blur border-b border-[#3A4F1C]/15 shrink-0">
           <div className="space-y-0.5">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-[#BC6F07] flex items-center gap-1">
-              <Sparkles className="w-3 h-3" /> Inquire About Service
-            </span>
             <h3 className="text-sm sm:text-base font-serif font-bold text-[#3A4F1C] line-clamp-1">
               {service.title}
             </h3>

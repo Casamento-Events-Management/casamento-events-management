@@ -11,6 +11,7 @@ interface ConnectSectionProps {
   title?: string;
   description?: string;
   socialLinks: SocialLink[];
+  bgColor?: string;
 }
 
 export function ConnectSection({
@@ -18,6 +19,7 @@ export function ConnectSection({
   title = 'Connect With Us',
   description = 'Follow our latest event highlights, behind-the-scenes stories, and creative inspirations across our official channels.',
   socialLinks,
+  bgColor = 'bg-[#3A4F1C]',
 }: ConnectSectionProps) {
   const getSocialLabel = (platform: string) => {
     switch (platform.toLowerCase()) {
@@ -37,7 +39,7 @@ export function ConnectSection({
   };
 
   return (
-    <section id="contact-form" className="scroll-mt-16 sm:scroll-mt-20 py-20 md:py-28 bg-[#3A4F1C] text-[#F7F3E8] relative overflow-hidden">
+    <section id="contact-form" className={`scroll-mt-16 sm:scroll-mt-20 py-20 md:py-28 ${bgColor} text-[#F7F3E8] relative overflow-hidden`}>
       {/* Subtle Dot Matrix Texture */}
       <div className="absolute inset-0 opacity-5 bg-[radial-[#BC6F07]_1px,transparent_1px] bg-size-[16px_16px] z-0" />
 

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Play, X } from 'lucide-react';
 import type { TeaserVideo } from '@/types';
 import { parseVideoSource } from '@/lib/utils/videoUtils';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface TeaserCardProps {
   teaser: TeaserVideo;
@@ -23,17 +24,7 @@ interface VideoModalProps {
 }
 
 function VideoModal({ isOpen, onClose, title, description, embedUrl, directUrl, isNative }: VideoModalProps) {
-  // Body scroll lock
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  useScrollLock(isOpen);
 
   // ESC key close
   useEffect(() => {

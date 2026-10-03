@@ -3,6 +3,7 @@
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
 import { FeedbackForm } from './FeedbackForm';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -10,22 +11,20 @@ interface FeedbackModalProps {
 }
 
 export function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
+  useScrollLock(isOpen);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && isOpen) {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.body.style.overflow = '';
     }
 
     return () => {
-      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);

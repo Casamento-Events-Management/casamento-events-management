@@ -8,6 +8,7 @@ import type { ArticleVlogItem } from '@/types';
 import { ShareDropdown } from '@/components/ui/share-dropdown';
 import { SocialIcon } from '@/components/ui/social-icon';
 import { parseVideoSource } from '@/lib/utils/videoUtils';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface VlogModalProps {
   item: ArticleVlogItem | null;
@@ -16,25 +17,22 @@ interface VlogModalProps {
 }
 
 export function VlogModal({ item, isOpen, onClose }: VlogModalProps) {
+  useScrollLock(isOpen);
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // ESC key listener & body scroll lock
+  // ESC key listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && isOpen) {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.body.style.overflow = '';
     }
 
     return () => {
-      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);

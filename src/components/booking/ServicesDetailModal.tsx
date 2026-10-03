@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import Image from 'next/image';
 import { X, CheckCircle, Sparkles } from 'lucide-react';
 import type { ServiceItem } from '@/types';
+import { useScrollLock } from '@/lib/hooks/useScrollLock';
 
 interface ServicesDetailModalProps {
   isOpen: boolean;
@@ -16,23 +17,21 @@ export function ServicesDetailModal({
   onClose,
   service,
 }: ServicesDetailModalProps) {
-  // Prevent background scrolling and handle Escape (ESC) key to close modal
+  useScrollLock(isOpen);
+
+  // Handle Escape (ESC) key to close modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && isOpen) {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.body.style.overflow = '';
     }
 
     return () => {
-      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
