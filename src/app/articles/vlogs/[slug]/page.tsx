@@ -9,6 +9,7 @@ import {
 } from '@/lib/services/articleVlogService';
 import { CustomPortableText } from '@/components/ui/portable-text';
 import { parseVideoSource } from '@/lib/utils/videoUtils';
+import { SocialIcon } from '@/components/ui/social-icon';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -200,9 +201,11 @@ export default async function VlogDetailPage({ params }: PageProps) {
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-medium text-[#3A4F1C]/70 hover:text-[#BC6F07] capitalize underline underline-offset-4 transition-colors duration-200"
+                  aria-label={link.platform}
+                  title={link.platform}
+                  className="text-[#3A4F1C]/75 hover:text-[#BC6F07] transition-colors duration-200"
                 >
-                  {link.platform}
+                  <SocialIcon platform={link.platform} className="w-5.5 h-5.5 sm:w-6 sm:h-6 shrink-0" />
                 </a>
               ))}
             </div>
