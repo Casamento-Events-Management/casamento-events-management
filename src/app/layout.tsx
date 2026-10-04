@@ -13,6 +13,7 @@ const geistSans = Geist({
 
 const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === 'true';
 
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'),
   title: {
