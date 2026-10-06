@@ -66,7 +66,6 @@ export const serviceItem = defineType({
       type: 'array',
       of: [defineArrayMember({ type: 'sanityImageWithPriority' })],
       description: 'Photo gallery rendered as an interactive image carousel inside the vertical service card and detail panel.',
-      validation: (Rule) => Rule.required().min(1),
     }),
     defineField({
       name: 'defaultInclusions',

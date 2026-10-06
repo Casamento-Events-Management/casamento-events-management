@@ -16,9 +16,8 @@ export function InFormServiceCard({
 }: InFormServiceCardProps) {
   if (!service) return null;
 
-  const mainPhoto = service.images && service.images.length > 0
-    ? service.images[0].url
-    : '/images/services/placeholder.jpg';
+  const hasImages = Boolean(service.images && service.images.length > 0);
+  const mainPhoto = hasImages ? service.images![0].url : null;
 
   return (
     <div
@@ -34,25 +33,32 @@ export function InFormServiceCard({
         }
       }}
     >
-      {/* LEFT: Small Reduced Image Thumbnail */}
-      <div className="relative w-20 h-20 sm:w-28 sm:h-28 shrink-0 rounded-lg overflow-hidden border border-[#3A4F1C]/15 shadow-sm">
-        <Image
-          src={mainPhoto}
-          alt={service.title}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-          sizes="112px"
-        />
-        <div className="absolute top-1 right-1 p-1 rounded-full bg-black/40 backdrop-blur text-white/80 group-hover:bg-[#BC6F07] group-hover:text-white transition-colors">
-          <Maximize2 className="w-3 h-3" />
+      {/* LEFT: Small Reduced Image Thumbnail — Only rendered if images exist */}
+      {hasImages && mainPhoto && (
+        <div className="relative w-20 h-20 sm:w-28 sm:h-28 shrink-0 rounded-lg overflow-hidden border border-[#3A4F1C]/15 shadow-sm">
+          <Image
+            src={mainPhoto}
+            alt={service.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="112px"
+          />
+          <div className="absolute top-1 right-1 p-1 rounded-full bg-black/40 backdrop-blur text-white/80 group-hover:bg-[#BC6F07] group-hover:text-white transition-colors">
+            <Maximize2 className="w-3 h-3" />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* RIGHT: Category, Name (Title) */}
       <div className="flex-1 min-w-0 space-y-1">
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#BC6F07] flex items-center gap-1">
-          <span className="truncate">{service.category?.title || 'Service Package'}</span>
-        </span>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#BC6F07] flex items-center gap-1">
+            <span className="truncate">{service.category?.title || 'Service Package'}</span>
+          </span>
+          {!hasImages && (
+            <Maximize2 className="w-3.5 h-3.5 text-[#3A4F1C]/40 group-hover:text-[#BC6F07] transition-colors shrink-0" />
+          )}
+        </div>
 
         <h4 className="text-xs sm:text-sm font-serif font-bold text-[#3A4F1C] leading-snug line-clamp-2 group-hover:text-[#BC6F07] transition-colors">
           {service.title}

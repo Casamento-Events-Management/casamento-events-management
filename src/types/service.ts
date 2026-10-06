@@ -100,7 +100,7 @@ export interface SanityServiceItem extends SanityDocument {
     /** Full detailed description for the 35% detail preview panel. */
     fullDescription?: string;
     /** Gallery of images for card carousel & detail modal (hotspot & priority supported). */
-    images: SanityImageWithPriority[];
+    images?: SanityImageWithPriority[];
     /** Default inclusions packaged in this base service tier. */
     defaultInclusions: string[];
     /** Optional add-on features that can be added to this service. */
@@ -137,7 +137,7 @@ export interface ServiceItem {
     /** Full detailed description for the detail panel. */
     fullDescription: string;
     /** Images array for the card carousel and detail display. */
-    images: {
+    images?: {
         url: string;
         alt: string;
         caption?: string;

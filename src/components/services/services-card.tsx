@@ -31,9 +31,8 @@ export function ServicesCard({
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const cardRef = React.useRef<HTMLElement>(null);
 
-    const images = service.images && service.images.length > 0
-        ? service.images
-        : [{ url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80', alt: service.title }];
+    const hasImages = Boolean(service.images && service.images.length > 0);
+    const images = hasImages ? service.images! : [];
 
     // Auto switching image carousel effect (4 seconds interval)
     useEffect(() => {
@@ -79,76 +78,86 @@ export function ServicesCard({
                     : 'border-[#3A4F1C]/15 hover:border-[#3A4F1C]/40 hover:shadow-xs'
             }`}
         >
-            {/* 1. Carousel Container */}
-            <div className="relative h-48 sm:h-68 md:h-76 lg:h-82 w-full bg-[#EFEAD8] overflow-hidden select-none">
-                <Image
-                    src={images[currentImageIndex]?.url || images[0].url}
-                    alt={images[currentImageIndex]?.alt || service.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
-                    priority={priority}
-                    className="object-cover"
-                />
-                
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 pointer-events-none" />
+            {/* 1. Carousel Container — Only rendered if images exist */}
+            {hasImages && (
+                <div className="relative h-48 sm:h-68 md:h-76 lg:h-82 w-full bg-[#EFEAD8] overflow-hidden select-none">
+                    <Image
+                        src={images[currentImageIndex]?.url || images[0].url}
+                        alt={images[currentImageIndex]?.alt || service.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 400px"
+                        priority={priority}
+                        className="object-cover"
+                    />
+                    
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 pointer-events-none" />
 
-                {/* Badge Tag */}
-                {service.badge && (
-                    <div className="absolute top-2.5 left-2.5 z-10">
-                        <Badge status="upcoming" className="bg-[#3A4F1C]/90 text-[#F7F3E8] border-[#BC6F07]/60 text-[10px] py-0.5 px-2">
-                            {service.badge}
-                        </Badge>
-                    </div>
-                )}
-
-                {/* Manual Carousel Controls */}
-                {images.length > 1 && (
-                    <>
-                        <button
-                            type="button"
-                            onClick={handlePrevImage}
-                            aria-label="Previous image"
-                            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                        >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                            </svg>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleNextImage}
-                            aria-label="Next image"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-                        >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-
-                        {/* Carousel Dots */}
-                        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex space-x-1">
-                            {images.map((_, idx) => (
-                                <button
-                                    key={`dot-${idx}`}
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setCurrentImageIndex(idx);
-                                    }}
-                                    className={`h-1 rounded-full transition-all ${
-                                        idx === currentImageIndex ? 'bg-[#BC6F07] w-3' : 'bg-white/70 w-1'
-                                    }`}
-                                />
-                            ))}
+                    {/* Badge Tag inside image overlay */}
+                    {service.badge && (
+                        <div className="absolute top-2.5 left-2.5 z-10">
+                            <Badge status="upcoming" className="bg-[#3A4F1C]/90 text-[#F7F3E8] border-[#BC6F07]/60 text-[10px] py-0.5 px-2">
+                                {service.badge}
+                            </Badge>
                         </div>
-                    </>
-                )}
-            </div>
+                    )}
+
+                    {/* Manual Carousel Controls */}
+                    {images.length > 1 && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={handlePrevImage}
+                                aria-label="Previous image"
+                                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                            >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleNextImage}
+                                aria-label="Next image"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-1.5 rounded-full bg-black/40 text-white hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                            >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+
+                            {/* Carousel Dots */}
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 flex space-x-1">
+                                {images.map((_, idx) => (
+                                    <button
+                                        key={`dot-${idx}`}
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setCurrentImageIndex(idx);
+                                        }}
+                                        className={`h-1 rounded-full transition-all ${
+                                            idx === currentImageIndex ? 'bg-[#BC6F07] w-3' : 'bg-white/70 w-1'
+                                        }`}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+            )}
 
             {/* 2. Card Content Body */}
             <div className="p-4 sm:p-5 flex flex-col flex-1 justify-between space-y-3">
                 <div className="space-y-1">
+                    {/* Badge Tag when no image container is present */}
+                    {!hasImages && service.badge && (
+                        <div className="mb-2">
+                            <Badge status="upcoming" className="bg-[#3A4F1C]/90 text-[#F7F3E8] border-[#BC6F07]/60 text-[10px] py-0.5 px-2">
+                                {service.badge}
+                            </Badge>
+                        </div>
+                    )}
                     <h3 className="text-sm sm:text-base font-serif font-semibold text-[#3A4F1C] leading-snug group-hover:text-[#BC6F07] transition-colors">
                         {service.title}
                     </h3>

@@ -89,14 +89,16 @@ export function mapSanityItemToServiceItem(raw: SanityServiceItem): ServiceItem 
         serviceType: raw.serviceType || 'Event Service',
         shortDescription: raw.shortDescription || '',
         fullDescription: raw.fullDescription || raw.shortDescription || '',
-        images: Array.isArray(raw.images) ? raw.images.map((img: { url?: string; asset?: { url?: string }; alt?: string; caption?: string; width?: number; height?: number; aspectRatio?: number }) => ({
-            url: img.url || img.asset?.url || '',
-            alt: img.alt || raw.title,
-            caption: img.caption,
-            width: img.width,
-            height: img.height,
-            aspectRatio: img.aspectRatio,
-        })) : [],
+        images: Array.isArray(raw.images) && raw.images.length > 0
+            ? raw.images.map((img: { url?: string; asset?: { url?: string }; alt?: string; caption?: string; width?: number; height?: number; aspectRatio?: number }) => ({
+                url: img.url || img.asset?.url || '',
+                alt: img.alt || raw.title,
+                caption: img.caption,
+                width: img.width,
+                height: img.height,
+                aspectRatio: img.aspectRatio,
+            })).filter((img) => Boolean(img.url))
+            : undefined,
         defaultInclusions: raw.defaultInclusions || [],
         addOns: Array.isArray(raw.addOns) ? raw.addOns.map((addon: { title: string; description?: string }, idx: number) => ({
             id: `addon-${idx}`,

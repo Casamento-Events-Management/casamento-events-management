@@ -78,8 +78,9 @@ export async function seedServices(dryRun: boolean): Promise<void> {
 
         // Upload images
         const imageObjects = []
-        for (let i = 0; i < item.images.length; i++) {
-            const img = item.images[i]
+        const itemImages = item.images || []
+        for (let i = 0; i < itemImages.length; i++) {
+            const img = itemImages[i]
             const ref = await uploadImageFromUrl(
                 client,
                 img.url,

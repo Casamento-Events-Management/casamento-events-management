@@ -38,9 +38,8 @@ export function ServicesDetailModal({
 
   if (!isOpen || !service) return null;
 
-  const primaryImage = service.images && service.images.length > 0
-    ? service.images[0].url
-    : '/images/services/placeholder.jpg';
+  const hasImages = Boolean(service.images && service.images.length > 0);
+  const primaryImage = hasImages ? service.images![0].url : null;
 
   return (
     <div
@@ -72,27 +71,29 @@ export function ServicesDetailModal({
 
         {/* Modal Body */}
         <div className="p-6 space-y-6">
-          {/* Main Image Banner */}
-          <div className="relative w-full h-56 sm:h-72 rounded-xl overflow-hidden shadow-inner border border-[#3A4F1C]/10">
-            <Image
-              src={primaryImage}
-              alt={service.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 768px"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-              <div>
-                <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wider block">
-                  {service.serviceType}
-                </span>
-                <p className="text-sm sm:text-base font-serif font-medium text-white">
-                  {service.title}
-                </p>
+          {/* Main Image Banner — Only rendered if images exist */}
+          {hasImages && primaryImage && (
+            <div className="relative w-full h-56 sm:h-72 rounded-xl overflow-hidden shadow-inner border border-[#3A4F1C]/10">
+              <Image
+                src={primaryImage}
+                alt={service.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 768px"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+                <div>
+                  <span className="text-[10px] font-semibold text-white/80 uppercase tracking-wider block">
+                    {service.serviceType}
+                  </span>
+                  <p className="text-sm sm:text-base font-serif font-medium text-white">
+                    {service.title}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Service Full / Short Description */}
           <div className="space-y-2">
