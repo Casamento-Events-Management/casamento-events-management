@@ -143,13 +143,14 @@ export const clientFeedback = defineType({
       rating: 'rating',
       status: 'status',
       media: 'photo',
+      priority: 'priority',
     },
-    prepare({ name, eventType, rating, status, media }) {
+    prepare({ name, eventType, rating, status, media, priority }) {
       const statusIcon = status === 'approved' ? '✅' : status === 'rejected' ? '❌' : '⏳';
       const stars = '★'.repeat(rating || 5);
       return {
         title: `${statusIcon} ${name} (${stars})`,
-        subtitle: `${eventType || 'General'} | Status: ${status}`,
+        subtitle: `${eventType || 'General'} | Status: ${status} | Priority: ${priority ?? 0}`,
         media,
       };
     },

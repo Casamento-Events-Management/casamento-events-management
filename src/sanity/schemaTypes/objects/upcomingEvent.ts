@@ -80,12 +80,13 @@ export const upcomingEvent = defineType({
       date: 'date',
       media: 'coverImage',
       status: 'status',
+      priority: 'priority',
     },
-    prepare({ title, date, media, status }) {
+    prepare({ title, date, media, status, priority }) {
       const formattedDate = date ? new Date(date).toLocaleDateString() : 'No date'
       return {
         title,
-        subtitle: `${formattedDate} • ${status || 'upcoming'}`,
+        subtitle: `${formattedDate} • ${status || 'upcoming'} • Priority: ${priority ?? 0}`,
         media,
       }
     },

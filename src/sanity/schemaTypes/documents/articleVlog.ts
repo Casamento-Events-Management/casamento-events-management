@@ -186,11 +186,12 @@ export const articleVlog = defineType({
       category: 'category.title',
       media: 'thumbnail',
       mediaType: 'mediaType',
+      priority: 'priority',
     },
-    prepare({ title, category, media, mediaType }) {
+    prepare({ title, category, media, mediaType, priority }) {
       return {
         title,
-        subtitle: `${mediaType === 'video' ? '🎬' : '📖'} ${category ?? 'Uncategorized'}`,
+        subtitle: `${mediaType === 'video' ? '🎬' : '📖'} ${category ?? 'Uncategorized'} • Priority: ${priority ?? 0}`,
         media,
       }
     },

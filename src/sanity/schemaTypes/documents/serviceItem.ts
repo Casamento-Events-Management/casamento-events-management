@@ -116,11 +116,12 @@ export const serviceItem = defineType({
       category: 'category.title',
       media: 'images.0',
       badge: 'badge',
+      priority: 'priority',
     },
-    prepare({ title, category, media, badge }) {
+    prepare({ title, category, media, badge, priority }) {
       return {
         title: `${badge ? `[${badge}] ` : ''}${title}`,
-        subtitle: category || 'Uncategorized',
+        subtitle: `${category || 'Uncategorized'} • Priority: ${priority ?? 0}`,
         media,
       }
     },

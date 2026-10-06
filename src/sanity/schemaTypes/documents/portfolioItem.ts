@@ -119,11 +119,12 @@ export const portfolioItem = defineType({
       mediaType: 'mediaType',
       media: 'thumbnail',
       featured: 'featured',
+      priority: 'priority',
     },
-    prepare({ title, category, mediaType, media, featured }) {
+    prepare({ title, category, mediaType, media, featured, priority }) {
       return {
         title: `${featured ? '★ ' : ''}${title}`,
-        subtitle: `${category || 'Uncategorized'} • ${mediaType || 'image'}`,
+        subtitle: `${category || 'Uncategorized'} • ${mediaType || 'image'} • Priority: ${priority ?? 0}`,
         media,
       }
     },
