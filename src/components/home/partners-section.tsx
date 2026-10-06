@@ -19,19 +19,19 @@ function PartnerLogo({ partner }: { partner: Partner }) {
         src={logoUrl}
         alt={partner.logo.alt || partner.name}
         fill
-        sizes="(max-width: 640px) 170px, 220px"
+        sizes="(max-width: 640px) 120px, 220px"
         className="object-contain"
         onError={() => setImageError(true)}
       />
     </div>
   ) : (
-    <span className="text-sm sm:text-base font-serif font-semibold tracking-wide text-[#3A4F1C]/70 text-center leading-snug px-2">
+    <span className="text-xs sm:text-base font-serif font-semibold tracking-wide text-[#3A4F1C]/70 text-center leading-snug px-2">
       {partner.name}
     </span>
   );
 
   const sharedClass =
-    'flex items-center justify-center w-[170px] h-[76px] sm:w-[210px] sm:h-[92px] transition-opacity duration-300 hover:opacity-100 opacity-80 cursor-default';
+    'flex items-center justify-center w-[120px] h-[56px] sm:w-[210px] sm:h-[92px] transition-opacity duration-300 hover:opacity-100 opacity-80 cursor-default';
 
   if (partner.url) {
     return (
@@ -63,7 +63,7 @@ export function PartnersSection({ partners }: PartnersSectionProps) {
         />
 
         {/* Single flex-wrap container — logos center-align and wrap naturally */}
-        <div className="mt-10 md:mt-14 flex flex-wrap justify-center gap-x-10 gap-y-8 sm:gap-x-14 sm:gap-y-10">
+        <div className="mt-10 md:mt-14 flex flex-wrap justify-center gap-x-6 gap-y-6 sm:gap-x-14 sm:gap-y-10">
           {partners.map((partner) => (
             <PartnerLogo key={partner.name} partner={partner} />
           ))}
