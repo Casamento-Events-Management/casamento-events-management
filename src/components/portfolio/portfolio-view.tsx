@@ -8,6 +8,7 @@
 'use client';
 
 import React, { useState, useEffect, useTransition, Suspense } from 'react';
+import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { PortfolioFilterBar } from './portfolio-filter-bar';
@@ -22,6 +23,7 @@ interface PortfolioViewProps {
     galleryEyebrow?: string;
     galleryTitle?: string;
     galleryDescription?: string;
+    showViewMore?: boolean;
 }
 
 function PortfolioViewContent({
@@ -31,6 +33,7 @@ function PortfolioViewContent({
     galleryEyebrow = 'Portfolio Gallery',
     galleryTitle = 'Explore Our Showcase',
     galleryDescription = 'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
+    showViewMore = false,
 }: PortfolioViewProps) {
     const router = useRouter();
     const pathname = usePathname();
@@ -129,6 +132,18 @@ function PortfolioViewContent({
             ) : (
                 <div className="mt-12 py-16 text-center rounded-2xl bg-[#EFEAD8]/60 border border-[#3A4F1C]/15 shadow-xs">
                     <p className="text-[#3A4F1C]/80 text-base sm:text-lg font-medium">No portfolio showcase found in this category yet.</p>
+                </div>
+            )}
+
+            {/* View More Gallery CTA */}
+            {showViewMore && activeCategory === 'all' && (
+                <div className="flex justify-center mt-14 pb-4">
+                    <Link
+                        href="/portfolio/gallery"
+                        className="text-sm font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
+                    >
+                        View More Gallery →
+                    </Link>
                 </div>
             )}
 

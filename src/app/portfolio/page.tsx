@@ -9,7 +9,8 @@ import type { Metadata } from 'next';
 import {
     getPortfolioCategories,
     getPortfolioHeroContent,
-    getPortfolioItems,
+    getPortfolioItemsForGallery,
+    getPortfolioItemTotalCount,
     getPortfolioUpcomingEvents
 } from '@/lib/services/portfolioService';
 import { getContactSectionContent } from '@/lib/services/contactService';
@@ -48,13 +49,16 @@ export const metadata: Metadata = {
 };
 
 export default async function PortfolioPage() {
-    const [categories, items, heroContent, upcomingEventsData, contactData] = await Promise.all([
+    const [categories, items, totalCount, heroContent, upcomingEventsData, contactData] = await Promise.all([
         getPortfolioCategories(),
-        getPortfolioItems('all'),
+        getPortfolioItemsForGallery('all', 1, 20),
+        getPortfolioItemTotalCount('all'),
         getPortfolioHeroContent(),
         getPortfolioUpcomingEvents(),
         getContactSectionContent(),
     ]);
+
+    const showViewMore = totalCount > 20;
 
     return (
         <main className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
@@ -77,6 +81,7 @@ export default async function PortfolioPage() {
                 galleryEyebrow={heroContent.galleryEyebrow}
                 galleryTitle={heroContent.galleryTitle}
                 galleryDescription={heroContent.galleryDescription}
+                showViewMore={showViewMore}
             />
             <PortfolioJsonLd items={items} />
             <ConnectSection

@@ -247,6 +247,128 @@ export async function getPortfolioItems(
     return sorted.slice(offset);
 }
 
+export const PORTFOLIO_PAGE_SIZE = 20;
+
+/**
+ * Fetch a paginated page of portfolioItem documents with a strict item cap.
+ * Default: page 1 = items [0...20]. Supports optional category filter.
+ */
+export async function getPortfolioItemsForGallery(
+    categorySlug?: string,
+    page = 1,
+    pageSize = PORTFOLIO_PAGE_SIZE
+): Promise<PortfolioItem[]> {
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+
+    const categoryFilter = categorySlug && categorySlug !== 'all'
+        ? `&& category->slug.current == $categorySlug`
+        : '';
+
+    const query = `
+      *[_type == "portfolioItem" ${categoryFilter}]
+      | order(featured desc, priority desc, _createdAt desc)
+      [${start}...${end}] {
+        "id": _id,
+        title,
+        "slug": slug.current,
+        "mediaType": select(defined(mediaType) => mediaType, defined(video) => "video", "image"),
+        category->{
+          title,
+          "slug": slug.current
+        },
+        tags,
+        thumbnail {
+          "url": asset->url,
+          "alt": coalesce(alt, title),
+          caption,
+          "width": asset->metadata.dimensions.width,
+          "height": asset->metadata.dimensions.height,
+          "aspectRatio": asset->metadata.dimensions.aspectRatio
+        },
+        video {
+          "sourceType": select(
+            defined(sourceType) => sourceType,
+            defined(asset) => "sanity",
+            "external"
+          ),
+          provider,
+          url,
+          mimeType,
+          "asset": {
+            "_ref": coalesce(asset.asset._ref, asset._ref),
+            "_type": "reference",
+            "url": coalesce(asset.asset->url, asset->url)
+          }
+        },
+        description,
+        eventDate,
+        duration,
+        location,
+        clientName,
+        featured,
+        priority,
+        "createdAt": _createdAt
+      }
+    `;
+
+    try {
+        const rawItems = await client.fetch<SanityPortfolioItem[]>(
+            query,
+            { categorySlug: categorySlug ?? '' },
+            { next: { revalidate: 3600, tags: ['portfolioItem'] } }
+        );
+        if (Array.isArray(rawItems) && rawItems.length > 0) {
+            return rawItems.map(mapSanityItemToPortfolioItem);
+        }
+    } catch (err) {
+        console.warn('[portfolioService] Failed to fetch gallery portfolio items:', err);
+    }
+
+    // Fallback to local mock data sliced to page
+    const filtered = categorySlug && categorySlug !== 'all'
+        ? MOCK_PORTFOLIO_ITEMS.filter((item) => item.category.slug === categorySlug)
+        : MOCK_PORTFOLIO_ITEMS;
+
+    const sorted = [...filtered].sort((a, b) => {
+        if (a.featured !== b.featured) {
+            return a.featured ? -1 : 1;
+        }
+        if ((b.priority ?? 0) !== (a.priority ?? 0)) {
+            return (b.priority ?? 0) - (a.priority ?? 0);
+        }
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return timeB - timeA;
+    });
+
+    return sorted.slice(start, end);
+}
+
+/**
+ * Fetch total count of portfolioItem documents (supports category filter).
+ * Used to calculate totalPages = Math.ceil(totalCount / 20) and toggle View More CTA.
+ */
+export async function getPortfolioItemTotalCount(categorySlug?: string): Promise<number> {
+    const categoryFilter = categorySlug && categorySlug !== 'all'
+        ? `&& category->slug.current == $categorySlug`
+        : '';
+    const query = `count(*[_type == "portfolioItem" ${categoryFilter}])`;
+
+    try {
+        return await client.fetch<number>(
+            query,
+            { categorySlug: categorySlug ?? '' },
+            { next: { revalidate: 3600, tags: ['portfolioItem'] } }
+        );
+    } catch {
+        const filtered = categorySlug && categorySlug !== 'all'
+            ? MOCK_PORTFOLIO_ITEMS.filter((item) => item.category.slug === categorySlug)
+            : MOCK_PORTFOLIO_ITEMS;
+        return filtered.length;
+    }
+}
+
 /**
  * Retrieves a single portfolio item by its URL slug (for deep links / lightbox share).
  */
