@@ -119,7 +119,7 @@ function PortfolioViewContent({
 
             {/* Portfolio Masonry Layout (Display Whole Item) */}
             {filteredItems.length > 0 ? (
-                <div className="mt-8 columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6">
+                <div className="mt-6 sm:mt-8 columns-3 sm:columns-2 lg:columns-3 xl:columns-4 gap-2 sm:gap-6">
                     {filteredItems.map((item, index) => (
                         <PortfolioCard
                             key={item.id || item.slug || `portfolio-card-${index}`}
