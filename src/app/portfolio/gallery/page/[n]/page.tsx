@@ -2,7 +2,6 @@ import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { PortfolioHero } from '@/components/portfolio/portfolio-hero';
 import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { PortfolioJsonLd } from '@/components/portfolio/portfolio-json-ld';
 import { ConnectSection } from '@/components/layout/connect-section';
@@ -22,17 +21,18 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { n } = await params;
   const pageNum = parseInt(n, 10);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
 
   return {
-    title: `Portfolio Gallery — Page ${pageNum} | Casamento Events`,
-    description: `Browse page ${pageNum} of event cinematography showcase, wedding films, and stage production gallery from Casamento Events Management.`,
+    title: `Portfolio Gallery — Page ${pageNum} | Casamento Events Management`,
+    description: `Browse page ${pageNum} of event cinematography, corporate conferences, brand activations, wedding films, and stage production showcase from Casamento Events Management across the Philippines.`,
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/portfolio/gallery/page/${pageNum}`,
+      canonical: `${siteUrl}/portfolio/gallery/page/${pageNum}`,
     },
     openGraph: {
-      title: `Portfolio Gallery — Page ${pageNum} | Casamento Events`,
-      description: `Browse page ${pageNum} of event cinematography showcase, wedding films, and stage production gallery.`,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/portfolio/gallery/page/${pageNum}`,
+      title: `Portfolio Gallery — Page ${pageNum} | Casamento Events Management`,
+      description: `Browse page ${pageNum} of event productions, wedding films, and corporate activations showcase.`,
+      url: `${siteUrl}/portfolio/gallery/page/${pageNum}`,
       siteName: 'Casamento Events Management',
       type: 'website',
     },

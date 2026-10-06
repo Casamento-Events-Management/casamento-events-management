@@ -16,23 +16,25 @@ import {
 const ITEMS_PER_PAGE = 12;
 
 export const metadata: Metadata = {
-  title: 'Client Feedbacks & Reviews | Casamento Events',
+  title: 'Client Feedbacks & Reviews | Casamento Events Management',
   description:
-    'Read verified client reviews, testimonials, and experiences from luxury weddings and events coordinated by Casamento Events Management.',
+    'Read verified client reviews, testimonials, and experiences from corporate events, brand activations, debuts, and weddings coordinated by Casamento Events Management across the Philippines.',
   keywords: [
     'Casamento Events reviews',
-    'wedding planner testimonials Philippines',
+    'events management reviews Philippines',
+    'wedding coordinator testimonials Manila',
+    'corporate event planner feedback PH',
     'client feedback Casamento Events',
-    'luxury event reviews',
+    'event coordinator ratings Manila',
   ],
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/feedback`,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/articles/feedback`,
   },
   openGraph: {
-    title: 'Client Feedbacks & Reviews | Casamento Events',
+    title: 'Client Feedbacks & Reviews | Casamento Events Management',
     description:
-      'Read verified client reviews and testimonials from couples and clients of Casamento Events.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/feedback`,
+      'Read verified client reviews and testimonials from corporate partners, brands, couples, and celebrants with Casamento Events Management.',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/articles/feedback`,
     siteName: 'Casamento Events Management',
     type: 'website',
   },

@@ -16,30 +16,31 @@ import { ConnectSection } from '@/components/layout/connect-section';
 import { getContactSectionContent } from '@/lib/services/contactService';
 
 export const metadata: Metadata = {
-  title: 'Articles & Vlogs | Event Planning Guides & Behind the Scenes',
-  description: 'Read expert event planning guides, luxury wedding trends, behind-the-scenes vlogs, and production insights from the Casamento Events editorial journal.',
+  title: 'Articles & Vlogs | Event Planning Guides & Production Insights',
+  description: 'Read expert event planning guides, corporate activation trends, behind-the-scenes vlogs, and technical production insights from the Casamento Events editorial journal in the Philippines.',
   keywords: [
-    'wedding planning articles Philippines',
-    'event planning guides',
-    'luxury wedding trends',
+    'event planning articles Philippines',
+    'corporate event guides Manila',
+    'wedding planning tips Philippines',
+    'brand activation case studies PH',
     'behind the scenes event production',
-    'Casamento Events blog',
-    'event cinematography tips',
+    'live stream production tips Manila',
+    'Casamento Events editorial',
   ],
   openGraph: {
     title: 'Articles & Vlogs | Casamento Events Editorial Journal',
-    description: 'Read expert event planning guides, luxury wedding trends, behind-the-scenes vlogs, and production insights.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/articles`,
+    description: 'Read expert event planning guides, corporate activation trends, behind-the-scenes vlogs, and production insights across the Philippines.',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/articles`,
     siteName: 'Casamento Events Management',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Articles & Vlogs | Casamento Events Editorial Journal',
-    description: 'Read expert event planning guides, luxury wedding trends, behind-the-scenes vlogs, and production insights.',
+    description: 'Read expert event planning guides, corporate activation trends, behind-the-scenes vlogs, and production insights across the Philippines.',
   },
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/articles`,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/articles`,
   },
 };
 

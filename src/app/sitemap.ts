@@ -10,18 +10,21 @@
 // =============================================================================
 
 import type { MetadataRoute } from 'next';
-import { getPortfolioCategories } from '@/lib/services/portfolioService';
+import { getPortfolioCategories, getPortfolioItemTotalCount } from '@/lib/services/portfolioService';
 import { getApprovedFeedbacksCount } from '@/lib/services/feedbackService';
+import { getArticleVlogTotalCount, getAllArticleVlogSlugs } from '@/lib/services/articleVlogService';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
     const currentDate = new Date();
 
-    // Fetch all published portfolio categories to generate dynamic category subpaths
-    // and feedback count for paginated feedback pages
-    const [categories, feedbackCount] = await Promise.all([
+    // Fetch dynamic content data for full URL indexation
+    const [categories, feedbackCount, portfolioTotal, vlogTotal, vlogSlugs] = await Promise.all([
         getPortfolioCategories(),
         getApprovedFeedbacksCount(),
+        getPortfolioItemTotalCount('all'),
+        getArticleVlogTotalCount(),
+        getAllArticleVlogSlugs(),
     ]);
 
     const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
@@ -31,6 +34,53 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.75,
     }));
 
+    // Portfolio Gallery Paginated Routes
+    const portfolioPagesCount = Math.ceil(portfolioTotal / 20);
+    const portfolioGalleryRoutes: MetadataRoute.Sitemap = [
+        {
+            url: `${baseUrl}/portfolio/gallery`,
+            lastModified: currentDate,
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+    ];
+    for (let page = 2; page <= portfolioPagesCount; page++) {
+        portfolioGalleryRoutes.push({
+            url: `${baseUrl}/portfolio/gallery/page/${page}`,
+            lastModified: currentDate,
+            changeFrequency: 'weekly',
+            priority: 0.6,
+        });
+    }
+
+    // Article Vlogs Paginated Routes
+    const vlogPagesCount = Math.ceil(vlogTotal / 12);
+    const vlogRoutes: MetadataRoute.Sitemap = [
+        {
+            url: `${baseUrl}/articles/vlogs`,
+            lastModified: currentDate,
+            changeFrequency: 'weekly',
+            priority: 0.8,
+        },
+    ];
+    for (let page = 2; page <= vlogPagesCount; page++) {
+        vlogRoutes.push({
+            url: `${baseUrl}/articles/vlogs/page/${page}`,
+            lastModified: currentDate,
+            changeFrequency: 'weekly',
+            priority: 0.6,
+        });
+    }
+
+    // Individual Article / Vlog Slugs
+    const articleSlugRoutes: MetadataRoute.Sitemap = (vlogSlugs || []).map((slug) => ({
+        url: `${baseUrl}/articles/vlogs/${slug}`,
+        lastModified: currentDate,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+    }));
+
+    // Feedback Paginated Routes
     const feedbackPagesCount = Math.ceil(feedbackCount / 12);
     const feedbackRoutes: MetadataRoute.Sitemap = [
         {
@@ -69,7 +119,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: 'weekly',
             priority: 0.8,
         },
-        // All dynamic portfolio category landing pages
+        ...portfolioGalleryRoutes,
         ...categoryRoutes,
         {
             url: `${baseUrl}/articles`,
@@ -77,6 +127,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: 'weekly',
             priority: 0.8,
         },
+        ...vlogRoutes,
+        ...articleSlugRoutes,
         ...feedbackRoutes,
         {
             url: `${baseUrl}/about`,

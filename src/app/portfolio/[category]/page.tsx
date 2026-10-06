@@ -47,9 +47,8 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
-    // Use short title — root layout template appends "| Casamento Events"
-    const title = `${category.title} Portfolio`;
-    const description = category.description || `Explore our high-end ${category.title.toLowerCase()} showcase by Casamento Events Management.`;
+    const title = `${category.title} Portfolio | Casamento Events Management`;
+    const description = category.description || `Explore our professional ${category.title.toLowerCase()} event production showcase by Casamento Events Management across the Philippines.`;
     const canonical = `${siteUrl}/portfolio/${category.slug}`;
 
     return {
@@ -57,13 +56,14 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
         description,
         keywords: [
             `${category.title.toLowerCase()} portfolio Philippines`,
+            `${category.title.toLowerCase()} event planner Manila`,
             `${category.title.toLowerCase()} Casamento Events`,
-            `${category.title.toLowerCase()} Manila`,
-            'luxury event production Philippines',
+            `${category.title.toLowerCase()} Metro Manila`,
+            'event production company Philippines',
             'Casamento Events Management',
         ],
         openGraph: {
-            title: `${category.title} Portfolio | Casamento Events`,
+            title: `${category.title} Portfolio | Casamento Events Management`,
             description,
             url: canonical,
             siteName: 'Casamento Events Management',
@@ -71,7 +71,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
         },
         twitter: {
             card: 'summary_large_image',
-            title: `${category.title} Portfolio | Casamento Events`,
+            title: `${category.title} Portfolio | Casamento Events Management`,
             description,
         },
         alternates: {

@@ -11,32 +11,32 @@ const geistSans = Geist({
 });
 
 
-const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING === 'true';
-
+const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING !== 'false';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'),
   title: {
-    default: 'Casamento Events | Crafting Unforgettable Celebrations',
-    template: '%s | Casamento Events',
+    default: 'Casamento Events Management | Full-Service Event Planning & Production Philippines',
+    template: '%s | Casamento Events Management',
   },
   description:
-    'Casamento Events Management specializes in luxury weddings, grand debutante galas, corporate milestones, and bespoke celebration planning.',
+    'Casamento Events Management is a trusted full-service event planning and technical production company in the Philippines. We handle corporate events, brand activations, weddings, debuts, broadcast livestreaming, and creative stage design across Metro Manila and nationwide.',
   keywords: [
-    'luxury wedding planner Philippines',
-    'luxury wedding planner Manila',
-    'cinematic wedding films Philippines',
-    'wedding cinematographer Manila',
-    'debutante gala production Manila',
-    'corporate event management Philippines',
-    'stage production events Manila',
-    'live streaming events Philippines',
-    'LED lighting design events',
-    'destination wedding planner Philippines',
+    'events management Philippines',
+    'corporate event planner Metro Manila',
+    'brand activation agency PH',
+    'wedding coordinator Philippines',
+    'OTD coordinator Manila',
+    'event production company Philippines',
+    'live streaming services Philippines',
+    'event stylist Metro Manila',
+    'stage design and lights and sounds Manila',
+    'debut planner Philippines',
+    'company year end party organizer Manila',
+    'e-commerce live selling production Manila',
+    'nationwide roadshow event management PH',
     'Casamento Events',
     'Casamento Events Management',
-    'event planning Metro Manila',
-    'broadcast production Philippines',
   ],
   robots: {
     index: allowIndexing,
@@ -55,11 +55,11 @@ export const metadata: Metadata = {
     apple: '/icon.png',
   },
   openGraph: {
-    title: 'Casamento Events | Crafting Unforgettable Celebrations',
+    title: 'Casamento Events Management | Full-Service Event Planning & Production Philippines',
     description:
-      'Casamento Events Management specializes in luxury weddings, grand debutante galas, corporate milestones, and bespoke celebration planning.',
-    url: process.env.NEXT_PUBLIC_SITE_URL,
-    siteName: 'Casamento Events',
+      'Trusted full-service event planning, corporate activations, wedding coordination, broadcast livestreaming, and stage production across the Philippines.',
+    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com',
+    siteName: 'Casamento Events Management',
     images: [
       {
         url: '/icon.png',
@@ -73,9 +73,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Casamento Events | Unforgettable Celebrations',
+    title: 'Casamento Events Management | Event Planning & Production Philippines',
     description:
-      'Casamento Events Management specializes in luxury weddings, grand debutante galas, corporate milestones, and bespoke celebration planning.',
+      'Trusted full-service event planning, corporate activations, wedding coordination, broadcast livestreaming, and stage production across the Philippines.',
     images: ['/icon.png'],
   },
 };

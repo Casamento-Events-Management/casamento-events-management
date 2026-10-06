@@ -13,33 +13,51 @@ export async function generateMetadata(): Promise<Metadata> {
   const firstSlide = heroContent.hero?.slides?.[0];
   const pageDescription =
     firstSlide?.description ||
-    'Crafting unforgettable celebrations that last a lifetime. Luxury event management and production across the Philippines.';
+    'Professional event planning, turnkey corporate activations, broadcast-grade livestreaming, and memorable milestone celebrations across Metro Manila, Tagaytay, and nationwide.';
   const pageOgImage =
     firstSlide?.image?.asset?.url ||
     firstSlide?.videoPoster?.asset?.url ||
     '';
 
   return {
-    title: 'Casamento Events | Unforgettable Celebrations & Event Management',
+    title: 'Casamento Events Management | Professional Event Planning & Production Philippines',
     description: pageDescription,
+    keywords: [
+      'event management company Philippines',
+      'corporate event planner Metro Manila',
+      'brand activation agency Philippines',
+      'wedding coordinator Tagaytay Manila',
+      'OTD coordinator Manila',
+      'live stream production Manila',
+      'stage and lighting design Philippines',
+      'debut package Philippines',
+      'company year end party organizer',
+      'mall tour event organizer Metro Manila',
+      'Casamento Events Management',
+    ],
+    alternates: {
+      canonical: process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com',
+    },
     openGraph: {
-      title: 'Casamento Events | Unforgettable Celebrations',
+      title: 'Casamento Events Management | Professional Event Planning & Production Philippines',
       description: pageDescription,
+      url: process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com',
+      siteName: 'Casamento Events Management',
       locale: 'en_PH',
       images: [
         {
-          url: pageOgImage,
+          url: pageOgImage || '/icon.png',
           width: 1920,
           height: 1080,
-          alt: firstSlide?.heading || 'Casamento Events Hero',
+          alt: firstSlide?.heading || 'Casamento Events Management',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Casamento Events | Unforgettable Celebrations',
+      title: 'Casamento Events Management | Professional Event Planning & Production',
       description: pageDescription,
-      images: [pageOgImage],
+      images: [pageOgImage || '/icon.png'],
     },
   };
 }

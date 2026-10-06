@@ -22,29 +22,33 @@ import { UpcomingEventsSection } from '@/components/home/upcoming-events-section
 import { ConnectSection } from '@/components/layout/connect-section';
 
 export const metadata: Metadata = {
-    title: 'Portfolio | Wedding Films, Stage Production & Live Streams',
-    description: 'Explore our portfolio of high-end wedding films, cinematic stage productions, LED lighting designs, and broadcast live streams by Casamento Events.',
+    title: 'Portfolio Showcase | Corporate Events, Brand Activations, Films & Broadcasts',
+    description: 'Explore our portfolio of corporate conferences, brand activations, wedding films, stage and lighting designs, and broadcast live streams by Casamento Events across the Philippines.',
     keywords: [
+        'event portfolio Philippines',
+        'corporate event videos Manila',
+        'brand activation portfolio PH',
         'wedding films portfolio Philippines',
         'stage production portfolio Manila',
         'live streaming portfolio Philippines',
         'event cinematography showcase',
-        'luxury event portfolio Casamento',
+        'lights and sounds event portfolio',
+        'Casamento Events portfolio',
     ],
     openGraph: {
-        title: 'Casamento Events Portfolio | Masterpieces in Motion',
-        description: 'Explore our portfolio of high-end wedding films, cinematic stage productions, LED lighting designs, and broadcast live streams.',
-        url: `${process.env.NEXT_PUBLIC_SITE_URL}/portfolio`,
+        title: 'Casamento Events Portfolio | Event Productions & Showcase',
+        description: 'Explore our portfolio of corporate conferences, brand activations, wedding films, stage productions, and broadcast live streams.',
+        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/portfolio`,
         siteName: 'Casamento Events Management',
         type: 'website',
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Casamento Events Portfolio | Masterpieces in Motion',
-        description: 'Explore our portfolio of high-end wedding films, cinematic stage productions, LED lighting designs, and broadcast live streams.',
+        title: 'Casamento Events Portfolio | Event Productions & Showcase',
+        description: 'Explore our portfolio of corporate conferences, brand activations, wedding films, stage productions, and broadcast live streams.',
     },
     alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/portfolio`,
+        canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/portfolio`,
     },
 };
 

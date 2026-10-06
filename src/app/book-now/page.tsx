@@ -7,30 +7,32 @@ import { ConnectSection } from '@/components/layout/connect-section';
 import { getContactSectionContent } from '@/lib/services/contactService';
 
 export const metadata: Metadata = {
-  title: 'Book Your Event | SERVICE BOOKING',
-  description: 'Reserve your event date and schedule a free consultation with Casamento Events Management. Luxury weddings, debutante galas, corporate events, and live streaming productions.',
+  title: 'Book a Consultation | Event Planning & Production Inquiries',
+  description: 'Schedule an event consultation with Casamento Events Management. Request customized packages and proposals for corporate events, brand activations, livestreaming, weddings, or milestone celebrations in the Philippines.',
   keywords: [
-    'book wedding planner Philippines',
-    'event consultation Manila',
     'hire event planner Philippines',
-    'luxury wedding booking Philippines',
-    'reserve debutante gala production',
+    'corporate event quotation Manila',
+    'event production consultation PH',
+    'book wedding coordinator Manila',
+    'OTD coordination inquiry Philippines',
+    'reserve debut production Manila',
     'book Casamento Events',
+    'event management rates Philippines',
   ],
   openGraph: {
-    title: 'Book Your Event | Casamento Events Management',
-    description: 'Reserve your event date and schedule a free consultation. Luxury weddings, debutante galas, corporate events, and live streaming productions.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/book-now`,
+    title: 'Book a Consultation | Casamento Events Management',
+    description: 'Schedule an event consultation with Casamento Events Management. Request customized packages and proposals for corporate events, brand activations, livestreaming, or milestone celebrations.',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/book-now`,
     siteName: 'Casamento Events Management',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Book Your Event | Casamento Events Management',
-    description: 'Reserve your event date and schedule a free consultation. Luxury weddings, debutante galas, corporate events, and live streaming productions.',
+    title: 'Book a Consultation | Casamento Events Management',
+    description: 'Schedule an event consultation with Casamento Events Management. Request customized packages and proposals for corporate events, brand activations, livestreaming, or milestone celebrations.',
   },
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/book-now`,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/book-now`,
   },
 };
 

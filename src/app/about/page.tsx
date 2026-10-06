@@ -23,22 +23,26 @@ import { ConnectSection } from '@/components/layout/connect-section';
 import { getContactSectionContent } from '@/lib/services/contactService';
 
 export const metadata: Metadata = {
-  title: 'About Us | Our Story, Mission & Values',
+  title: 'About Us | Our Story, Mission & Values | Casamento Events',
   description:
-    'Learn about Casamento Events Management — born from love and family, with over 14 years of creating meaningful, memorable events and full-scale productions across the Philippines.',
+    'Learn about Casamento Events Management — born from love and family, with over 14 years of creating meaningful, memorable events, corporate activations, and full-scale productions across the Philippines.',
   keywords: [
     'about Casamento Events',
     'Casamento story',
     'events management Philippines',
-    'wedding planner Manila',
+    'wedding coordinator Manila',
     'corporate event production Philippines',
+    'brand activation agency Manila',
     'Casamento core values',
-    'full service production company Manila',
+    'full service event production company Manila',
   ],
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/about`,
+  },
   openGraph: {
     title: 'About Us | Casamento Events Management',
     description:
-      'Born from a deeply personal story of love and purpose. Over 14 years of bringing meaningful celebrations and productions to life across the Philippines.',
+      'Born from a deeply personal story of love and purpose. Over 14 years of bringing meaningful celebrations, corporate activations, and productions to life across the Philippines.',
     url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/about`,
     siteName: 'Casamento Events Management',
     type: 'website',
@@ -48,9 +52,6 @@ export const metadata: Metadata = {
     title: 'About Us | Casamento Events Management',
     description:
       'Born from a deeply personal story of love and purpose. Over 14 years of bringing meaningful celebrations and productions to life across the Philippines.',
-  },
-  alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/about`,
   },
 };
 

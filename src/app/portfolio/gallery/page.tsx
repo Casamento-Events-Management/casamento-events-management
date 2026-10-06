@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { PortfolioHero } from '@/components/portfolio/portfolio-hero';
 import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { PortfolioJsonLd } from '@/components/portfolio/portfolio-json-ld';
 import { ConnectSection } from '@/components/layout/connect-section';
@@ -15,15 +14,24 @@ import {
 } from '@/lib/services/portfolioService';
 
 export const metadata: Metadata = {
-  title: 'All Event Films & Production Gallery | Casamento Events Showcase',
-  description: 'Browse the full collection of luxury wedding films, stage production designs, and broadcast live streams from Casamento Events Management.',
+  title: 'Full Portfolio Showcase | Event Productions & Cinematography Gallery',
+  description: 'Browse our complete portfolio archive of corporate conferences, brand activations, wedding films, stage and lighting designs, and broadcast live streams from Casamento Events Management across the Philippines.',
+  keywords: [
+    'event gallery Philippines',
+    'corporate event portfolio Manila',
+    'brand activation showcase PH',
+    'wedding films portfolio Philippines',
+    'stage production showcase Manila',
+    'live streaming gallery Philippines',
+    'Casamento Events gallery',
+  ],
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/portfolio/gallery`,
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/portfolio/gallery`,
   },
   openGraph: {
-    title: 'All Event Films & Production Gallery | Casamento Events Showcase',
-    description: 'Browse the full collection of luxury wedding films, stage production designs, and broadcast live streams.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/portfolio/gallery`,
+    title: 'Full Portfolio Showcase | Event Productions & Cinematography Gallery',
+    description: 'Browse our complete portfolio archive of corporate conferences, brand activations, wedding films, and stage production designs.',
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/portfolio/gallery`,
     siteName: 'Casamento Events Management',
     type: 'website',
   },
