@@ -6,7 +6,7 @@ description: Use this skill for any work involving Supabase in the Casamento pro
 # Supabase for Casamento
 
 ## Read these first
-1. **Read `.agents/rules/@vercel-deployment.md` before writing or adding any server-side code** (route handlers, API routes, server actions, middleware/proxy, cron). That file defines how serverless functions must be used on our Vercel plan. Follow it over anything in this skill if they conflict. Do not assume function limits from memory; use what that file says.
+1. **Read `.agents/.rules/@vercel-deployment.md` before writing or adding any server-side code** (route handlers, API routes, server actions, middleware/proxy, cron). That file defines how serverless functions must be used on our Vercel plan. Follow it over anything in this skill if they conflict. Do not assume function limits from memory; use what that file says.
 2. Search and read the **current official Supabase docs** before implementing. SDK syntax, Auth settings names, and plan limits change. Never copy API shapes from memory. Check at minimum: `@supabase/supabase-js`, `@supabase/ssr` (Next.js setup), Auth settings (signups, JWT expiry, sessions), RLS, and the Supabase CLI migration workflow.
 3. Check the installed Next.js version. Some versions rename or change `middleware` (for example a `proxy` file convention). Use whatever the installed version supports.
 
@@ -99,7 +99,7 @@ Rules:
 
 ## Working rules for the agent
 - Before adding a table, write its RLS policies in the same migration.
-- Before adding a route handler, check `.agents/rules/@vercel-deployment.md` and ask whether a server component or server action can do the job instead.
+- Before adding a route handler, check `.agents/.rules/@vercel-deployment.md` and ask whether a server component or server action can do the job instead.
 - Before using the admin client, state why RLS cannot be used there.
 - When unsure about a Supabase setting name or API, search the official docs; do not guess.
 - Do not introduce additional data-access layers or ORMs; use `supabase-js` and SQL migrations.
