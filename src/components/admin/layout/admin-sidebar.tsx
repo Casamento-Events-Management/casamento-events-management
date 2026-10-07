@@ -219,6 +219,7 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
                 width={32}
                 height={32}
                 className="h-full w-full object-contain"
+                style={{ width: 'auto', height: 'auto' }}
               />
             </div>
             <div>
@@ -258,6 +259,7 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
                       width={36}
                       height={36}
                       className="h-full w-full object-contain"
+                style={{ width: 'auto', height: 'auto' }}
                     />
                   </div>
                   <div>
@@ -305,6 +307,7 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
                   width={44}
                   height={44}
                   className="h-full w-full object-contain"
+                  style={{ width: 'auto', height: 'auto' }}
                   priority
                 />
               </div>

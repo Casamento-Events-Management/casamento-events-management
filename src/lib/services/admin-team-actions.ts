@@ -3,11 +3,12 @@
 //
 // Governs staff invites, activation toggles, role updates, and deletions.
 // All actions require Super Admin authorization and generate immutable audit logs.
-// Uses Supabase generateLink + Resend API to bypass Supabase built-in rate limits.
+// Generates direct token_hash links and dispatches emails via Resend API.
 // =============================================================================
 
 'use server';
 
+import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
@@ -28,6 +29,23 @@ interface ActionResponse {
   error?: string;
   message?: string;
   inviteLink?: string;
+}
+
+/**
+ * Resolves the dynamic base URL of the active deployment/environment.
+ */
+async function getBaseSiteUrl(): Promise<string> {
+  try {
+    const headersList = await headers();
+    const host = headersList.get('host');
+    if (host) {
+      const proto = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https';
+      return `${proto}://${host}`;
+    }
+  } catch {
+    // Fallback if headers cannot be resolved
+  }
+  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 }
 
 /**
@@ -127,8 +145,7 @@ export async function getStaffMembers(): Promise<AdminProfile[]> {
 
 /**
  * Server Action: Invite a new staff member.
- * Generates an auth invitation link via Admin API and dispatches directly via Resend,
- * bypassing Supabase's built-in 3 emails/hour rate limiter.
+ * Generates direct token_hash links to eliminate domain mismatches and rate limits.
  */
 export async function inviteStaffAction(input: InviteStaffInput): Promise<ActionResponse> {
   const currentAdmin = await getCurrentActiveAdmin();
@@ -161,11 +178,22 @@ export async function inviteStaffAction(input: InviteStaffInput): Promise<Action
     };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
+  const siteUrl = await getBaseSiteUrl();
   const redirectTo = `${siteUrl}/auth/callback?next=/admin/reset-password`;
 
-  // 1. Generate invitation token & link without hitting Supabase built-in email rate limits
-  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+  // 1. Generate invitation token & link
+  interface GeneratedLinkResult {
+    user: { id: string };
+    properties?: {
+      action_link?: string;
+      hashed_token?: string;
+      verification_type?: string;
+    };
+  }
+
+  let linkData: GeneratedLinkResult | null = null;
+
+  const inviteResult = await supabaseAdmin.auth.admin.generateLink({
     type: 'invite',
     email,
     options: {
@@ -174,24 +202,61 @@ export async function inviteStaffAction(input: InviteStaffInput): Promise<Action
     },
   });
 
-  if (linkError || !linkData.user || !linkData.properties?.action_link) {
-    console.error('[inviteStaffAction generateLink Error]:', linkError);
+  if (inviteResult.data?.user && inviteResult.data.properties) {
+    linkData = {
+      user: { id: inviteResult.data.user.id },
+      properties: inviteResult.data.properties,
+    };
+  } else if (inviteResult.error && inviteResult.error.message.toLowerCase().includes('already')) {
+    // If the user was already created in auth.users, generate recovery link to allow password setup
+    const recoveryResult = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email,
+      options: {
+        redirectTo,
+      },
+    });
+
+    if (recoveryResult.data?.user && recoveryResult.data.properties) {
+      linkData = {
+        user: { id: recoveryResult.data.user.id },
+        properties: recoveryResult.data.properties,
+      };
+    } else {
+      return {
+        success: false,
+        error: recoveryResult.error?.message || 'Failed to generate invitation.',
+      };
+    }
+  } else {
     return {
       success: false,
-      error: linkError?.message || 'Failed to generate invitation link.',
+      error: inviteResult.error?.message || 'Failed to generate invitation link.',
     };
   }
 
-  const inviteLink = linkData.properties.action_link;
+  if (!linkData || !linkData.user) {
+    return { success: false, error: 'Failed to provision staff invitation.' };
+  }
 
-  // 2. Provision admin profile linked to the new auth user
-  const { error: profileError } = await supabaseAdmin.from('admin_profiles').insert({
-    user_id: linkData.user.id,
-    email,
-    full_name: fullName,
-    role,
-    is_active: true,
-  });
+  // Construct direct link to our /auth/callback route
+  const verificationType = linkData.properties?.verification_type || 'invite';
+  const directInviteLink = linkData.properties?.hashed_token
+    ? `${siteUrl}/auth/callback?token_hash=${linkData.properties.hashed_token}&type=${verificationType}&next=/admin/reset-password`
+    : linkData.properties?.action_link || `${siteUrl}/admin/login`;
+
+  // 2. Provision admin profile linked to the auth user
+  const { error: profileError } = await supabaseAdmin.from('admin_profiles').upsert(
+    {
+      user_id: linkData.user.id,
+      email,
+      full_name: fullName,
+      role,
+      is_active: true,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'user_id' }
+  );
 
   if (profileError) {
     console.error('[inviteStaffAction Profile Error]:', profileError);
@@ -202,7 +267,7 @@ export async function inviteStaffAction(input: InviteStaffInput): Promise<Action
   }
 
   // 3. Dispatch the email via Resend API directly
-  await sendInviteEmail(email, fullName, inviteLink);
+  await sendInviteEmail(email, fullName, directInviteLink);
 
   // 4. Record audit event
   await logAuditEvent({
@@ -217,7 +282,7 @@ export async function inviteStaffAction(input: InviteStaffInput): Promise<Action
   return {
     success: true,
     message: `Invitation generated successfully for ${email}.`,
-    inviteLink,
+    inviteLink: directInviteLink,
   };
 }
 
@@ -337,7 +402,7 @@ export async function resendInviteAction(userId: string): Promise<ActionResponse
     return { success: false, error: 'Administrator profile not found.' };
   }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
+  const siteUrl = await getBaseSiteUrl();
   const redirectTo = `${siteUrl}/auth/callback?next=/admin/reset-password`;
 
   const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
@@ -349,13 +414,40 @@ export async function resendInviteAction(userId: string): Promise<ActionResponse
     },
   });
 
-  if (linkError || !linkData.properties?.action_link) {
-    return { success: false, error: linkError?.message || 'Failed to re-generate invitation link.' };
+  if (linkError || !linkData?.properties) {
+    // Fallback to recovery if invite fails
+    const recoveryResult = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: profile.email,
+      options: {
+        redirectTo,
+      },
+    });
+
+    if (recoveryResult.error || !recoveryResult.data?.properties) {
+      return { success: false, error: 'Failed to re-generate invitation link.' };
+    }
+
+    const verificationType = recoveryResult.data.properties.verification_type || 'recovery';
+    const directInviteLink = recoveryResult.data.properties.hashed_token
+      ? `${siteUrl}/auth/callback?token_hash=${recoveryResult.data.properties.hashed_token}&type=${verificationType}&next=/admin/reset-password`
+      : recoveryResult.data.properties.action_link || `${siteUrl}/admin/login`;
+
+    await sendInviteEmail(profile.email, profile.full_name, directInviteLink);
+
+    return {
+      success: true,
+      message: `Invitation re-dispatched to ${profile.email}.`,
+      inviteLink: directInviteLink,
+    };
   }
 
-  const inviteLink = linkData.properties.action_link;
+  const verificationType = linkData.properties.verification_type || 'invite';
+  const directInviteLink = linkData.properties.hashed_token
+    ? `${siteUrl}/auth/callback?token_hash=${linkData.properties.hashed_token}&type=${verificationType}&next=/admin/reset-password`
+    : linkData.properties.action_link || `${siteUrl}/admin/login`;
 
-  await sendInviteEmail(profile.email, profile.full_name, inviteLink);
+  await sendInviteEmail(profile.email, profile.full_name, directInviteLink);
 
   await logAuditEvent({
     actorUserId: currentAdmin.user.id,
@@ -367,8 +459,8 @@ export async function resendInviteAction(userId: string): Promise<ActionResponse
 
   return {
     success: true,
-    message: `Invitation re-dispatched to ${profile.email}.`,
-    inviteLink,
+    message: `Invitation email re-dispatched to ${profile.email}.`,
+    inviteLink: directInviteLink,
   };
 }
 
