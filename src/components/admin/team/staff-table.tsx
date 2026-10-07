@@ -70,7 +70,7 @@ export function StaffTable({
 
       {/* Directory Table */}
       <div className="overflow-hidden rounded-2xl border border-[#3A4F1C]/15 bg-white shadow-xs">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto min-h-[160px]">
           <table className="w-full text-left text-xs text-[#2B3817]">
             <thead className="border-b border-[#3A4F1C]/10 bg-[#F7F3E8]/50 text-[10px] font-semibold uppercase tracking-wider text-[#2B3817]/60">
               <tr>
