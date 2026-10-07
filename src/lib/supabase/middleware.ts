@@ -45,10 +45,9 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
   const pathname = request.nextUrl.pathname;
   const isAdminArea = pathname.startsWith('/admin');
-  const isAuthPage =
+  const isGuestOnlyAuthPage =
     pathname === '/admin/login' ||
-    pathname === '/admin/forgot-password' ||
-    pathname === '/admin/reset-password';
+    pathname === '/admin/forgot-password';
 
   // Inject search-crawler barrier on all admin pages
   if (isAdminArea) {
@@ -58,16 +57,16 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     );
   }
 
-  // Redirect unauthenticated visitors attempting to reach protected admin routes
-  if (isAdminArea && !isAuthPage && !user) {
+  // Redirect unauthenticated visitors attempting to reach protected admin routes or reset-password
+  if (isAdminArea && !isGuestOnlyAuthPage && !user) {
     const url = request.nextUrl.clone();
     url.pathname = '/admin/login';
     url.searchParams.set('returnUrl', pathname);
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated visitors away from login/auth pages to dashboard
-  if (isAuthPage && user) {
+  // Redirect authenticated visitors away from login/forgot-password to dashboard
+  if (isGuestOnlyAuthPage && user) {
     const url = request.nextUrl.clone();
     url.pathname = '/admin/dashboard';
     return NextResponse.redirect(url);
