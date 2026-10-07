@@ -127,3 +127,13 @@ export type {
     SelectedAddOn,
     BookingFormData,
 } from './bookingForm';
+
+// Admin Authentication & Authorization types
+export type {
+    AdminRole,
+    AdminProfile,
+    AdminAuditAction,
+    AdminAuditLog,
+    AuthActionResult,
+} from './admin-auth';
+

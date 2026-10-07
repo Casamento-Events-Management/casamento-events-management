@@ -11,8 +11,9 @@ import { Footer } from '@/components/layout/footer'
 export function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isStudio = pathname?.startsWith('/studio')
+  const isAdmin = pathname?.startsWith('/admin')
 
-  if (isStudio) {
+  if (isStudio || isAdmin) {
     return <>{children}</>
   }
 
