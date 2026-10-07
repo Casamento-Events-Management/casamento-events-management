@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -17,6 +17,7 @@ import {
   Loader2,
   Menu,
   X,
+  Users,
 } from 'lucide-react';
 import { logoutAdminAction } from '@/lib/services/admin-auth-actions';
 import type { AdminProfile } from '@/types/admin-auth';
@@ -27,6 +28,7 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ admin }: AdminSidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -68,7 +70,14 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
       name: 'Overview',
       href: '/admin/dashboard',
       icon: LayoutDashboard,
-      active: true,
+      active: pathname === '/admin/dashboard',
+      badge: null,
+    },
+    {
+      name: 'Team Management',
+      href: '/admin/team',
+      icon: Users,
+      active: pathname.startsWith('/admin/team'),
       badge: null,
     },
     {
@@ -102,16 +111,26 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
       <nav className="space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          if (item.active) {
+          const isLink = item.href !== '#';
+
+          if (isLink) {
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 onClick={() => setIsMobileOpen(false)}
-                className="flex items-center justify-between rounded-lg bg-[#3A4F1C] px-3 py-2 text-xs font-semibold text-white shadow-xs"
+                className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-semibold transition cursor-pointer ${
+                  item.active
+                    ? 'bg-[#3A4F1C] text-white shadow-xs'
+                    : 'text-[#2B3817]/80 hover:bg-[#3A4F1C]/10 hover:text-[#2B3817]'
+                }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Icon className="h-4 w-4" />
+                  <Icon
+                    className={`h-4 w-4 ${
+                      item.active ? 'text-white' : 'text-[#3A4F1C]'
+                    }`}
+                  />
                   <span>{item.name}</span>
                 </div>
               </Link>
@@ -121,7 +140,7 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
           return (
             <div
               key={item.name}
-              className="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-[#2B3817]/60 hover:bg-[#3A4F1C]/5 transition cursor-not-allowed select-none"
+              className="flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-[#2B3817]/50 hover:bg-[#3A4F1C]/5 transition cursor-not-allowed select-none"
             >
               <div className="flex items-center gap-2.5">
                 <Icon className="h-4 w-4 text-[#2B3817]/40" />
