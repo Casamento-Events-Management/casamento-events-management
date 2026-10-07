@@ -52,10 +52,7 @@ export function Step2EventDetails({
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (val && val < todayDateString) {
-      return;
-    }
-    const holidayCheck = checkCountryHoliday(val, selectedCountryCode);
+    const holidayCheck = val ? checkCountryHoliday(val, selectedCountryCode) : { isHoliday: false, name: '' };
 
     onChange({
       eventDate: val,
@@ -64,11 +61,14 @@ export function Step2EventDetails({
     });
   };
 
+  const isPastDate = Boolean(formData.eventDate && formData.eventDate < todayDateString);
+
   const isFormValid =
     formData.clientFullName.trim() !== '' &&
     formData.clientEmail.trim() !== '' &&
     formData.clientPhone.trim() !== '' &&
     formData.eventDate.trim() !== '' &&
+    !isPastDate &&
     formData.venueCity.trim() !== '';
 
   return (
@@ -209,22 +209,13 @@ export function Step2EventDetails({
               min={todayDateString}
               value={formData.eventDate}
               onChange={handleDateChange}
-              onClick={(e) => {
-                try {
-                  e.currentTarget.showPicker?.();
-                } catch {
-                  // Fallback for older browsers
-                }
-              }}
-              onFocus={(e) => {
-                try {
-                  e.currentTarget.showPicker?.();
-                } catch {
-                  // Fallback for older browsers
-                }
-              }}
               className="w-full px-3 py-2 text-xs rounded-lg border border-[#3A4F1C]/20 bg-[#EFEAD8]/40 focus:bg-[#F7F3E8] focus:border-[#BC6F07] focus:outline-none text-[#3A4F1C] cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer"
             />
+            {isPastDate && (
+              <p className="text-[11px] text-red-600 mt-1 font-medium">
+                Please select today or a future date for your event.
+              </p>
+            )}
           </div>
         </div>
 
