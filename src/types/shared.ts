@@ -35,31 +35,31 @@ export interface SocialLink {
 }
 
 // ---------------------------------------------------------------------------
-// 2. Partners
+// 2. Clients & Brands Served
 // ---------------------------------------------------------------------------
 
 /**
- * A business partner or sponsor displayed in the Partners section.
+ * A corporate client, brand, or organization displayed in the Clients section.
  *
  * `priority` controls display order (higher = shown first) following the
  * same `order(priority desc, _createdAt asc)` tie-breaking convention used
  * across all Sanity ordered assets.
- *
- * Example: a Platinum sponsor at priority 100 always appears before a
- * Silver sponsor at priority 10, regardless of when they were added.
  */
-export interface Partner {
+export interface ClientBrand {
     name: string;
-    /** Partner's logo image, sourced from Sanity. */
+    /** Client/brand logo image, sourced from Sanity. */
     logo: SanityImage;
-    /** Optional link to the partner's website. Rendered as an `<a>` tag. */
+    /** Optional link to the client/brand website. Rendered as an `<a>` tag. */
     url?: string;
     /**
      * Display order. Higher value = shown first.
      * Tie-break: earlier `_createdAt` wins.
      */
-    priority: number;
+    priority?: number;
 }
+
+/** Backwards-compatible alias for ClientBrand */
+export type Partner = ClientBrand;
 
 // ---------------------------------------------------------------------------
 // 3. CTA Button

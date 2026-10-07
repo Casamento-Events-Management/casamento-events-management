@@ -263,44 +263,44 @@ export const homeMockData: HomePageContent = {
     ],
     partners: [
         {
-            name: 'Elite Catering Co.',
+            name: 'Apex Global Logistics',
             priority: 100,
-            url: 'https://example.com/elite-catering',
+            url: 'https://example.com/apex-global',
             logo: {
                 _type: 'image',
                 asset: {
-                    _ref: 'image-mockPartner1-400x200-png',
+                    _ref: 'image-mockClient1-400x200-png',
                     _type: 'reference',
-                    url: 'https://picsum.photos/seed/catering/400/200'
+                    url: 'https://picsum.photos/seed/corporate/400/200'
                 },
-                alt: 'Elite Catering Co. logo'
+                alt: 'Apex Global Logistics logo'
             }
         },
         {
-            name: 'Floral Dreams',
+            name: 'Summit Financial Group',
             priority: 80,
-            url: 'https://example.com/floral-dreams',
+            url: 'https://example.com/summit-financial',
             logo: {
                 _type: 'image',
                 asset: {
-                    _ref: 'image-mockPartner2-400x200-png',
+                    _ref: 'image-mockClient2-400x200-png',
                     _type: 'reference',
-                    url: 'https://picsum.photos/seed/floral/400/200'
+                    url: 'https://picsum.photos/seed/financial/400/200'
                 },
-                alt: 'Floral Dreams logo'
+                alt: 'Summit Financial Group logo'
             }
         },
         {
-            name: 'Luxe Visuals Photography',
+            name: 'Horizon Tech Innovations',
             priority: 50,
             logo: {
                 _type: 'image',
                 asset: {
-                    _ref: 'image-mockPartner3-400x200-png',
+                    _ref: 'image-mockClient3-400x200-png',
                     _type: 'reference',
-                    url: 'https://picsum.photos/seed/photography/400/200'
+                    url: 'https://picsum.photos/seed/tech/400/200'
                 },
-                alt: 'Luxe Visuals Photography logo'
+                alt: 'Horizon Tech Innovations logo'
             }
         }
     ],

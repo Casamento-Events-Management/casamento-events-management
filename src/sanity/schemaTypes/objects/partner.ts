@@ -1,22 +1,22 @@
 import { defineField, defineType } from 'sanity'
 
 /**
- * Reusable object matching `Partner` in `src/types/shared.ts`
+ * Reusable object matching `ClientBrand` / `Partner` in `src/types/shared.ts`
  */
 export const partner = defineType({
   name: 'partner',
-  title: 'Partner / Sponsor',
+  title: 'Client / Brand',
   type: 'object',
   fields: [
     defineField({
       name: 'name',
-      title: 'Partner Name',
+      title: 'Client / Brand Name',
       type: 'string',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'logo',
-      title: 'Partner Logo',
+      title: 'Client Logo',
       type: 'image',
       options: {
         hotspot: true,
@@ -33,7 +33,7 @@ export const partner = defineType({
     }),
     defineField({
       name: 'url',
-      title: 'Partner Website URL',
+      title: 'Client Website URL (Optional)',
       type: 'url',
     }),
     defineField({

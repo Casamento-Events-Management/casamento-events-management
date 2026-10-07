@@ -35,6 +35,7 @@ export type {
 export type {
     SocialPlatform,
     SocialLink,
+    ClientBrand,
     Partner,
     CTAButton,
     TeaserVideo,

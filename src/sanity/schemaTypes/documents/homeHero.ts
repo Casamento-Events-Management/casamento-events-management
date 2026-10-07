@@ -1,7 +1,7 @@
 import { defineArrayMember, defineField, defineType } from 'sanity'
 
 /**
- * Singleton Document Schema for the Home Page Hero & Partners (`_type: 'homeHero'`).
+ * Singleton Document Schema for the Home Page Hero & Clients (`_type: 'homeHero'`).
  * Matches `HomeHeroContent` interface in `src/types/home.ts`.
  */
 export const homeHero = defineType({
@@ -17,17 +17,17 @@ export const homeHero = defineType({
     }),
     defineField({
       name: 'partners',
-      title: 'Partners & Sponsors',
+      title: 'Clients & Brands Served',
       type: 'array',
       of: [defineArrayMember({ type: 'partner' })],
-      description: 'Brand partner and sponsor logos.',
+      description: 'Logos of corporate clients, brands, and organizations we have served.',
     }),
   ],
   preview: {
     prepare() {
       return {
-        title: 'Home Page Hero & Partners',
-        subtitle: 'Singleton — Main landing page hero section and brand logos',
+        title: 'Home Page Hero & Clients',
+        subtitle: 'Singleton — Main landing page hero section and client logos',
       }
     },
   },

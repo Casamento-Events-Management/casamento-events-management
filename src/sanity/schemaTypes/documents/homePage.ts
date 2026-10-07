@@ -53,10 +53,10 @@ export const homePage = defineType({
     }),
     defineField({
       name: 'partners',
-      title: 'Partners & Sponsors',
+      title: 'Clients & Brands Served',
       type: 'array',
       of: [defineArrayMember({ type: 'partner' })],
-      description: 'Brand partner and sponsor logos.',
+      description: 'Logos of corporate clients, brands, and organizations we have served.',
     }),
     defineField({
       name: 'socialLinks',
