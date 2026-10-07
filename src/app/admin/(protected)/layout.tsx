@@ -23,7 +23,7 @@ export default async function ProtectedAdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F7F3E8]">
+    <div className="flex min-h-screen flex-col lg:flex-row bg-[#F7F3E8]">
       <AdminSidebar admin={adminData.profile} />
       <main className="flex-1 p-4 sm:p-6 lg:p-8">
         <div className="mx-auto max-w-6xl">{children}</div>

@@ -23,10 +23,6 @@ export default async function AdminDashboardPage() {
       <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold tracking-wider text-[#BC6F07] uppercase">
-              <ShieldCheck className="h-4 w-4" />
-              <span>Authenticated Session Active</span>
-            </div>
             <h1 className="mt-1 text-2xl font-serif font-bold text-[#2B3817] sm:text-3xl">
               Welcome back, {profile?.full_name || 'Administrator'}
             </h1>
