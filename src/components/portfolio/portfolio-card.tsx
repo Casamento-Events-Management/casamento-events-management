@@ -39,13 +39,6 @@ export function PortfolioCard({ item, onSelect, priority = false }: PortfolioCar
                 className="relative block w-full text-left overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F7F3E8]"
                 aria-label={`Open modal and view details for ${item.title}`}
             >
-                {/* Category Badge Pill — Top Left floating position */}
-                <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-20">
-                    <span className="inline-block px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-[#2A3A14]/85 backdrop-blur-md border border-[#F7F3E8]/20 text-[#F7F3E8] text-[10px] sm:text-xs font-medium tracking-wide shadow-xs">
-                        {item.category.title}
-                    </span>
-                </div>
-
                 {/* Main Media Image (Natural Aspect Ratio preservation in Masonry) */}
                 <div className="relative w-full overflow-hidden bg-[#EFEAD8]">
                     <Image
