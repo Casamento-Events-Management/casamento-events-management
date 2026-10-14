@@ -8,13 +8,12 @@ import type { BookingFormData } from '@/types/bookingForm';
 interface BookingSuccessPageProps {
   formData: BookingFormData;
   bookingReference: string;
-  onBookAnother: () => void;
+  onBookAnother?: () => void;
 }
 
 export function BookingSuccessPage({
   formData,
   bookingReference,
-  onBookAnother,
 }: BookingSuccessPageProps) {
   const addOnsDisplay =
     formData.selectedAddOns && formData.selectedAddOns.length > 0
@@ -131,14 +130,13 @@ export function BookingSuccessPage({
 
       {/* Action Buttons (Aligned to right/end as requested) */}
       <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-3 border-t border-[#3A4F1C]/15">
-        <button
-          type="button"
-          onClick={onBookAnother}
+        <Link
+          href="/services"
           className="px-6 py-3 rounded-xl border border-[#3A4F1C]/25 text-[#3A4F1C] hover:bg-[#3A4F1C]/5 text-xs font-semibold uppercase tracking-wider transition text-center cursor-pointer flex items-center justify-center gap-2"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           Book Another Service
-        </button>
+        </Link>
 
         <Link
           href="/"
