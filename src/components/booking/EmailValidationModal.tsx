@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Loader2, CheckCircle2, AlertCircle, RefreshCw, Edit3, X, HelpCircle } from 'lucide-react';
 import type { BookingFormData } from '@/types/bookingForm';
 
@@ -12,7 +12,7 @@ interface EmailValidationModalProps {
   onEmailUpdated: (newEmail: string) => void;
 }
 
-type ModalStep = 'sending' | 'countdown' | 'prompt' | 'editing_email' | 'finalizing' | 'error';
+type ModalStep = 'sending' | 'prompt' | 'editing_email' | 'finalizing' | 'error';
 
 export function EmailValidationModal({
   isOpen,
@@ -24,10 +24,8 @@ export function EmailValidationModal({
   const [step, setStep] = useState<ModalStep>('sending');
   const [currentEmail, setCurrentEmail] = useState<string>(formData.clientEmail);
   const [editEmailInput, setEditEmailInput] = useState<string>(formData.clientEmail);
-  const [countdown, setCountdown] = useState<number>(3);
+  const [activeReference, setActiveReference] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Sync email when modal opens or formData changes
   useEffect(() => {
@@ -36,18 +34,9 @@ export function EmailValidationModal({
       setEditEmailInput(formData.clientEmail);
       setErrorMessage(null);
       triggerSendPreview(formData.clientEmail);
-    } else {
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
-
-  // Clean up timer on unmount
-  useEffect(() => {
-    return () => {
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-    };
-  }, []);
 
   const triggerSendPreview = async (emailToSend: string) => {
     setStep('sending');
@@ -64,6 +53,7 @@ export function EmailValidationModal({
             clientEmail: emailToSend,
           },
           verifiedEmail: emailToSend,
+          bookingReference: activeReference || undefined,
         }),
       });
 
@@ -74,22 +64,12 @@ export function EmailValidationModal({
         return;
       }
 
-      // Start 3-second countdown
-      setCountdown(3);
-      setStep('countdown');
+      if (data.bookingReference) {
+        setActiveReference(data.bookingReference);
+      }
 
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-
-      let currentSec = 3;
-      countdownIntervalRef.current = setInterval(() => {
-        currentSec -= 1;
-        setCountdown(currentSec);
-
-        if (currentSec <= 0) {
-          if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-          setStep('prompt');
-        }
-      }, 1000);
+      // Transition directly to prompt as soon as the email is dispatched
+      setStep('prompt');
     } catch (err) {
       console.error('[EmailValidationModal] send_preview_email error:', err);
       setStep('error');
@@ -112,6 +92,7 @@ export function EmailValidationModal({
             clientEmail: currentEmail,
           },
           verifiedEmail: currentEmail,
+          bookingReference: activeReference || undefined,
         }),
       });
 
@@ -122,7 +103,8 @@ export function EmailValidationModal({
         return;
       }
 
-      onConfirmSuccess(data.bookingReference || 'CAS-CONFIRMED');
+      const finalRef = data.bookingReference || activeReference || 'CAS-CONFIRMED';
+      onConfirmSuccess(finalRef);
     } catch (err) {
       console.error('[EmailValidationModal] confirm_booking error:', err);
       setStep('error');
@@ -163,43 +145,25 @@ export function EmailValidationModal({
           </button>
         )}
 
-        {/* 1. Sending State */}
+        {/* 1. Sending State (Natural Loader) */}
         {step === 'sending' && (
           <div className="py-8 text-center space-y-4">
             <div className="relative w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-[#3A4F1C]/10 text-[#3A4F1C]">
               <Loader2 className="w-8 h-8 animate-spin text-[#BC6F07]" />
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               <h3 className="text-lg font-serif font-bold text-[#3A4F1C]">
-                Dispatching Preview Email
+                Dispatching Verification Email
               </h3>
               <p className="text-xs sm:text-sm text-[#3A4F1C]/75 font-light">
-                Sending your booking details preview to{' '}
+                Sending booking details to{' '}
                 <span className="font-semibold text-[#3A4F1C]">{currentEmail}</span>...
               </p>
             </div>
           </div>
         )}
 
-        {/* 2. Countdown State (3-second visual timer) */}
-        {step === 'countdown' && (
-          <div className="py-8 text-center space-y-4">
-            <div className="relative w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-[#BC6F07]/10 border-2 border-[#BC6F07] text-[#BC6F07] font-serif font-bold text-2xl shadow-inner animate-pulse">
-              {countdown}
-            </div>
-            <div className="space-y-1">
-              <h3 className="text-lg font-serif font-bold text-[#3A4F1C]">
-                Verifying Email Delivery
-              </h3>
-              <p className="text-xs sm:text-sm text-[#3A4F1C]/75 font-light">
-                Please check your inbox at{' '}
-                <span className="font-semibold text-[#3A4F1C]">{currentEmail}</span>...
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* 3. Prompt State (Did you receive our email?) */}
+        {/* 2. Prompt State (Did you receive our email?) */}
         {step === 'prompt' && (
           <div className="space-y-5">
             <div className="flex items-center gap-3 border-b border-[#3A4F1C]/15 pb-4">
@@ -211,7 +175,7 @@ export function EmailValidationModal({
                   Check Your Email Inbox
                 </h3>
                 <p className="text-xs text-[#3A4F1C]/70">
-                  We dispatched a booking preview to{' '}
+                  We send an email to{' '}
                   <span className="font-semibold text-[#3A4F1C]">{currentEmail}</span>
                 </p>
               </div>
@@ -226,7 +190,7 @@ export function EmailValidationModal({
               </p>
             </div>
 
-            {/* Spam Folder Alert Notice (Approved Callout) */}
+            {/* Spam Folder Alert Notice */}
             <div className="p-3.5 bg-[#BC6F07]/10 border border-[#BC6F07]/30 rounded-xl space-y-1 text-xs">
               <div className="flex items-center gap-1.5 font-semibold text-[#BC6F07] text-[11px] uppercase tracking-wider">
                 <HelpCircle className="w-4 h-4 shrink-0" />
@@ -239,14 +203,14 @@ export function EmailValidationModal({
 
             {/* Action Buttons */}
             <div className="space-y-2.5 pt-2">
-              {/* Yes, I Received It */}
+              {/* Yes */}
               <button
                 type="button"
                 onClick={handleConfirmFinal}
                 className="w-full py-3.5 px-6 rounded-xl bg-[#3A4F1C] hover:bg-[#2C3C15] text-[#F7F3E8] text-xs sm:text-sm font-semibold tracking-wider uppercase transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4 text-[#BC6F07]" />
-                Yes, Complete Booking
+                Yes
               </button>
 
               <div className="flex items-center justify-between gap-3 pt-1">
@@ -277,7 +241,7 @@ export function EmailValidationModal({
           </div>
         )}
 
-        {/* 4. Editing Email State (Inline Correction) */}
+        {/* 3. Editing Email State (Inline Correction) */}
         {step === 'editing_email' && (
           <form onSubmit={handleSaveEditedEmail} className="space-y-4">
             <div className="flex items-center gap-2.5 border-b border-[#3A4F1C]/15 pb-3">
@@ -328,7 +292,7 @@ export function EmailValidationModal({
           </form>
         )}
 
-        {/* 5. Finalizing State (Saving to DB & sending official emails) */}
+        {/* 4. Finalizing State (Saving to DB & sending official emails) */}
         {step === 'finalizing' && (
           <div className="py-8 text-center space-y-4">
             <div className="relative w-16 h-16 mx-auto flex items-center justify-center rounded-full bg-[#3A4F1C]/10 text-[#3A4F1C]">
@@ -339,13 +303,13 @@ export function EmailValidationModal({
                 Finalizing Your Reservation
               </h3>
               <p className="text-xs sm:text-sm text-[#3A4F1C]/75 font-light">
-                Securing your date in our calendar and generating your official receipt...
+                Securing your date in our calendar...
               </p>
             </div>
           </div>
         )}
 
-        {/* 6. Error State */}
+        {/* 5. Error State */}
         {step === 'error' && (
           <div className="space-y-4 py-4 text-center">
             <div className="w-12 h-12 mx-auto rounded-full bg-red-100 flex items-center justify-center text-red-600">

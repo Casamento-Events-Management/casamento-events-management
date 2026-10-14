@@ -8,12 +8,14 @@ interface BookingProgressBarProps {
   currentStep: BookingStep;
   onStepClick?: (step: BookingStep) => void;
   paymentEnabled?: boolean;
+  isSuccess?: boolean;
 }
 
 export function BookingProgressBar({
   currentStep,
   onStepClick,
   paymentEnabled = isPaymentEnabled(),
+  isSuccess = false,
 }: BookingProgressBarProps) {
   const allSteps: { step: BookingStep; label: string }[] = [
     { step: 1, label: 'Service Selection' },
@@ -25,15 +27,15 @@ export function BookingProgressBar({
     <div className="w-full p-3 sm:p-4 mb-8">
       <div className="flex items-center justify-between max-w-xl mx-auto">
         {allSteps.map((item, idx) => {
-          const isActive = currentStep === item.step;
-          const isCompleted = currentStep > item.step;
+          const isActive = !isSuccess && currentStep === item.step;
+          const isCompleted = isSuccess || currentStep > item.step;
 
           return (
             <React.Fragment key={item.step}>
               <div
-                onClick={() => isCompleted && onStepClick && onStepClick(item.step)}
+                onClick={() => !isSuccess && isCompleted && onStepClick && onStepClick(item.step)}
                 className={`flex items-center space-x-2 transition-all ${
-                  isCompleted ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+                  !isSuccess && isCompleted ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
                 }`}
               >
                 <div
@@ -63,7 +65,7 @@ export function BookingProgressBar({
               {idx < allSteps.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-2 sm:mx-4 transition-all ${
-                    currentStep > idx + 1 ? 'bg-[#BC6F07]' : 'bg-[#3A4F1C]/15'
+                    isSuccess || currentStep > idx + 1 ? 'bg-[#BC6F07]' : 'bg-[#3A4F1C]/15'
                   }`}
                 />
               )}

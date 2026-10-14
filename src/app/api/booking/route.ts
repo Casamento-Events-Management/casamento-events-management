@@ -7,13 +7,13 @@ import type { BookingApiRequest } from '@/types/booking';
 
 /**
  * API Route Handler for Booking Reservations:
- * - action 'send_preview_email': Dispatches preview email to client for inbox/spam validation.
+ * - action 'send_preview_email': Dispatches preview email with booking reference to client.
  * - action 'confirm_booking': Persists confirmed booking to Supabase and sends official receipts.
  */
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as BookingApiRequest;
-    const { action, formData, verifiedEmail } = body;
+    const body = (await request.json()) as BookingApiRequest & { bookingReference?: string };
+    const { action, formData, verifiedEmail, bookingReference } = body;
 
     if (!formData || !formData.serviceId || !formData.clientFullName || !formData.clientEmail) {
       return NextResponse.json(
@@ -24,10 +24,13 @@ export async function POST(request: Request) {
 
     if (action === 'send_preview_email') {
       const emailToUse = (verifiedEmail || formData.clientEmail).trim().toLowerCase();
-      const result = await sendBookingPreviewEmail({
-        ...formData,
-        clientEmail: emailToUse,
-      });
+      const result = await sendBookingPreviewEmail(
+        {
+          ...formData,
+          clientEmail: emailToUse,
+        },
+        bookingReference
+      );
 
       if (!result.success) {
         return NextResponse.json(
@@ -36,11 +39,14 @@ export async function POST(request: Request) {
         );
       }
 
-      return NextResponse.json({ success: true });
+      return NextResponse.json({
+        success: true,
+        bookingReference: result.bookingReference,
+      });
     }
 
     if (action === 'confirm_booking') {
-      const result = await confirmAndSaveBooking(formData, verifiedEmail);
+      const result = await confirmAndSaveBooking(formData, verifiedEmail, bookingReference);
 
       if (!result.success) {
         return NextResponse.json(

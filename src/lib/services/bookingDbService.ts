@@ -5,7 +5,6 @@
 import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { BookingFormData } from '@/types/bookingForm';
-import type { BookingRecord } from '@/types/booking';
 import { isPaymentEnabled, parseContactEmailRecipients, parseContactEmailCC } from '@/lib/utils/envUtils';
 import {
   buildBookingClientPreviewEmail,
@@ -34,24 +33,29 @@ export function generateBookingReference(date: Date = new Date()): string {
 
 /**
  * Sends an instant preview email exclusively to the client during email validation.
+ * Includes the generated booking reference and next steps.
  */
 export async function sendBookingPreviewEmail(
-  formData: BookingFormData
-): Promise<{ success: boolean; error?: string }> {
+  formData: BookingFormData,
+  existingReference?: string
+): Promise<{ success: boolean; bookingReference: string; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
+  const bookingReference = existingReference || generateBookingReference();
 
   if (!apiKey) {
     if (process.env.NODE_ENV === 'development') {
       console.log(
-        '[bookingDbService] RESEND_API_KEY not configured. Mocking preview email delivery to:',
+        '[bookingDbService] RESEND_API_KEY not configured. Mocking preview email delivery for:',
+        bookingReference,
+        'to:',
         formData.clientEmail
       );
     }
-    return { success: true };
+    return { success: true, bookingReference };
   }
 
   try {
-    const { subject, html } = buildBookingClientPreviewEmail(formData);
+    const { subject, html } = buildBookingClientPreviewEmail(formData, bookingReference);
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -71,13 +75,21 @@ export async function sendBookingPreviewEmail(
     const data = await res.json();
     if (!res.ok) {
       console.error('[bookingDbService Preview Resend Error]:', data);
-      return { success: false, error: data.message || 'Failed to dispatch verification email.' };
+      return {
+        success: false,
+        bookingReference,
+        error: data.message || 'Failed to dispatch verification email.',
+      };
     }
 
-    return { success: true };
+    return { success: true, bookingReference };
   } catch (err) {
     console.error('[bookingDbService Preview Error]:', err);
-    return { success: false, error: 'Internal server error while dispatching preview email.' };
+    return {
+      success: false,
+      bookingReference,
+      error: 'Internal server error while dispatching preview email.',
+    };
   }
 }
 
@@ -86,10 +98,11 @@ export async function sendBookingPreviewEmail(
  */
 export async function confirmAndSaveBooking(
   formData: BookingFormData,
-  verifiedEmail?: string
+  verifiedEmail?: string,
+  existingReference?: string
 ): Promise<{ success: boolean; bookingReference?: string; error?: string }> {
   const clientEmail = (verifiedEmail || formData.clientEmail).trim().toLowerCase();
-  const bookingReference = generateBookingReference();
+  const bookingReference = existingReference || generateBookingReference();
   const paymentActive = isPaymentEnabled();
 
   const supabase = createAdminClient();
@@ -170,12 +183,18 @@ async function dispatchOfficialBookingEmails(
     return;
   }
 
-  // 1. Client Confirmation Receipt (with Casamento team CC'd for shared email thread)
+  const clientClean = formData.clientEmail.trim().toLowerCase();
+
+  // Filter out the client email from CC list to prevent Resend 422 ("cannot CC the same address as to")
+  const combinedCC = [...teamRecipients, ...(teamCC || [])]
+    .map((e) => e.trim())
+    .filter((e) => e.length > 0 && e.toLowerCase() !== clientClean);
+
+  // 1. Client Confirmation Receipt (with Casamento team CC'd on the same thread)
   try {
     const clientEmailData = buildBookingClientConfirmationEmail(formData, bookingReference);
-    const combinedCC = [...teamRecipients, ...(teamCC || [])];
 
-    await fetch('https://api.resend.com/emails', {
+    const clientRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -185,11 +204,16 @@ async function dispatchOfficialBookingEmails(
         from: `Casamento Events <${process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to: [formData.clientEmail],
         cc: combinedCC.length > 0 ? combinedCC : undefined,
-        reply_to: combinedCC[0] || process.env.CONTACT_EMAIL_FROM,
+        reply_to: teamRecipients[0] || process.env.CONTACT_EMAIL_FROM,
         subject: clientEmailData.subject,
         html: clientEmailData.html,
       }),
     });
+
+    if (!clientRes.ok) {
+      const errData = await clientRes.json();
+      console.error('[bookingDbService Client Email Resend Error]:', errData);
+    }
   } catch (clientErr) {
     console.error('[bookingDbService Client Email Error]:', clientErr);
   }
@@ -198,7 +222,7 @@ async function dispatchOfficialBookingEmails(
   try {
     const adminEmailData = buildBookingAdminNotificationEmail(formData, bookingReference);
 
-    await fetch('https://api.resend.com/emails', {
+    const adminRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -213,6 +237,11 @@ async function dispatchOfficialBookingEmails(
         html: adminEmailData.html,
       }),
     });
+
+    if (!adminRes.ok) {
+      const errData = await adminRes.json();
+      console.error('[bookingDbService Admin Email Resend Error]:', errData);
+    }
   } catch (adminErr) {
     console.error('[bookingDbService Admin Email Error]:', adminErr);
   }

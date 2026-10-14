@@ -8,7 +8,7 @@ import { Step2EventDetails } from './Step2EventDetails';
 import { Step3PaymentSummary } from './Step3PaymentSummary';
 import { ServicesDetailModal } from './ServicesDetailModal';
 import { EmailValidationModal } from './EmailValidationModal';
-import { BookingSuccessModal } from './BookingSuccessModal';
+import { BookingSuccessPage } from './BookingSuccessPage';
 import { INITIAL_BOOKING_FORM_DATA } from '@/data/bookingMock';
 import { isPaymentEnabled } from '@/lib/utils/envUtils';
 import type {
@@ -33,9 +33,9 @@ export function BookingView({ availableServices }: BookingViewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  // Email Validation & Success Modal States
+  // Email Validation & Success Page States
   const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isBookingConfirmed, setIsBookingConfirmed] = useState(false);
   const [confirmedBookingReference, setConfirmedBookingReference] = useState<string>('');
 
   const [, startTransition] = React.useTransition();
@@ -126,60 +126,87 @@ export function BookingView({ availableServices }: BookingViewProps) {
   const handleConfirmBookingSuccess = (bookingReference: string) => {
     setConfirmedBookingReference(bookingReference);
     setIsValidationModalOpen(false);
-    setIsSuccessModalOpen(true);
+    setIsBookingConfirmed(true);
+
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 120, behavior: 'smooth' });
+    }
   };
 
   const handleEmailUpdated = (newEmail: string) => {
     setFormData((prev) => ({ ...prev, clientEmail: newEmail }));
   };
 
+  const handleBookAnotherService = () => {
+    setIsBookingConfirmed(false);
+    setCurrentStep(1);
+    setSelectedService(null);
+    setFormData(INITIAL_BOOKING_FORM_DATA);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <section className={`bg-[#EFEAD8]/60 py-8 sm:py-12 border-y border-[#3A4F1C]/10 ${!selectedService ? 'min-h-[60vh] lg:min-h-[75vh] flex flex-col justify-center' : ''}`}>
+    <section className={`bg-[#EFEAD8]/60 py-8 sm:py-12 border-y border-[#3A4F1C]/10 ${!selectedService && !isBookingConfirmed ? 'min-h-[60vh] lg:min-h-[75vh] flex flex-col justify-center' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Progress Bar Header (dynamic 2 or 3 steps depending on paymentEnabled) */}
+        {/* Progress Bar Header (dynamic 2 or 3 steps; all checked on success) */}
         <BookingProgressBar
           currentStep={currentStep}
           paymentEnabled={paymentEnabled}
+          isSuccess={isBookingConfirmed}
           onStepClick={(step) => {
+            if (isBookingConfirmed) return;
             if (step === 3 && !paymentEnabled) return;
             setCurrentStep(step);
           }}
         />
 
-        {/* Single Centered Form Card (80% section width on desktop) */}
+        {/* Single Centered View Card */}
         <div className="w-full lg:w-[80%] max-w-5xl mx-auto">
-          {currentStep === 1 && (
-            <Step1ServiceSelect
-              service={selectedService}
-              selectedAddOns={formData.selectedAddOns}
-              onToggleAddOn={handleToggleAddOn}
-              onNextStep={() => setCurrentStep(2)}
-              onOpenModal={() => setIsDetailModalOpen(true)}
-            />
-          )}
-
-          {currentStep === 2 && (
-            <Step2EventDetails
+          {/* Confirmed Success Page View (replaces form container) */}
+          {isBookingConfirmed ? (
+            <BookingSuccessPage
               formData={formData}
-              service={selectedService}
-              onChange={updateFormData}
-              onNextStep={handleStep2Next}
-              onPrevStep={() => setCurrentStep(1)}
-              onOpenModal={() => setIsDetailModalOpen(true)}
-              paymentEnabled={paymentEnabled}
+              bookingReference={confirmedBookingReference}
+              onBookAnother={handleBookAnotherService}
             />
-          )}
+          ) : (
+            <>
+              {currentStep === 1 && (
+                <Step1ServiceSelect
+                  service={selectedService}
+                  selectedAddOns={formData.selectedAddOns}
+                  onToggleAddOn={handleToggleAddOn}
+                  onNextStep={() => setCurrentStep(2)}
+                  onOpenModal={() => setIsDetailModalOpen(true)}
+                />
+              )}
 
-          {currentStep === 3 && paymentEnabled && (
-            <Step3PaymentSummary
-              formData={formData}
-              service={selectedService}
-              onChange={updateFormData}
-              onSubmit={handleStep3Submit}
-              onPrevStep={() => setCurrentStep(2)}
-              onOpenModal={() => setIsDetailModalOpen(true)}
-              isSubmitting={isSubmitting}
-            />
+              {currentStep === 2 && (
+                <Step2EventDetails
+                  formData={formData}
+                  service={selectedService}
+                  onChange={updateFormData}
+                  onNextStep={handleStep2Next}
+                  onPrevStep={() => setCurrentStep(1)}
+                  onOpenModal={() => setIsDetailModalOpen(true)}
+                  paymentEnabled={paymentEnabled}
+                />
+              )}
+
+              {currentStep === 3 && paymentEnabled && (
+                <Step3PaymentSummary
+                  formData={formData}
+                  service={selectedService}
+                  onChange={updateFormData}
+                  onSubmit={handleStep3Submit}
+                  onPrevStep={() => setCurrentStep(2)}
+                  onOpenModal={() => setIsDetailModalOpen(true)}
+                  isSubmitting={isSubmitting}
+                />
+              )}
+            </>
           )}
         </div>
       </div>
@@ -198,14 +225,6 @@ export function BookingView({ availableServices }: BookingViewProps) {
         formData={formData}
         onConfirmSuccess={handleConfirmBookingSuccess}
         onEmailUpdated={handleEmailUpdated}
-      />
-
-      {/* Booking Success Confirmation Modal */}
-      <BookingSuccessModal
-        isOpen={isSuccessModalOpen}
-        onClose={() => setIsSuccessModalOpen(false)}
-        bookingReference={confirmedBookingReference}
-        formData={formData}
       />
     </section>
   );
