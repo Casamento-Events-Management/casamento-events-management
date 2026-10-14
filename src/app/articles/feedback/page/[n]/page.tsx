@@ -36,13 +36,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const pageNum = parseInt(n, 10);
 
   return {
-    title: `Client Feedbacks — Page ${pageNum} | Casamento Events`,
+    title: `Client Feedbacks - Page ${pageNum} | Casamento Events`,
     description: `Read page ${pageNum} of verified client reviews and testimonials for Casamento Events Management.`,
     alternates: {
       canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/feedback/page/${pageNum}`,
     },
     openGraph: {
-      title: `Client Feedbacks — Page ${pageNum} | Casamento Events`,
+      title: `Client Feedbacks - Page ${pageNum} | Casamento Events`,
       description: `Read page ${pageNum} of verified client reviews and testimonials.`,
       url: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/feedback/page/${pageNum}`,
       siteName: 'Casamento Events Management',
@@ -113,7 +113,7 @@ export default async function FeedbackPageN({ params }: PageProps) {
             href="/articles"
             className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
           >
-            ← Back
+            &larr; Back
           </Link>
         </div>
 
@@ -138,6 +138,20 @@ export default async function FeedbackPageN({ params }: PageProps) {
         </div>
 
         {/* Feedback Cards Grid */}
+        {feedbacks && feedbacks.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 mb-16">
+            {feedbacks.map((item, index) => (
+              <FeedbackCard key={item._id} feedback={item} index={index} compact={false} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 px-6 bg-[#EFEAD8]/50 rounded-2xl border border-[#3A4F1C]/10 max-w-xl mx-auto mb-16">
+            <p className="text-base text-[#3A4F1C]/70 font-light italic">
+              No reviews published yet. Be the first to share your event story below!
+            </p>
+          </div>
+        )}
+
         {/* Share Your Experience Action Button & Prompt */}
         <ShareExperienceTrigger />
 
@@ -153,7 +167,7 @@ export default async function FeedbackPageN({ params }: PageProps) {
               rel="prev"
               className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors uppercase tracking-wider"
             >
-              ← Previous Page
+              &larr; Previous Page
             </Link>
           </div>
 
@@ -172,7 +186,7 @@ export default async function FeedbackPageN({ params }: PageProps) {
                 rel="next"
                 className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors uppercase tracking-wider"
               >
-                Next Page →
+                Next Page &rarr;
               </Link>
             )}
           </div>

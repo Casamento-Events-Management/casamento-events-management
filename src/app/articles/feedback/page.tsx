@@ -97,7 +97,7 @@ export default async function FeedbackPage() {
             href="/articles"
             className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
           >
-            ← Back
+            &larr; Back
           </Link>
         </div>
 
@@ -109,7 +109,7 @@ export default async function FeedbackPage() {
           theme="light"
         />
 
-        {/* Rating Display (No card container — directly centered below hero) */}
+        {/* Rating Display (No card container - directly centered below hero) */}
         <div className="flex items-center justify-center gap-2 mb-12 text-center -mt-4 sm:-mt-6">
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -150,7 +150,7 @@ export default async function FeedbackPage() {
               href="/articles"
               className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors uppercase tracking-wider"
             >
-              ← Back
+              &larr; Back
             </Link>
           </div>
 
@@ -169,7 +169,7 @@ export default async function FeedbackPage() {
                 rel="next"
                 className="text-xs font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors uppercase tracking-wider"
               >
-                Next Page →
+                Next Page &rarr;
               </Link>
             )}
           </div>
