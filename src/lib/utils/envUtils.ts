@@ -51,3 +51,11 @@ export function parseContactEmailCC(): string[] | undefined {
   const list = parseEmailList(process.env.CONTACT_EMAIL_CC);
   return list.length > 0 ? list : undefined;
 }
+
+/**
+ * Feature flag helper: Checks whether Payment & Review (Step 3) is enabled in the booking form.
+ * Defaults to false (2-step booking flow directly to email verification and DB persistence).
+ */
+export function isPaymentEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_ENABLE_PAYMENT === 'true';
+}

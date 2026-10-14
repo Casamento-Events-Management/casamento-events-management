@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { DataPrivacyDisclaimer } from './DataPrivacyDisclaimer';
 import { checkCountryHoliday, getCountriesList } from '@/lib/utils/holidayUtils';
 import { InFormServiceCard } from './InFormServiceCard';
+import { isPaymentEnabled } from '@/lib/utils/envUtils';
 import type { BookingFormData, ServiceItem } from '@/types';
 
 interface Step2EventDetailsProps {
@@ -14,6 +15,7 @@ interface Step2EventDetailsProps {
   onNextStep: () => void;
   onPrevStep: () => void;
   onOpenModal: () => void;
+  paymentEnabled?: boolean;
 }
 
 export function Step2EventDetails({
@@ -23,6 +25,7 @@ export function Step2EventDetails({
   onNextStep,
   onPrevStep,
   onOpenModal,
+  paymentEnabled = isPaymentEnabled(),
 }: Step2EventDetailsProps) {
   const countriesList = useMemo(() => getCountriesList(), []);
   const selectedCountryCode = formData.eventCountry || 'PH';
@@ -66,7 +69,6 @@ export function Step2EventDetails({
   const isFormValid =
     formData.clientFullName.trim() !== '' &&
     formData.clientEmail.trim() !== '' &&
-    formData.clientPhone.trim() !== '' &&
     formData.eventDate.trim() !== '' &&
     !isPastDate &&
     formData.venueCity.trim() !== '';
@@ -128,11 +130,10 @@ export function Step2EventDetails({
 
               <div className="space-y-1">
                 <label className="block text-xs font-medium text-[#3A4F1C]">
-                  Mobile Phone <span className="text-red-600">*</span>
+                  Mobile Phone <span className="text-[#3A4F1C]/50">(Optional)</span>
                 </label>
                 <input
-                  type="tel"
-                  required
+                  type="tel" 
                   placeholder="+63 917 123 4567"
                   value={formData.clientPhone}
                   onChange={(e) => onChange({ clientPhone: e.target.value })}
@@ -262,7 +263,7 @@ export function Step2EventDetails({
           size="sm"
           className="text-xs sm:text-sm px-6 sm:px-8 py-3 shadow-md"
         >
-          Payment & Review &rarr;
+          {paymentEnabled ? 'Payment & Review →' : 'Book Now'}
         </Button>
       </div>
 

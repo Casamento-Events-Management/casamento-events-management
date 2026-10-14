@@ -2,26 +2,29 @@
 
 import React from 'react';
 import type { BookingStep } from '@/types';
+import { isPaymentEnabled } from '@/lib/utils/envUtils';
 
 interface BookingProgressBarProps {
   currentStep: BookingStep;
   onStepClick?: (step: BookingStep) => void;
+  paymentEnabled?: boolean;
 }
 
 export function BookingProgressBar({
   currentStep,
   onStepClick,
+  paymentEnabled = isPaymentEnabled(),
 }: BookingProgressBarProps) {
-  const steps: { step: BookingStep; label: string }[] = [
+  const allSteps: { step: BookingStep; label: string }[] = [
     { step: 1, label: 'Service Selection' },
     { step: 2, label: 'Event Details' },
-    { step: 3, label: 'Payment & Review' },
+    ...(paymentEnabled ? [{ step: 3 as BookingStep, label: 'Payment & Review' }] : []),
   ];
 
   return (
     <div className="w-full p-3 sm:p-4 mb-8">
       <div className="flex items-center justify-between max-w-xl mx-auto">
-        {steps.map((item, idx) => {
+        {allSteps.map((item, idx) => {
           const isActive = currentStep === item.step;
           const isCompleted = currentStep > item.step;
 
@@ -57,7 +60,7 @@ export function BookingProgressBar({
                 </span>
               </div>
 
-              {idx < steps.length - 1 && (
+              {idx < allSteps.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 mx-2 sm:mx-4 transition-all ${
                     currentStep > idx + 1 ? 'bg-[#BC6F07]' : 'bg-[#3A4F1C]/15'

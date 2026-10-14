@@ -7,7 +7,10 @@ import { Step1ServiceSelect } from './Step1ServiceSelect';
 import { Step2EventDetails } from './Step2EventDetails';
 import { Step3PaymentSummary } from './Step3PaymentSummary';
 import { ServicesDetailModal } from './ServicesDetailModal';
+import { EmailValidationModal } from './EmailValidationModal';
+import { BookingSuccessModal } from './BookingSuccessModal';
 import { INITIAL_BOOKING_FORM_DATA } from '@/data/bookingMock';
+import { isPaymentEnabled } from '@/lib/utils/envUtils';
 import type {
   ServiceItem,
   ServiceAddOn,
@@ -22,11 +25,18 @@ interface BookingViewProps {
 
 export function BookingView({ availableServices }: BookingViewProps) {
   const searchParams = useSearchParams();
+  const paymentEnabled = isPaymentEnabled();
+
   const [currentStep, setCurrentStep] = useState<BookingStep>(1);
   const [selectedService, setSelectedService] = useState<ServiceItem | null>(null);
   const [formData, setFormData] = useState<BookingFormData>(INITIAL_BOOKING_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // Email Validation & Success Modal States
+  const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [confirmedBookingReference, setConfirmedBookingReference] = useState<string>('');
 
   const [, startTransition] = React.useTransition();
 
@@ -99,21 +109,41 @@ export function BookingView({ availableServices }: BookingViewProps) {
     setFormData((prev) => ({ ...prev, ...updated }));
   };
 
-  const handleFormSubmit = () => {
-    setIsSubmitting(true);
-    console.log('[BookingView] Submitting booking payload to backend slot:', formData);
-    setTimeout(() => {
-      setIsSubmitting(false);
-    }, 1500);
+  const handleStep2Next = () => {
+    if (paymentEnabled) {
+      setCurrentStep(3);
+    } else {
+      // Direct Booking Flow: Open email verification loop
+      setIsValidationModalOpen(true);
+    }
+  };
+
+  const handleStep3Submit = () => {
+    // Payment Step Finalization: Open email verification loop
+    setIsValidationModalOpen(true);
+  };
+
+  const handleConfirmBookingSuccess = (bookingReference: string) => {
+    setConfirmedBookingReference(bookingReference);
+    setIsValidationModalOpen(false);
+    setIsSuccessModalOpen(true);
+  };
+
+  const handleEmailUpdated = (newEmail: string) => {
+    setFormData((prev) => ({ ...prev, clientEmail: newEmail }));
   };
 
   return (
     <section className={`bg-[#EFEAD8]/60 py-8 sm:py-12 border-y border-[#3A4F1C]/10 ${!selectedService ? 'min-h-[60vh] lg:min-h-[75vh] flex flex-col justify-center' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Progress Bar Header */}
+        {/* Progress Bar Header (dynamic 2 or 3 steps depending on paymentEnabled) */}
         <BookingProgressBar
           currentStep={currentStep}
-          onStepClick={(step) => setCurrentStep(step)}
+          paymentEnabled={paymentEnabled}
+          onStepClick={(step) => {
+            if (step === 3 && !paymentEnabled) return;
+            setCurrentStep(step);
+          }}
         />
 
         {/* Single Centered Form Card (80% section width on desktop) */}
@@ -133,18 +163,19 @@ export function BookingView({ availableServices }: BookingViewProps) {
               formData={formData}
               service={selectedService}
               onChange={updateFormData}
-              onNextStep={() => setCurrentStep(3)}
+              onNextStep={handleStep2Next}
               onPrevStep={() => setCurrentStep(1)}
               onOpenModal={() => setIsDetailModalOpen(true)}
+              paymentEnabled={paymentEnabled}
             />
           )}
 
-          {currentStep === 3 && (
+          {currentStep === 3 && paymentEnabled && (
             <Step3PaymentSummary
               formData={formData}
               service={selectedService}
               onChange={updateFormData}
-              onSubmit={handleFormSubmit}
+              onSubmit={handleStep3Submit}
               onPrevStep={() => setCurrentStep(2)}
               onOpenModal={() => setIsDetailModalOpen(true)}
               isSubmitting={isSubmitting}
@@ -158,6 +189,23 @@ export function BookingView({ availableServices }: BookingViewProps) {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         service={selectedService}
+      />
+
+      {/* Email Verification Loop Modal */}
+      <EmailValidationModal
+        isOpen={isValidationModalOpen}
+        onClose={() => setIsValidationModalOpen(false)}
+        formData={formData}
+        onConfirmSuccess={handleConfirmBookingSuccess}
+        onEmailUpdated={handleEmailUpdated}
+      />
+
+      {/* Booking Success Confirmation Modal */}
+      <BookingSuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        bookingReference={confirmedBookingReference}
+        formData={formData}
       />
     </section>
   );
