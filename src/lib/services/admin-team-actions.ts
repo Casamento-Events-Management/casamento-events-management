@@ -273,7 +273,7 @@ export async function inviteStaffAction(input: InviteStaffInput): Promise<Action
   await logAuditEvent({
     actorUserId: currentAdmin.user.id,
     actorEmail: currentAdmin.user.email,
-    action: 'admin.profile_created',
+    action: 'Admin Profile Created',
     targetResource: 'admin_profiles',
     details: { invitedUserId: linkData.user.id, email, fullName, role },
   });
@@ -323,7 +323,7 @@ export async function toggleStaffStatusAction(
   await logAuditEvent({
     actorUserId: currentAdmin.user.id,
     actorEmail: currentAdmin.user.email,
-    action: isActive ? 'admin.profile_activated' : 'admin.profile_deactivated',
+    action: isActive ? 'Admin Profile Activated' : 'Admin Profile Deactivated',
     targetResource: 'admin_profiles',
     details: { targetUserId: userId, newStatus: isActive },
   });
@@ -370,7 +370,7 @@ export async function updateStaffRoleAction(input: UpdateStaffRoleInput): Promis
   await logAuditEvent({
     actorUserId: currentAdmin.user.id,
     actorEmail: currentAdmin.user.email,
-    action: 'admin.profile_updated',
+    action: 'Admin Profile Updated',
     targetResource: 'admin_profiles',
     details: { targetUserId: userId, newRole: role },
   });
@@ -452,7 +452,7 @@ export async function resendInviteAction(userId: string): Promise<ActionResponse
   await logAuditEvent({
     actorUserId: currentAdmin.user.id,
     actorEmail: currentAdmin.user.email,
-    action: 'admin.profile_updated',
+    action: 'Admin Profile Updated',
     targetResource: 'admin_profiles',
     details: { targetUserId: userId, resendInvite: true },
   });
@@ -491,7 +491,7 @@ export async function removeStaffAction(userId: string): Promise<ActionResponse>
   await logAuditEvent({
     actorUserId: currentAdmin.user.id,
     actorEmail: currentAdmin.user.email,
-    action: 'admin.profile_deactivated',
+    action: 'Admin Profile Deactivated',
     targetResource: 'admin_profiles',
     details: { deletedUserId: userId },
   });

@@ -4,7 +4,7 @@ export const feedbackFormSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, 'Name must be at least 2 characters')
+    .min(1, 'Name is required')
     .max(100, 'Name is too long'),
   email: z
     .string()
@@ -30,7 +30,7 @@ export const feedbackFormSchema = z.object({
   message: z
     .string()
     .trim()
-    .min(10, 'Feedback message must be at least 10 characters')
+    .min(1, 'Feedback message is required')
     .max(2000, 'Feedback message cannot exceed 2000 characters'),
   recaptchaToken: z.string().optional(),
   photoRef: z.string().optional(),

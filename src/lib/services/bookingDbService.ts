@@ -11,6 +11,7 @@ import {
   buildBookingAdminNotificationEmail,
   buildBookingClientConfirmationEmail,
 } from '@/lib/email';
+import { logAudit } from '@/lib/services/auditService';
 
 const UNAMBIGUOUS_CHARS = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
@@ -75,6 +76,16 @@ export async function sendBookingPreviewEmail(
     const data = await res.json();
     if (!res.ok) {
       console.error('[bookingDbService Preview Resend Error]:', data);
+      await logAudit({
+        category: 'Booking',
+        action: 'Email Preview Failed',
+        severity: 'Warning',
+        outcome: 'Failure',
+        summary: `Failed to dispatch preview email to ${formData.clientEmail} for ${bookingReference}`,
+        entityType: 'booking',
+        entityRef: bookingReference,
+        metadata: { error: data.message || 'Resend API error' },
+      });
       return {
         success: false,
         bookingReference,
@@ -82,13 +93,33 @@ export async function sendBookingPreviewEmail(
       };
     }
 
+    await logAudit({
+      category: 'Booking',
+      action: 'Email Preview Dispatched',
+      severity: 'Info',
+      outcome: 'Success',
+      summary: `Verification preview email dispatched to ${formData.clientEmail} for ${bookingReference}`,
+      entityType: 'booking',
+      entityRef: bookingReference,
+      metadata: { email: formData.clientEmail },
+    });
+
     return { success: true, bookingReference };
   } catch (err) {
     console.error('[bookingDbService Preview Error]:', err);
+    await logAudit({
+      category: 'Booking',
+      action: 'Email Preview Exception',
+      severity: 'Critical',
+      outcome: 'Failure',
+      summary: `Exception while sending preview email to ${formData.clientEmail} for ${bookingReference}`,
+      entityType: 'booking',
+      entityRef: bookingReference,
+    });
     return {
       success: false,
       bookingReference,
-      error: 'Internal server error while dispatching preview email.',
+      error: 'Internal server error while sending preview email.',
     };
   }
 }
@@ -213,6 +244,27 @@ async function dispatchOfficialBookingEmails(
     if (!clientRes.ok) {
       const errData = await clientRes.json();
       console.error('[bookingDbService Client Email Resend Error]:', errData);
+      await logAudit({
+        category: 'Booking',
+        action: 'Email Confirmation Failed',
+        severity: 'Warning',
+        outcome: 'Failure',
+        summary: `Failed to dispatch confirmation email to client ${formData.clientEmail} for ${bookingReference}`,
+        entityType: 'booking',
+        entityRef: bookingReference,
+        metadata: { error: errData.message || 'Resend error' },
+      });
+    } else {
+      await logAudit({
+        category: 'Booking',
+        action: 'Email Confirmation Dispatched',
+        severity: 'Info',
+        outcome: 'Success',
+        summary: `Booking confirmation receipt dispatched to ${formData.clientEmail} for ${bookingReference}`,
+        entityType: 'booking',
+        entityRef: bookingReference,
+        metadata: { to: formData.clientEmail },
+      });
     }
   } catch (clientErr) {
     console.error('[bookingDbService Client Email Error]:', clientErr);
@@ -241,6 +293,16 @@ async function dispatchOfficialBookingEmails(
     if (!adminRes.ok) {
       const errData = await adminRes.json();
       console.error('[bookingDbService Admin Email Resend Error]:', errData);
+    } else {
+      await logAudit({
+        category: 'Booking',
+        action: 'Admin Briefing Dispatched',
+        severity: 'Info',
+        outcome: 'Success',
+        summary: `Admin briefing sheet dispatched to team recipients for ${bookingReference}`,
+        entityType: 'booking',
+        entityRef: bookingReference,
+      });
     }
   } catch (adminErr) {
     console.error('[bookingDbService Admin Email Error]:', adminErr);

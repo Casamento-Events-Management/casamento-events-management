@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Mail, Loader2, CheckCircle2, AlertCircle, RefreshCw, Edit3, X, HelpCircle } from 'lucide-react';
 import type { BookingFormData } from '@/types/bookingForm';
 
@@ -27,20 +27,11 @@ export function EmailValidationModal({
   const [activeReference, setActiveReference] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Sync email when modal opens or formData changes
-  useEffect(() => {
-    if (isOpen) {
-      setCurrentEmail(formData.clientEmail);
-      setEditEmailInput(formData.clientEmail);
-      setErrorMessage(null);
-      triggerSendPreview(formData.clientEmail);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
-  const triggerSendPreview = async (emailToSend: string) => {
+  const triggerSendPreview = useCallback(async (emailToSend: string) => {
     setStep('sending');
     setErrorMessage(null);
+    setCurrentEmail(emailToSend);
+    setEditEmailInput(emailToSend);
 
     try {
       const res = await fetch('/api/booking', {
@@ -75,7 +66,17 @@ export function EmailValidationModal({
       setStep('error');
       setErrorMessage('Network connection error. Please check your internet connection and retry.');
     }
-  };
+  }, [formData, activeReference]);
+
+  // Sync email when modal opens or formData changes
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        void triggerSendPreview(formData.clientEmail);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, formData.clientEmail, triggerSendPreview]);
 
   const handleConfirmFinal = async () => {
     setStep('finalizing');
@@ -153,7 +154,7 @@ export function EmailValidationModal({
             </div>
             <div className="space-y-1.5">
               <h3 className="text-lg font-serif font-bold text-[#3A4F1C]">
-                Dispatching Verification Email
+                Sending Verification Email
               </h3>
               <p className="text-xs sm:text-sm text-[#3A4F1C]/75 font-light">
                 Sending booking details to{' '}

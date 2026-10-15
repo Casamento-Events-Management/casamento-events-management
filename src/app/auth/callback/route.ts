@@ -18,7 +18,16 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code');
   const next = searchParams.get('next') || '/admin/dashboard';
 
-  const destination = next.startsWith('/') ? `${origin}${next}` : `${origin}/admin/dashboard`;
+  // Support forwarded headers if behind reverse proxy or in development
+  const forwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('host');
+  const forwardedProto =
+    request.headers.get('x-forwarded-proto') ||
+    (forwardedHost && (forwardedHost.includes('localhost') || forwardedHost.includes('127.0.0.1'))
+      ? 'http'
+      : 'https');
+  const effectiveOrigin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : origin;
+
+  const destination = next.startsWith('/') ? `${effectiveOrigin}${next}` : `${effectiveOrigin}/admin/dashboard`;
   const response = NextResponse.redirect(destination);
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -27,7 +36,7 @@ export async function GET(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    return NextResponse.redirect(`${origin}/admin/login?error=config_missing`);
+    return NextResponse.redirect(`${effectiveOrigin}/admin/login?error=config_missing`);
   }
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -69,5 +78,5 @@ export async function GET(request: NextRequest) {
   }
 
   // Fallback to admin login if code exchange fails or expired
-  return NextResponse.redirect(`${origin}/admin/login?error=link_expired`);
+  return NextResponse.redirect(`${effectiveOrigin}/admin/login?error=link_expired`);
 }
