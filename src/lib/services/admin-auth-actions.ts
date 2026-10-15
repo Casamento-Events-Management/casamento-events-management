@@ -81,7 +81,7 @@ export async function loginAdminAction(input: AdminLoginInput): Promise<AuthActi
     if (!recaptchaResult.success) {
       await logAuditEvent({
         actorEmail: email,
-        action: 'auth.login.bot_blocked',
+        action: 'Login Bot Blocked',
         targetResource: 'auth',
         details: { score: recaptchaResult.score, error: recaptchaResult.error },
         ipAddress: ip,
@@ -104,7 +104,7 @@ export async function loginAdminAction(input: AdminLoginInput): Promise<AuthActi
   if (authError || !authData.user) {
     await logAuditEvent({
       actorEmail: email,
-      action: 'auth.login.failed',
+      action: 'Login Failed',
       targetResource: 'auth',
       details: { reason: authError?.message || 'Invalid credentials' },
       ipAddress: ip,
@@ -129,7 +129,7 @@ export async function loginAdminAction(input: AdminLoginInput): Promise<AuthActi
     await logAuditEvent({
       actorUserId: user.id,
       actorEmail: user.email,
-      action: 'auth.login.inactive_blocked',
+      action: 'Inactive Account Blocked',
       targetResource: 'admin_profiles',
       details: { hasProfile: !!profile, isActive: profile?.is_active ?? false },
       ipAddress: ip,
@@ -146,7 +146,7 @@ export async function loginAdminAction(input: AdminLoginInput): Promise<AuthActi
   await logAuditEvent({
     actorUserId: user.id,
     actorEmail: user.email,
-    action: 'auth.login.success',
+    action: 'Admin Login',
     targetResource: 'auth',
     details: { role: profile.role },
     ipAddress: ip,
@@ -178,7 +178,7 @@ export async function logoutAdminAction(): Promise<AuthActionResult> {
     await logAuditEvent({
       actorUserId: user.id,
       actorEmail: user.email,
-      action: 'auth.logout',
+      action: 'Admin Logout',
       targetResource: 'auth',
       ipAddress: ip,
       userAgent,
@@ -337,7 +337,7 @@ export async function requestPasswordResetAction(
     await logAuditEvent({
       actorUserId: adminProfile.id,
       actorEmail: email,
-      action: 'auth.password_reset_request',
+      action: 'Password Reset Request',
       targetResource: 'auth',
       ipAddress: ip,
       userAgent,
@@ -346,7 +346,7 @@ export async function requestPasswordResetAction(
     // Audit attempt for unknown/inactive email to prevent user enumeration
     await logAuditEvent({
       actorEmail: email,
-      action: 'auth.password_reset_request_unmatched',
+      action: 'Password Reset Request Unmatched',
       targetResource: 'auth',
       ipAddress: ip,
       userAgent,
@@ -396,7 +396,7 @@ export async function updatePasswordAction(
   await logAuditEvent({
     actorUserId: user.id,
     actorEmail: user.email,
-    action: 'auth.password_reset_success',
+    action: 'Admin Password Reset',
     targetResource: 'auth',
     ipAddress: ip,
     userAgent,

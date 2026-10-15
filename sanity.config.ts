@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * This configuration is used to for the Sanity Studio that’s mounted on the `\src\app\studio\[[...tool]]\page.tsx` route
+ * This configuration is used to for the Sanity Studio that's mounted on the \src\app\studio\[[...tool]]\page.tsx route
  */
 
 import {visionTool} from '@sanity/vision'
@@ -12,6 +12,7 @@ import {structureTool} from 'sanity/structure'
 import {apiVersion, dataset, projectId} from './src/sanity/env'
 import {schema} from './src/sanity/schemaTypes'
 import {structure} from './src/sanity/structure'
+import {createFeedbackPublishAction} from './src/sanity/actions/feedbackActions'
 
 export default defineConfig({
   basePath: '/studio',
@@ -25,4 +26,16 @@ export default defineConfig({
     // https://www.sanity.io/docs/the-vision-plugin
     visionTool({defaultApiVersion: apiVersion}),
   ],
+  document: {
+    actions: (prev, context) => {
+      if (context.schemaType === 'clientFeedback') {
+        return prev.map((originalAction) =>
+          originalAction.action === 'publish'
+            ? createFeedbackPublishAction(originalAction)
+            : originalAction
+        );
+      }
+      return prev;
+    },
+  },
 })

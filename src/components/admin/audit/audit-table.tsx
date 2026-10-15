@@ -409,12 +409,6 @@ export function AuditTable() {
               <h1 className="text-lg font-serif font-bold text-[#2B3817] sm:text-2xl">
                 Audit Trail & Activity Log
               </h1>
-              <p className="mt-0.5 text-[11px] sm:text-xs text-[#2B3817]/70">
-                Last synced:{' '}
-                <span className="font-mono text-[10px] sm:text-[11px] font-semibold text-[#3A4F1C]">
-                  {format12Hour(lastRefreshedAt.toISOString())}
-                </span>
-              </p>
             </div>
 
             {/* Action Buttons: Pinned to Top-Right across all screen sizes */}
@@ -605,6 +599,8 @@ export function AuditTable() {
                     {[
                       'all',
                       'Booking',
+                      'Feedback',
+                      'Article',
                       'Team',
                       'Authentication',
                       'Payment',
@@ -985,22 +981,24 @@ export function AuditTable() {
             <span className="font-semibold">{totalCount}</span> entries
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0" suppressHydrationWarning>
             <button
               type="button"
-              disabled={page <= 1}
+              disabled={Boolean(page <= 1)}
+              suppressHydrationWarning
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-[#3A4F1C]/20 bg-white text-[#2B3817] shadow-xs hover:bg-[#3A4F1C]/5 disabled:opacity-40 transition cursor-pointer"
               aria-label="Previous Page"
             >
               <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
-            <span className="text-[10px] sm:text-xs font-semibold text-[#2B3817] whitespace-nowrap">
+            <span className="text-[10px] sm:text-xs font-semibold text-[#2B3817] whitespace-nowrap" suppressHydrationWarning>
               Page {page} of {totalPages}
             </span>
             <button
               type="button"
-              disabled={page >= totalPages}
+              disabled={Boolean(page >= totalPages)}
+              suppressHydrationWarning
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-[#3A4F1C]/20 bg-white text-[#2B3817] shadow-xs hover:bg-[#3A4F1C]/5 disabled:opacity-40 transition cursor-pointer"
               aria-label="Next Page"

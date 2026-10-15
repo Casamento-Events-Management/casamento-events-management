@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { logAudit } from '@/lib/services/auditService';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * Vercel Keepalive Cron Endpoint
  *
- * Runs on a recurring schedule (every 3 days: "0 0 *) via vercel.json.
+ * Runs on a recurring schedule (every 3 days: "0 0 * / 3 * *") via vercel.json.
  * Executes a lightweight read query to Supabase to prevent project/database inactivity pausing.
  */
 export async function GET(request: Request) {
@@ -28,6 +29,26 @@ export async function GET(request: Request) {
     if (dbError) {
       console.warn('[Keepalive] Supabase query notice:', dbError.message);
     }
+
+    // Audit Trail: Record scheduled keepalive ping execution
+    void logAudit({
+      category: 'System',
+      action: 'System Keepalive Ping',
+      severity: dbError ? 'Warning' : 'Info',
+      outcome: dbError ? 'Failure' : 'Success',
+      summary: dbError
+        ? `Vercel keepalive cron ping executed with notice: ${dbError.message}`
+        : 'Vercel keepalive 3-day cron query ping executed successfully',
+      actorType: 'system',
+      actorCode: 'SYS-CRON',
+      actorName: 'Vercel Cron Service',
+      entityType: 'keepalive',
+      metadata: {
+        service: 'casamentoevents-website',
+        schedule: '0 0 * / 3 * *',
+        databaseStatus: dbError ? dbError.message : 'Active',
+      },
+    });
 
     return NextResponse.json({
       ok: true,
