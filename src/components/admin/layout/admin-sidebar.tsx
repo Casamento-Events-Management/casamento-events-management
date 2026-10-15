@@ -96,10 +96,10 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
     },
     {
       name: 'Audit Trail',
-      href: '#',
+      href: '/admin/audit',
       icon: FileText,
-      active: false,
-      badge: 'Protected',
+      active: pathname.startsWith('/admin/audit'),
+      badge: null,
     },
   ];
 
