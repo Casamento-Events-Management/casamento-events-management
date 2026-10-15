@@ -255,7 +255,7 @@ export function InviteStaffModal({ isOpen, onClose, onSuccess }: InviteStaffModa
                 {isLoading ? (
                   <>
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    <span>Dispatching...</span>
+                    <span>sending...</span>
                   </>
                 ) : (
                   <span>Dispatch Invitation</span>

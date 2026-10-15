@@ -154,7 +154,7 @@ export function EmailValidationModal({
             </div>
             <div className="space-y-1.5">
               <h3 className="text-lg font-serif font-bold text-[#3A4F1C]">
-                Dispatching Verification Email
+                Sending Verification Email
               </h3>
               <p className="text-xs sm:text-sm text-[#3A4F1C]/75 font-light">
                 Sending booking details to{' '}

@@ -233,7 +233,7 @@ export async function sendAdminFeedbackNotificationEmail(
     return { success: true };
   } catch (err) {
     console.error('[feedbackService Admin Email Error]:', err);
-    return { success: false, error: 'Internal error dispatching admin notification email.' };
+    return { success: false, error: 'Internal error sending admin notification email.' };
   }
 }
 
@@ -288,6 +288,6 @@ export async function sendClientApprovalConfirmationEmail(
     return { success: true };
   } catch (err) {
     console.error('[feedbackService Client Approval Email Error]:', err);
-    return { success: false, error: 'Internal error dispatching client confirmation email.' };
+    return { success: false, error: 'Internal error sending client confirmation email.' };
   }
 }

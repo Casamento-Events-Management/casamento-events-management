@@ -6,7 +6,7 @@
 // Displays a clear side-by-side comparison of old vs new values for monitored fields.
 // =============================================================================
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, FileDiff } from 'lucide-react';
 import type { AuditLogEntry } from '@/types/admin-auth';
 
@@ -16,6 +16,14 @@ interface AuditDiffModalProps {
 }
 
 export function AuditDiffModal({ log, onClose }: AuditDiffModalProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   if (!log) return null;
 
   const changes = log.changes || {};

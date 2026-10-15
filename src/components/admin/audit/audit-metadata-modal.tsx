@@ -6,7 +6,7 @@
 // Shows network context (IP, user agent), metadata JSON, and handles alert acknowledgment.
 // =============================================================================
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Globe, Terminal, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
 import type { AuditLogEntry } from '@/types/admin-auth';
 import { acknowledgeAuditLogAction } from '@/lib/services/admin-audit-actions';
@@ -18,6 +18,13 @@ interface AuditMetadataModalProps {
 }
 
 export function AuditMetadataModal({ log, onClose, onAcknowledged }: AuditMetadataModalProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
   const [triageNote, setTriageNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);

@@ -112,14 +112,14 @@ export async function sendBookingPreviewEmail(
       action: 'Email Preview Exception',
       severity: 'Critical',
       outcome: 'Failure',
-      summary: `Exception while dispatching preview email to ${formData.clientEmail} for ${bookingReference}`,
+      summary: `Exception while sending preview email to ${formData.clientEmail} for ${bookingReference}`,
       entityType: 'booking',
       entityRef: bookingReference,
     });
     return {
       success: false,
       bookingReference,
-      error: 'Internal server error while dispatching preview email.',
+      error: 'Internal server error while sending preview email.',
     };
   }
 }
