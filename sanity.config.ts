@@ -13,6 +13,7 @@ import {apiVersion, dataset, projectId} from './src/sanity/env'
 import {schema} from './src/sanity/schemaTypes'
 import {structure} from './src/sanity/structure'
 import {createFeedbackPublishAction} from './src/sanity/actions/feedbackActions'
+import {createArticlePublishAction} from './src/sanity/actions/articleActions'
 
 export default defineConfig({
   basePath: '/studio',
@@ -32,6 +33,13 @@ export default defineConfig({
         return prev.map((originalAction) =>
           originalAction.action === 'publish'
             ? createFeedbackPublishAction(originalAction)
+            : originalAction
+        );
+      }
+      if (context.schemaType === 'articleVlog') {
+        return prev.map((originalAction) =>
+          originalAction.action === 'publish'
+            ? createArticlePublishAction(originalAction)
             : originalAction
         );
       }

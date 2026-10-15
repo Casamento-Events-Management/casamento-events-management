@@ -120,22 +120,41 @@ export async function POST(req: NextRequest) {
         revalidatePath('/articles/vlogs/page/[n]', 'page');
         revalidatePath('/');
 
+        let articleTitle = body.name || (body as { title?: string }).title || '';
+        if (!articleTitle && body._id) {
+          try {
+            const cleanId = body._id.replace(/^drafts\./, '');
+            const fetched = await client.fetch<{ title?: string }>(
+              `*[_id in [$id, "drafts." + $id]] | order(_updatedAt desc)[0] { title }`,
+              { id: cleanId }
+            );
+            if (fetched?.title) {
+              articleTitle = fetched.title;
+            }
+          } catch (err) {
+            console.warn('[api/revalidate] Could not resolve article title:', err);
+          }
+        }
+
+        const vlogTitle = articleTitle || 'Untitled Article';
+
         // Audit Trail: Track Article Vlog lifecycle (create/update/publish)
         void logAudit({
           category: 'Article',
           action: 'Article Vlog Published',
           severity: 'Info',
           outcome: 'Success',
-          summary: `Article Vlog published/updated in Sanity CMS (ID: ${body._id || 'unknown'})`,
+          summary: `Article Vlog "${vlogTitle}" published in Sanity Studio`,
           actorType: 'webhook',
           actorCode: 'SAN-CMS',
           actorName: 'Sanity Studio Webhook',
           entityType: 'articleVlog',
           entityId: body._id,
-          entityRef: body.name || body._id,
+          entityRef: vlogTitle || body._id,
           metadata: {
             documentType,
             documentId: body._id,
+            title: vlogTitle,
             revalidatedPaths: ['/articles', '/articles/vlogs/page/[n]', '/'],
           },
           ipAddress,
