@@ -127,7 +127,7 @@ export function ForgotPasswordForm() {
                 <span>Sending Reset Link...</span>
               </>
             ) : (
-              <span>Dispatch Recovery Link</span>
+              <span>Send Recovery Link</span>
             )}
           </button>
 

@@ -6,6 +6,21 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function updateSession(request: NextRequest): Promise<NextResponse> {
+  const pathname = request.nextUrl.pathname;
+
+  // Intercept any unhandled Supabase auth PKCE codes landing outside /auth/callback (e.g. redirected to Site URL /)
+  // Forward them directly to /auth/callback to perform the PKCE session exchange before redirecting.
+  if (request.nextUrl.searchParams.has('code') && !pathname.startsWith('/auth/callback')) {
+    const callbackUrl = new URL('/auth/callback', request.url);
+    request.nextUrl.searchParams.forEach((value, key) => {
+      callbackUrl.searchParams.set(key, value);
+    });
+    if (!callbackUrl.searchParams.has('next')) {
+      callbackUrl.searchParams.set('next', '/admin/reset-password');
+    }
+    return NextResponse.redirect(callbackUrl);
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -42,8 +57,6 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const pathname = request.nextUrl.pathname;
   const isAdminArea = pathname.startsWith('/admin');
   const isGuestOnlyAuthPage =
     pathname === '/admin/login' ||
