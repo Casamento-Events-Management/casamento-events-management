@@ -13,11 +13,16 @@ export function createArticlePublishAction(
   return function ArticlePublishAction(props: DocumentActionProps) {
     const originalResult = originalPublishAction(props);
 
+    if (!originalResult) {
+      return null;
+    }
+
     return {
       ...originalResult,
+      label: originalResult.label || 'Publish',
       onHandle: async () => {
         // Execute original Sanity publish operation
-        if (originalResult?.onHandle) {
+        if (originalResult.onHandle) {
           originalResult.onHandle();
         }
 
