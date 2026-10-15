@@ -81,6 +81,13 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
       badge: null,
     },
     {
+      name: 'Audit Trail',
+      href: '/admin/audit',
+      icon: FileText,
+      active: pathname.startsWith('/admin/audit'),
+      badge: null,
+    },
+    {
       name: 'Bookings & Dates',
       href: '#',
       icon: CalendarCheck,
@@ -93,13 +100,6 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
       icon: CreditCard,
       active: false,
       badge: 'Upcoming',
-    },
-    {
-      name: 'Audit Trail',
-      href: '/admin/audit',
-      icon: FileText,
-      active: pathname.startsWith('/admin/audit'),
-      badge: null,
     },
   ];
 
