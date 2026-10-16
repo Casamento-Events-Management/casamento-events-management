@@ -75,7 +75,12 @@ export function Footer() {
                   hello@casamentoevents.com
                 </a>
               </li>
-              <li>+63 956 274 2962</li>
+              <li>
+                <a href="tel:+639562742962"
+                  className="hover:text-[#BC6F07] transition-colors">
+                  +63 956 274 2962
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -84,7 +89,9 @@ export function Footer() {
         <div className="mt-16 pt-8 border-t border-[#F7F3E8]/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#F7F3E8]/60">
           <p>© {currentYear} Casamento Events Management. All rights reserved.</p>
           <div className="flex items-center space-x-6">
-            <span className="hover:text-[#F7F3E8] cursor-pointer">Privacy Policy</span>
+            <Link href="/privacy" className="hover:text-[#F7F3E8] transition-colors" target="_blank" rel="noopener noreferrer">
+              Privacy Policy
+            </Link>
             <span>•</span>
             <span className="hover:text-[#F7F3E8] cursor-pointer">Terms of Service</span>
             <span>•</span>
