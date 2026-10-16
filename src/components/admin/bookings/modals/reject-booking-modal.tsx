@@ -4,8 +4,8 @@
 // reject-booking-modal.tsx — Reject Booking Dialog with Direct Input Reason
 // =============================================================================
 
-import React, { useState } from 'react';
-import { XCircle, AlertCircle, Loader2, X, Mail } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { XCircle, AlertCircle, Loader2, X, Mail, User, Sparkles, Calendar } from 'lucide-react';
 import type { BookingRecord } from '@/types/booking';
 
 interface RejectBookingModalProps {
@@ -21,10 +21,36 @@ export function RejectBookingModal({
   onClose,
   onConfirm,
 }: RejectBookingModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
   const [reason, setReason] = useState('');
   const [notifyClient, setNotifyClient] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Esc key and scroll lock
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -55,11 +81,15 @@ export function RejectBookingModal({
     <div
       role="dialog"
       aria-modal="true"
+      onClick={handleBackdropClick}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
     >
-      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-xl border border-red-200 overflow-hidden">
+      <div
+        ref={modalRef}
+        className="relative w-full max-w-lg rounded-2xl bg-white shadow-xl border border-red-200 overflow-hidden"
+      >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-red-100 bg-red-50/60">
+        <div className="flex items-center px-6 py-4 border-b border-red-100 bg-red-50/60">
           <div className="flex items-center gap-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-100 text-red-600">
               <XCircle className="h-5 w-5" />
@@ -77,7 +107,8 @@ export function RejectBookingModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
+            title="Close (Esc)"
+            className="ml-auto rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
           >
             <X className="h-5 w-5" />
           </button>
@@ -93,16 +124,22 @@ export function RejectBookingModal({
           )}
 
           <div className="rounded-xl border border-stone-200 bg-stone-50/60 p-3.5 space-y-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-stone-500">Client:</span>
+            <div className="flex items-center gap-2">
+              <span title="Client">
+                <User className="h-3.5 w-3.5 text-stone-500" />
+              </span>
               <span className="font-semibold text-stone-800">{booking.client_full_name}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-stone-500">Service:</span>
+            <div className="flex items-center gap-2">
+              <span title="Service">
+                <Sparkles className="h-3.5 w-3.5 text-stone-500" />
+              </span>
               <span className="text-stone-800">{booking.service_title}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-stone-500">Requested Date:</span>
+            <div className="flex items-center gap-2">
+              <span title="Requested Date">
+                <Calendar className="h-3.5 w-3.5 text-stone-500" />
+              </span>
               <span className="font-medium text-stone-800">{booking.event_date}</span>
             </div>
           </div>
@@ -141,12 +178,12 @@ export function RejectBookingModal({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2.5 pt-2">
+          <div className="flex items-center gap-2.5 pt-2">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="rounded-lg border border-stone-200 px-4 py-2 text-xs font-medium text-stone-700 hover:bg-stone-50 transition"
+              className="ml-auto rounded-lg border border-stone-200 px-4 py-2 text-xs font-medium text-stone-700 hover:bg-stone-50 transition"
             >
               Cancel
             </button>

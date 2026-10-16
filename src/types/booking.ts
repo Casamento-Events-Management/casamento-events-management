@@ -93,6 +93,25 @@ export interface AdminUpdateBookingPayload {
 }
 
 /**
+ * Payload for manually creating a new event/booking from the admin portal.
+ */
+export interface AdminCreateBookingInput {
+  client_full_name: string;
+  client_email: string;
+  client_phone?: string | null;
+  company_name?: string | null;
+  service_title: string;
+  category_title: string;
+  add_ons_text?: string | null;
+  event_date: string;
+  venue_city: string;
+  venue_address?: string | null;
+  special_notes?: string | null;
+  admin_notes?: string | null;
+  status?: BookingStatus;
+}
+
+/**
  * Action payload sent to `/api/booking`.
  */
 export interface BookingApiRequest {

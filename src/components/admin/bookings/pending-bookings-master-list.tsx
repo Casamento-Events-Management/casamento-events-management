@@ -40,25 +40,37 @@ export function PendingBookingsMasterList({
     switch (status) {
       case 'pending':
         return (
-          <span className="inline-flex items-center rounded-full bg-[#BC6F07]/10 px-2 py-0.5 text-[11px] font-medium text-[#BC6F07] border border-[#BC6F07]/20">
+          <span
+            title="Awaiting Admin Decision"
+            className="inline-flex items-center rounded-full bg-[#BC6F07]/10 px-2 py-0.5 text-[11px] font-medium text-[#BC6F07] border border-[#BC6F07]/20"
+          >
             Pending
           </span>
         );
       case 'confirmed':
         return (
-          <span className="inline-flex items-center rounded-full bg-[#3A4F1C]/10 px-2 py-0.5 text-[11px] font-medium text-[#3A4F1C] border border-[#3A4F1C]/20">
+          <span
+            title="Confirmed Event"
+            className="inline-flex items-center rounded-full bg-[#3A4F1C]/10 px-2 py-0.5 text-[11px] font-medium text-[#3A4F1C] border border-[#3A4F1C]/20"
+          >
             Confirmed
           </span>
         );
       case 'cancelled':
         return (
-          <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700 border border-red-200">
+          <span
+            title="Declined Request"
+            className="inline-flex items-center rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700 border border-red-200"
+          >
             Declined
           </span>
         );
       case 'completed':
         return (
-          <span className="inline-flex items-center rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-700 border border-stone-200">
+          <span
+            title="Completed Event"
+            className="inline-flex items-center rounded-full bg-stone-100 px-2 py-0.5 text-[11px] font-medium text-stone-700 border border-stone-200"
+          >
             Completed
           </span>
         );
@@ -149,18 +161,21 @@ export function PendingBookingsMasterList({
                     : 'border-stone-200/90 bg-white hover:border-[#3A4F1C]/40 hover:bg-stone-50/70'
                 }`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="text-xs font-semibold text-stone-900 group-hover:text-[#3A4F1C] transition">
+                <div className="flex items-start gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-xs font-semibold text-stone-900 group-hover:text-[#3A4F1C] transition truncate">
                       {booking.client_full_name}
                     </h3>
                     <p className="text-[11px] font-mono text-stone-400 mt-0.5">
                       {booking.booking_reference}
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="inline-block rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600">
-                      {booking.category_title}
+                  <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                    <span
+                      title={booking.service_title}
+                      className="inline-block max-w-[150px] sm:max-w-[200px] truncate rounded-md bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-700"
+                    >
+                      {booking.service_title}
                     </span>
                     {getStatusBadge(booking.status)}
                   </div>
@@ -168,15 +183,21 @@ export function PendingBookingsMasterList({
 
                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-stone-500">
                   <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3 text-[#3A4F1C]" />
+                    <span title="Event Date">
+                      <Calendar className="h-3 w-3 text-[#3A4F1C]" />
+                    </span>
                     <span className="font-medium text-stone-700">{formatShortDate(booking.event_date)}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-[#3A4F1C]" />
+                    <span title="Venue City">
+                      <MapPin className="h-3 w-3 text-[#3A4F1C]" />
+                    </span>
                     <span>{booking.venue_city}</span>
                   </div>
                   <div className="flex items-center gap-1 text-stone-400 ml-auto">
-                    <Clock className="h-3 w-3" />
+                    <span title="Received Date">
+                      <Clock className="h-3 w-3" />
+                    </span>
                     <span>{new Date(booking.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>

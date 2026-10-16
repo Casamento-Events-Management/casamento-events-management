@@ -15,7 +15,8 @@ import {
   buildBookingClientUpdatedEmail,
 } from '@/lib/email';
 import { parseContactEmailRecipients, parseContactEmailCC } from '@/lib/utils/envUtils';
-import type { BookingRecord, AdminUpdateBookingPayload } from '@/types/booking';
+import { generateBookingReference } from '@/lib/services/bookingDbService';
+import type { BookingRecord, AdminUpdateBookingPayload, AdminCreateBookingInput } from '@/types/booking';
 
 const updateBookingSchema = z.object({
   client_full_name: z.string().min(1, 'Client full name is required').optional(),
@@ -27,6 +28,22 @@ const updateBookingSchema = z.object({
   venue_address: z.string().nullable().optional(),
   special_notes: z.string().nullable().optional(),
   admin_notes: z.string().nullable().optional(),
+});
+
+const createBookingSchema = z.object({
+  client_full_name: z.string().min(1, 'Client full name is required'),
+  client_email: z.string().email('Valid email is required'),
+  client_phone: z.string().nullable().optional(),
+  company_name: z.string().nullable().optional(),
+  service_title: z.string().min(1, 'Service title is required'),
+  category_title: z.string().min(1, 'Category is required'),
+  add_ons_text: z.string().nullable().optional(),
+  event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+  venue_city: z.string().min(1, 'Venue city is required'),
+  venue_address: z.string().nullable().optional(),
+  special_notes: z.string().nullable().optional(),
+  admin_notes: z.string().nullable().optional(),
+  status: z.enum(['pending', 'confirmed', 'completed', 'cancelled']).default('pending'),
 });
 
 /**
@@ -425,3 +442,104 @@ export async function updateBookingDetailsAction(params: {
   revalidatePath('/admin/bookings');
   return { success: true, booking: updatedBooking as BookingRecord };
 }
+
+/**
+ * Creates a new booking event directly from the admin dashboard.
+ */
+export async function createBookingAction(
+  input: AdminCreateBookingInput
+): Promise<{ success: boolean; error?: string; booking?: BookingRecord }> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData) {
+    return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+
+  const parsed = createBookingSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || 'Invalid form input.' };
+  }
+
+  const data = parsed.data;
+  const supabase = await createClient();
+  const bookingReference = generateBookingReference();
+
+  const addOnsArray = data.add_ons_text
+    ? data.add_ons_text
+        .split(/[,;\n]+/)
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0)
+        .map((title, idx) => ({ id: `addon-${idx + 1}`, title }))
+    : [];
+
+  const slugify = (text: string) =>
+    text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+  const now = new Date().toISOString();
+  const insertPayload = {
+    booking_reference: bookingReference,
+    service_id: `custom-${slugify(data.service_title) || 'event'}`,
+    service_slug: slugify(data.service_title) || 'event',
+    service_title: data.service_title.trim(),
+    category_slug: slugify(data.category_title) || 'custom',
+    category_title: data.category_title.trim(),
+    selected_add_ons: addOnsArray,
+    client_full_name: data.client_full_name.trim(),
+    client_email: data.client_email.trim().toLowerCase(),
+    client_phone: data.client_phone ? data.client_phone.trim() : null,
+    company_name: data.company_name ? data.company_name.trim() : null,
+    event_country: 'PH',
+    event_country_name: 'Philippines',
+    event_date: data.event_date,
+    venue_city: data.venue_city.trim(),
+    venue_address: data.venue_address ? data.venue_address.trim() : null,
+    special_notes: data.special_notes ? data.special_notes.trim() : null,
+    admin_notes: data.admin_notes ? data.admin_notes.trim() : null,
+    status: data.status || 'pending',
+    payment_status: 'unpaid',
+    payment_enabled: false,
+    email_verified_at: now,
+    created_at: now,
+    updated_at: now,
+  };
+
+  const { data: createdBooking, error: insertError } = await supabase
+    .from('bookings')
+    .insert(insertPayload)
+    .select('*')
+    .single();
+
+  if (insertError || !createdBooking) {
+    console.error('[adminBookingActions Create Error]:', insertError);
+    return { success: false, error: 'Failed to create booking in database.' };
+  }
+
+  await logAudit({
+    actorUserId: adminData.user.id,
+    actorCode: adminData.profile.user_code,
+    actorName: adminData.profile.full_name,
+    actorEmail: adminData.user.email,
+    actorType: 'admin',
+    category: 'Booking',
+    action: 'Create',
+    severity: 'Info',
+    outcome: 'Success',
+    summary: `${adminData.profile.full_name} created new event booking ${bookingReference} for ${data.client_full_name}`,
+    entityType: 'booking',
+    entityId: createdBooking.id,
+    entityRef: bookingReference,
+    metadata: {
+      service: data.service_title,
+      eventDate: data.event_date,
+      status: data.status,
+    },
+  });
+
+  revalidatePath('/admin/bookings');
+  return { success: true, booking: createdBooking as BookingRecord };
+}
+
