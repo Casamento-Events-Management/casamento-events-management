@@ -65,19 +65,19 @@ export default async function CookieSettingsPage() {
               <table className="w-full text-left text-xs sm:text-sm border-collapse">
                 <thead className="bg-[#EFEAD8] text-[#2A3A14] border-b border-[#3A4F1C]/20">
                   <tr>
-                    <th className="py-2.5 px-3 font-semibold">Cookie Name</th>
-                    <th className="py-2.5 px-3 font-semibold">Provider</th>
-                    <th className="py-2.5 px-3 font-semibold">Category</th>
-                    <th className="py-2.5 px-3 font-semibold">Duration</th>
-                    <th className="py-2.5 px-3 font-semibold">Purpose</th>
+                    <th className="py-2.5 px-3 font-semibold min-w-[110px] whitespace-nowrap">Cookie Name</th>
+                    <th className="py-2.5 px-3 font-semibold min-w-[100px] whitespace-nowrap">Provider</th>
+                    <th className="py-2.5 px-3 font-semibold min-w-[130px] whitespace-nowrap">Category</th>
+                    <th className="py-2.5 px-3 font-semibold min-w-[90px] whitespace-nowrap">Duration</th>
+                    <th className="py-2.5 px-3 font-semibold min-w-[220px]">Purpose</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#3A4F1C]/10">
                   <tr>
-                    <td className="py-2.5 px-3 font-mono font-medium text-xs">_GRECAPTCHA</td>
-                    <td className="py-2.5 px-3">Google LLC</td>
-                    <td className="py-2.5 px-3">Strictly Necessary</td>
-                    <td className="py-2.5 px-3">6 months</td>
+                    <td className="py-2.5 px-3 font-mono font-medium text-xs whitespace-nowrap">_GRECAPTCHA</td>
+                    <td className="py-2.5 px-3 whitespace-nowrap">Google LLC</td>
+                    <td className="py-2.5 px-3 whitespace-nowrap">Strictly Necessary</td>
+                    <td className="py-2.5 px-3 whitespace-nowrap">6 months</td>
                     <td className="py-2.5 px-3">
                       Risk analysis to prevent spam and automated bot submissions on public forms.
                     </td>
