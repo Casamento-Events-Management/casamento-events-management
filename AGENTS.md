@@ -87,3 +87,17 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## 8. Agent's Autonomous Behavior
 - Wait for my explicit approval or go signal before applying any changes or modifications to the codebase.
 - Once the user explicitly ask for your implementation proposal, that means the user needed to review your plan and you MUST wait for explicit approval. If no approval, abandon the plan.
+
+---
+
+## 9. Payment Integration Notice (On Hold & Feature Flagged)
+- **Status**: Payment integration (gateway checkout, payment processing, transaction webhooks) is currently **ON HOLD**.
+- **Future Readiness**: It may possibly be implemented in the future. All current payment-related implementations, interfaces, types (`PaymentStatus`, `PaymentMethod`), database columns (`payment_status`, `payment_method`), and Step 3 UI components must remain preserved, ready, and intact without breaking or deleting them.
+- **How `NEXT_PUBLIC_ENABLE_PAYMENT` Handles This**:
+  - The feature is managed globally via `NEXT_PUBLIC_ENABLE_PAYMENT` in `.env.local` (accessed via helper `isPaymentEnabled()` in `src/lib/utils/envUtils.ts`).
+  - **When `false` (Current / On Hold)**:
+    - The booking flow automatically adapts into a streamlined **2-step direct booking** experience (`Step 1: Client Information` -> `Step 2: Event Details`).
+    - The progress bar (`BookingProgressBar`) hides Step 3 ("Payment & Review") and adjusts dynamically to a 2-step indicator.
+    - Submitting Step 2 directly opens the Email Verification modal and persists the booking to Supabase with `status: 'pending'` and `payment_status: 'unpaid'`.
+  - **When `true` (Future Implementation)**:
+    - The full **3-step booking flow** is seamlessly re-activated. Step 2 advances to Step 3 ("Payment & Review"), allowing clients to review their estimate, choose a payment method, and proceed to payment gateway checkout before confirmation.
