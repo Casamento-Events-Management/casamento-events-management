@@ -56,9 +56,40 @@ export interface BookingRecord {
   payment_provider: PaymentProvider | null;
   payment_status: PaymentStatus;
   status: BookingStatus;
+  rejection_reason?: string | null;
+  admin_notes?: string | null;
+  decision_by?: string | null;
+  decision_at?: string | null;
+  is_archived?: boolean;
+  cancelled_at?: string | null;
   email_verified_at: string;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Filter parameters for querying bookings in admin views.
+ */
+export interface AdminBookingFilters {
+  status?: BookingStatus | 'all';
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+/**
+ * Payload for updating booking details by an administrator.
+ */
+export interface AdminUpdateBookingPayload {
+  client_full_name?: string;
+  client_email?: string;
+  client_phone?: string | null;
+  company_name?: string | null;
+  event_date?: string;
+  venue_city?: string;
+  venue_address?: string | null;
+  special_notes?: string | null;
+  admin_notes?: string | null;
 }
 
 /**

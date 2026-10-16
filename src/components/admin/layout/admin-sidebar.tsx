@@ -89,10 +89,10 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
     },
     {
       name: 'Bookings & Dates',
-      href: '#',
+      href: '/admin/bookings',
       icon: CalendarCheck,
-      active: false,
-      badge: 'Upcoming',
+      active: pathname.startsWith('/admin/bookings'),
+      badge: null,
     },
     {
       name: 'Payments & Billing',

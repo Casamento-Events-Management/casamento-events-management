@@ -20,3 +20,6 @@ export type { ClientFeedbackPostedPayload } from './templates/feedback-client';
 export { buildBookingClientPreviewEmail } from './templates/booking-client-preview';
 export { buildBookingAdminNotificationEmail } from './templates/booking-admin-notification';
 export { buildBookingClientConfirmationEmail } from './templates/booking-client-confirmation';
+export { buildBookingClientAcceptedEmail } from './templates/booking-client-accepted';
+export { buildBookingClientRejectedEmail } from './templates/booking-client-rejected';
+export { buildBookingClientUpdatedEmail } from './templates/booking-client-updated';
