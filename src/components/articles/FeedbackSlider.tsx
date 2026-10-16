@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { ClientFeedback } from '@/types';
 import { FeedbackCard } from './FeedbackCard';
+import { PaginationDots } from '@/components/ui/pagination-dots';
 
 interface FeedbackSliderProps {
   feedbacks: ClientFeedback[];
@@ -112,19 +113,14 @@ export function FeedbackSlider({ feedbacks, compact = false }: FeedbackSliderPro
 
       {/* Pagination Dots */}
       {totalFeedbacks > itemsPerPage && (
-        <div className="flex items-center justify-center gap-1.5 mt-6">
-          {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
-            <button
-              key={`feedback-dot-${idx}`}
-              onClick={() => scrollToSlide(idx)}
-              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${idx === currentIndex
-                  ? 'w-6 bg-[#BC6F07]'
-                  : 'w-1.5 bg-[#3A4F1C]/25 hover:bg-[#3A4F1C]/50'
-                }`}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
-        </div>
+        <PaginationDots
+          total={maxIndex + 1}
+          currentIndex={currentIndex}
+          onSelect={scrollToSlide}
+          variant="light"
+          size="sm"
+          className="mt-6"
+        />
       )}
     </div>
   );

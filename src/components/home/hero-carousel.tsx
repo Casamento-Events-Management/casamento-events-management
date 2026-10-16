@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
 import type { HeroSection, VideoSource } from '@/types';
+import { PaginationDots } from '@/components/ui/pagination-dots';
 
 interface HeroCarouselProps {
   hero: HeroSection;
@@ -240,20 +241,13 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
             </div>
 
             {/* Pagination Indicators */}
-            <div className="flex items-center gap-1.5">
-              {slides.map((_, idx) => (
-                <button
-                  key={`desktop-dot-${idx}`}
-                  onClick={() => handleSelectSlide(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                    idx === currentIndex
-                      ? 'w-6 bg-[#BC6F07]'
-                      : 'w-2 bg-[#F7F3E8]/30 hover:bg-[#F7F3E8]/60'
-                  }`}
-                  aria-label={`Go to slide ${idx + 1}`}
-                />
-              ))}
-            </div>
+            <PaginationDots
+              total={slides.length}
+              currentIndex={currentIndex}
+              onSelect={handleSelectSlide}
+              variant="dark"
+              size="md"
+            />
 
           </div>
         </div>
@@ -411,20 +405,13 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
                 </div>
 
                 {/* Pagination Dots */}
-                <div className="flex items-center gap-2">
-                  {slides.map((_, idx) => (
-                    <button
-                      key={`mobile-dot-${idx}`}
-                      onClick={() => handleSelectSlide(idx)}
-                      className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
-                        idx === currentIndex
-                          ? 'w-6 sm:w-8 bg-[#BC6F07]'
-                          : 'w-2 bg-[#F7F3E8]/40'
-                      }`}
-                      aria-label={`Go to slide ${idx + 1}`}
-                    />
-                  ))}
-                </div>
+                <PaginationDots
+                  total={slides.length}
+                  currentIndex={currentIndex}
+                  onSelect={handleSelectSlide}
+                  variant="dark"
+                  size="md"
+                />
 
                 {/* Left/Right Chevrons */}
                 <div className="flex items-center gap-2">

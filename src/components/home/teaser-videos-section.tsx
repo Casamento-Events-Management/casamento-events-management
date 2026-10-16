@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { TeaserVideo } from '@/types';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { TeaserCard } from './teaser-card';
+import { PaginationDots } from '@/components/ui/pagination-dots';
 
 interface TeaserVideosSectionProps {
   teaserVideos: TeaserVideo[];
@@ -121,19 +122,14 @@ export function TeaserVideosSection({ teaserVideos, eyebrow, title, description 
 
         {/* Pagination Dots */}
         {totalTeasers > itemsPerPage && (
-          <div className="flex items-center justify-center gap-2 mt-8 md:mt-10">
-            {Array.from({ length: maxIndex + 1 }).map((_, idx) => (
-              <button
-                key={`teaser-dot-${idx}`}
-                onClick={() => scrollToSlide(idx)}
-                className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${idx === currentIndex
-                    ? 'w-6 bg-[#BC6F07]'
-                    : 'w-2 bg-[#3A4F1C]/25 hover:bg-[#3A4F1C]/50'
-                  }`}
-                aria-label={`Go to slide ${idx + 1}`}
-              />
-            ))}
-          </div>
+          <PaginationDots
+            total={maxIndex + 1}
+            currentIndex={currentIndex}
+            onSelect={scrollToSlide}
+            variant="light"
+            size="md"
+            className="mt-8 md:mt-10"
+          />
         )}
 
       </div>
