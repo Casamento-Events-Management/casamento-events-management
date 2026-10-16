@@ -93,7 +93,9 @@ export function Footer() {
               Privacy Policy
             </Link>
             <span>•</span>
-            <span className="hover:text-[#F7F3E8] cursor-pointer">Terms of Service</span>
+            <Link href="/terms" className="hover:text-[#F7F3E8] transition-colors" target="_blank" rel="noopener noreferrer">
+              Terms of Service
+            </Link>
             <span>•</span>
             <Link href="/cookies" className="hover:text-[#F7F3E8] transition-colors" target="_blank" rel="noopener noreferrer">
               Cookie Settings
