@@ -69,7 +69,7 @@ function getVideoEmbedInfo(source?: VideoSource): VideoEmbedInfo {
 
 export function HeroCarousel({ hero }: HeroCarouselProps) {
   const slides = hero.slides || [];
-  const autoPlayIntervalSec = hero.autoPlayInterval || 3;
+  const autoPlayIntervalSec = hero.autoPlayInterval || 2;
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -97,16 +97,16 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
     setCurrentIndex(idx);
   };
 
-  // Auto-play timer
+  // Auto-play timer: continuously loops, cleanly resetting on slide change or interaction
   useEffect(() => {
     if (isPaused || slides.length <= 1 || inlinePlayingKey !== null) return;
 
-    const timer = setInterval(() => {
+    const timer = setTimeout(() => {
       handleNext();
     }, autoPlayIntervalSec * 1000);
 
-    return () => clearInterval(timer);
-  }, [handleNext, isPaused, slides.length, autoPlayIntervalSec, inlinePlayingKey]);
+    return () => clearTimeout(timer);
+  }, [currentIndex, handleNext, isPaused, slides.length, autoPlayIntervalSec, inlinePlayingKey]);
 
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -158,6 +158,15 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
     setIsPaused(false);
   };
 
+  const handleMouseLeave = () => {
+    // If mouse leaves during a drag, cleanly cancel drag and unpause
+    if (dragStartX.current !== null) {
+      dragStartX.current = null;
+      dragEndX.current = null;
+    }
+    setIsPaused(false);
+  };
+
   if (slides.length === 0) return null;
 
   const currentSlide = slides[currentIndex];
@@ -173,11 +182,11 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
   return (
     <div
       className="relative w-full bg-[#2A3A14] overflow-hidden select-none"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+      onMouseLeave={handleMouseLeave}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

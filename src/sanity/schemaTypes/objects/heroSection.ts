@@ -13,8 +13,8 @@ export const heroSection = defineType({
       name: 'autoPlayInterval',
       title: 'Auto-Play Rotation Speed (Seconds)',
       type: 'number',
-      description: 'Time in seconds between automatic slide transitions (default: 3 seconds).',
-      initialValue: 3,
+      description: 'Time in seconds between automatic slide transitions (default: 2 seconds).',
+      initialValue: 2,
       validation: (Rule) => Rule.min(1).max(30),
     }),
     defineField({

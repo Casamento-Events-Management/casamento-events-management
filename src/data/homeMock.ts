@@ -17,7 +17,7 @@ export const homeMockData: HomePageContent = {
     teaserVideosTitle: 'Featured Teaser Highlights',
     teaserVideosDescription: 'Experience the emotional intensity and cinematic splendor of our handcrafted celebrations.',
     hero: {
-        autoPlayInterval: 3,
+        autoPlayInterval: 2,
         slides: [
             {
                 _key: 'slide-1',
