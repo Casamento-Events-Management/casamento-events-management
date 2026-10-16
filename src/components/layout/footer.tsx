@@ -75,6 +75,7 @@ export function Footer() {
                   hello@casamentoevents.com
                 </a>
               </li>
+              <li>+63 956 274 2962</li>
             </ul>
           </div>
         </div>
@@ -87,7 +88,9 @@ export function Footer() {
             <span>•</span>
             <span className="hover:text-[#F7F3E8] cursor-pointer">Terms of Service</span>
             <span>•</span>
-            <span className="hover:text-[#F7F3E8] cursor-pointer">Cookie Settings</span>
+            <Link href="/cookies" className="hover:text-[#F7F3E8] transition-colors" target="_blank" rel="noopener noreferrer">
+              Cookie Settings
+            </Link>
           </div>
         </div>
       </div>
