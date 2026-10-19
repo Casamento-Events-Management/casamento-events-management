@@ -293,13 +293,42 @@ export async function getEventTasksAction(
 }
 
 /**
+ * Retrieves active team members for task mention and assignment.
+ */
+export async function getTeamMembersAction(): Promise<{
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}[]> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData) return [];
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('admin_profiles')
+    .select('user_id, full_name, email, role')
+    .eq('is_active', true)
+    .order('full_name', { ascending: true });
+
+  return (data || []).map((m) => ({
+    id: m.user_id,
+    name: m.full_name,
+    email: m.email,
+    role: m.role,
+  }));
+}
+
+/**
  * Creates a new task for an event.
  */
 export async function createEventTaskAction(params: {
   bookingId: string;
   title: string;
   assignee_name?: string;
+  assignee_id?: string;
   due_date?: string;
+  due_time?: string;
 }): Promise<{ success: boolean; error?: string; task?: EventTask }> {
   const adminData = await getCurrentActiveAdmin();
   if (!adminData) {
@@ -313,20 +342,39 @@ export async function createEventTaskAction(params: {
   const supabase = await createClient();
   const now = new Date().toISOString();
 
-  const { data, error } = await supabase
+  const insertPayload: Record<string, unknown> = {
+    booking_id: params.bookingId,
+    title: params.title.trim(),
+    assignee_name: params.assignee_name?.trim() || null,
+    assignee_id: params.assignee_id || null,
+    due_date: params.due_date || null,
+    is_done: false,
+    created_by: adminData.user.id,
+    created_at: now,
+    updated_at: now,
+  };
+
+  if (params.due_time) {
+    insertPayload.due_time = params.due_time;
+  }
+
+  let { data, error } = await supabase
     .from('event_tasks')
-    .insert({
-      booking_id: params.bookingId,
-      title: params.title.trim(),
-      assignee_name: params.assignee_name?.trim() || null,
-      due_date: params.due_date || null,
-      is_done: false,
-      created_by: adminData.user.id,
-      created_at: now,
-      updated_at: now,
-    })
+    .insert(insertPayload)
     .select('*')
     .single();
+
+  // If due_time column does not exist yet on Supabase DB, fallback without due_time
+  if (error && error.message.includes('due_time')) {
+    delete insertPayload.due_time;
+    const retry = await supabase
+      .from('event_tasks')
+      .insert(insertPayload)
+      .select('*')
+      .single();
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error || !data) {
     console.error('[createEventTaskAction Error]:', error);

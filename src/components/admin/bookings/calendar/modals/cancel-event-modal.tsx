@@ -105,7 +105,7 @@ export function CancelEventModal({
             </div>
             <div>
               <h3 className="text-base font-serif font-bold text-red-950">
-                Cancel Event (Soft Delete)
+                Remove Event
               </h3>
               <p className="text-xs text-red-700/80">
                 Ref: <span className="font-mono font-semibold text-red-900">{booking.booking_reference}</span> • {booking.service_title}
@@ -150,12 +150,12 @@ export function CancelEventModal({
           </div>
 
           <p className="text-xs text-stone-600 leading-relaxed">
-            This action will soft-delete the booking from the active schedule and mark it as <strong>cancelled</strong>. The record and complete audit history will be preserved.
+            This action will remove the event from the active calendar and mark it as <strong>cancelled</strong>. The reservation will be preserved in the <strong>Archived</strong> tab with full audit history.
           </p>
 
           <div>
             <label className="block text-xs font-semibold text-stone-700 mb-1">
-              Cancellation Reason <span className="text-red-500">*</span>
+              Removal Reason <span className="text-red-500">*</span>
             </label>
             <textarea
               rows={3}
@@ -201,10 +201,10 @@ export function CancelEventModal({
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span>Cancelling...</span>
+                  <span>Removing...</span>
                 </>
               ) : (
-                <span>Confirm Cancellation</span>
+                <span>Confirm Removal</span>
               )}
             </button>
           </div>

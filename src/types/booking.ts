@@ -81,6 +81,7 @@ export interface EventTask {
   assignee_name?: string | null;
   assignee_id?: string | null;
   due_date?: string | null;
+  due_time?: string | null;
   is_done: boolean;
   completed_at?: string | null;
   created_by?: string | null;

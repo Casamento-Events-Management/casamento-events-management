@@ -20,10 +20,11 @@ interface CalendarViewShellProps {
   bookings: BookingRecord[];
   onBookingsChange: (updater: (prev: BookingRecord[]) => BookingRecord[]) => void;
   onUpdateBookingDetails: (params: {
+    bookingId?: string;
     updates: AdminUpdateBookingPayload;
     notifyClient: boolean;
     adminMessage?: string;
-  }) => Promise<void>;
+  }) => Promise<unknown>;
   onNewEventClick?: () => void;
   viewMode?: 'calendar' | 'list';
 }
@@ -223,6 +224,7 @@ export function CalendarViewShell({
       ) : (
         /* List View */
         <CalendarListView
+          allBookings={bookings}
           events={confirmedEvents}
           onSelectEvent={(evt) => setInspectingEvent(evt)}
           onRescheduleEvent={(evt) => setReschedulingEvent(evt)}
@@ -269,7 +271,10 @@ export function CalendarViewShell({
           isOpen={!!editingEvent}
           onClose={() => setEditingEvent(null)}
           onConfirm={async (params) => {
-            await onUpdateBookingDetails(params);
+            await onUpdateBookingDetails({
+              ...params,
+              bookingId: editingEvent.id,
+            });
             setEditingEvent(null);
           }}
         />
@@ -333,7 +338,10 @@ export function CalendarViewShell({
               onAccept={async () => {}}
               onReject={async () => {}}
               onUpdate={async (params) => {
-                await onUpdateBookingDetails(params);
+                await onUpdateBookingDetails({
+                  ...params,
+                  bookingId: inspectingEvent.id,
+                });
                 setInspectingEvent(null);
               }}
               onClose={() => setInspectingEvent(null)}

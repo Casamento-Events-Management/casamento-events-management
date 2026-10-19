@@ -16,6 +16,7 @@ import {
   Loader2,
   X,
   AlertCircle,
+  AtSign,
 } from 'lucide-react';
 import type { BookingRecord, EventTask } from '@/types/booking';
 import {
@@ -23,12 +24,20 @@ import {
   createEventTaskAction,
   toggleEventTaskAction,
   deleteEventTaskAction,
+  getTeamMembersAction,
 } from '@/lib/services/admin-calendar-actions';
 
 interface EventTasksModalProps {
   booking: BookingRecord;
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
 }
 
 export function EventTasksModal({
@@ -38,28 +47,39 @@ export function EventTasksModal({
 }: EventTasksModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [tasks, setTasks] = useState<EventTask[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // New task form state
   const [newTitle, setNewTitle] = useState('');
   const [newAssignee, setNewAssignee] = useState('');
+  const [newAssigneeId, setNewAssigneeId] = useState<string | null>(null);
   const [newDueDate, setNewDueDate] = useState('');
+  const [newDueTime, setNewDueTime] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [showMemberSuggestions, setShowMemberSuggestions] = useState(false);
 
-  // Load tasks on mount/open
+  // Load tasks and team members on open
   useEffect(() => {
     if (!isOpen) return;
 
     let isCancelled = false;
 
-    getEventTasksAction(booking.id)
-      .then((res) => {
+    Promise.all([
+      getEventTasksAction(booking.id),
+      getTeamMembersAction(),
+    ])
+      .then(([tasksRes, membersRes]) => {
         if (!isCancelled) {
-          if (res.success && res.tasks) {
-            setTasks(res.tasks);
+          if (tasksRes.success && tasksRes.tasks) {
+            setTasks(tasksRes.tasks);
           } else {
-            setError(res.error || 'Failed to load tasks.');
+            setError(tasksRes.error || 'Failed to load tasks.');
+          }
+
+          if (Array.isArray(membersRes)) {
+            setTeamMembers(membersRes);
           }
         }
       })
@@ -102,6 +122,22 @@ export function EventTasksModal({
     }
   };
 
+  const handleSelectMember = (member: TeamMember) => {
+    setNewAssignee(member.name);
+    setNewAssigneeId(member.id);
+    setShowMemberSuggestions(false);
+  };
+
+  const filteredMembers = teamMembers.filter((m) => {
+    if (!newAssignee.trim()) return true;
+    const cleanQuery = newAssignee.replace(/^@/, '').toLowerCase();
+    return (
+      m.name.toLowerCase().includes(cleanQuery) ||
+      m.email.toLowerCase().includes(cleanQuery) ||
+      (m.role && m.role.toLowerCase().includes(cleanQuery))
+    );
+  });
+
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
@@ -113,8 +149,10 @@ export function EventTasksModal({
       const res = await createEventTaskAction({
         bookingId: booking.id,
         title: newTitle.trim(),
-        assignee_name: newAssignee.trim() || undefined,
+        assignee_name: newAssignee.trim() ? newAssignee.replace(/^@/, '').trim() : undefined,
+        assignee_id: newAssigneeId || undefined,
         due_date: newDueDate || undefined,
+        due_time: newDueTime || undefined,
       });
 
       if (!res.success || !res.task) {
@@ -124,7 +162,10 @@ export function EventTasksModal({
       setTasks((prev) => [...prev, res.task!]);
       setNewTitle('');
       setNewAssignee('');
+      setNewAssigneeId(null);
       setNewDueDate('');
+      setNewDueTime('');
+      setShowMemberSuggestions(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add task.');
     } finally {
@@ -169,6 +210,23 @@ export function EventTasksModal({
     } catch (err) {
       setTasks(previous);
       setError(err instanceof Error ? err.message : 'Error deleting task.');
+    }
+  };
+
+  const formatDueTime = (timeStr?: string | null) => {
+    if (!timeStr) return null;
+    try {
+      const parts = timeStr.split(':');
+      if (parts.length >= 2) {
+        const hour = parseInt(parts[0], 10);
+        const min = parts[1];
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        return `${displayHour}:${min} ${ampm}`;
+      }
+      return timeStr;
+    } catch {
+      return timeStr;
     }
   };
 
@@ -244,27 +302,99 @@ export function EventTasksModal({
               onChange={(e) => setNewTitle(e.target.value)}
               className="w-full rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-xs text-stone-900 placeholder-stone-400 focus:border-[#3A4F1C] focus:outline-hidden"
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {/* Member Mentioning / Assignee Field */}
               <div className="relative">
-                <User className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
+                <AtSign className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
                 <input
                   type="text"
-                  placeholder="Assignee (e.g. Maria, John)"
+                  placeholder="Assignee (e.g. @Maria)"
                   value={newAssignee}
-                  onChange={(e) => setNewAssignee(e.target.value)}
+                  onFocus={() => setShowMemberSuggestions(true)}
+                  onChange={(e) => {
+                    setNewAssignee(e.target.value);
+                    setNewAssigneeId(null);
+                    setShowMemberSuggestions(true);
+                  }}
                   className="w-full rounded-lg border border-stone-300 bg-white py-1.5 pl-8 pr-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#3A4F1C] focus:outline-hidden"
                 />
+
+                {/* Member Dropdown / Mention Suggestions */}
+                {showMemberSuggestions && teamMembers.length > 0 && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 max-h-40 overflow-y-auto rounded-lg border border-stone-200 bg-white shadow-lg p-1">
+                    <div className="px-2 py-1 text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
+                      Mention Team Member
+                    </div>
+                    {filteredMembers.length === 0 ? (
+                      <div className="px-2 py-1 text-xs text-stone-400 italic">No matches</div>
+                    ) : (
+                      filteredMembers.map((member) => (
+                        <button
+                          key={member.id}
+                          type="button"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSelectMember(member);
+                          }}
+                          className="w-full text-left flex items-center justify-between px-2 py-1.5 text-xs rounded-md hover:bg-[#F7F3E8] hover:text-[#3A4F1C] transition"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <User className="h-3 w-3 text-stone-400" />
+                            <span className="font-medium text-stone-800">{member.name}</span>
+                          </div>
+                          {member.role && (
+                            <span className="text-[10px] text-stone-400 capitalize">{member.role}</span>
+                          )}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
               </div>
+
+              {/* Due Date */}
               <div className="relative">
                 <Calendar className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
                 <input
                   type="date"
                   value={newDueDate}
                   onChange={(e) => setNewDueDate(e.target.value)}
+                  title="Due Date"
+                  className="w-full rounded-lg border border-stone-300 bg-white py-1.5 pl-8 pr-2 text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden cursor-pointer"
+                />
+              </div>
+
+              {/* Due Time */}
+              <div className="relative">
+                <Clock className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
+                <input
+                  type="time"
+                  value={newDueTime}
+                  onChange={(e) => setNewDueTime(e.target.value)}
+                  title="Due Time"
                   className="w-full rounded-lg border border-stone-300 bg-white py-1.5 pl-8 pr-2 text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden cursor-pointer"
                 />
               </div>
             </div>
+
+            {/* Quick Member Mention Badges if teamMembers loaded */}
+            {teamMembers.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                <span className="text-[10px] text-stone-400 font-medium">Mention:</span>
+                {teamMembers.slice(0, 5).map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => handleSelectMember(m)}
+                    className="inline-flex items-center gap-1 rounded-md bg-stone-100 hover:bg-[#3A4F1C]/15 hover:text-[#3A4F1C] px-1.5 py-0.5 text-[10px] text-stone-600 transition"
+                  >
+                    <span>@{m.name.split(' ')[0]}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="flex justify-end pt-1">
               <button
                 type="submit"
@@ -332,15 +462,20 @@ export function EventTasksModal({
 
                     <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-stone-500">
                       {task.assignee_name && (
-                        <span className="inline-flex items-center gap-1">
-                          <User className="h-3 w-3 text-stone-400" />
-                          <span>{task.assignee_name}</span>
+                        <span className="inline-flex items-center gap-1 font-medium text-stone-700 bg-stone-100 rounded-sm px-1 py-0.2">
+                          <User className="h-2.5 w-2.5 text-stone-400" />
+                          <span>@{task.assignee_name}</span>
                         </span>
                       )}
-                      {task.due_date && (
+                      {(task.due_date || task.due_time) && (
                         <span className="inline-flex items-center gap-1">
                           <Clock className="h-3 w-3 text-stone-400" />
-                          <span>Due: {task.due_date}</span>
+                          <span>
+                            Due:{' '}
+                            {task.due_date ? task.due_date : ''}
+                            {task.due_date && task.due_time ? ' at ' : ''}
+                            {task.due_time ? formatDueTime(task.due_time) : ''}
+                          </span>
                         </span>
                       )}
                     </div>

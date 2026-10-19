@@ -216,15 +216,15 @@ export function CalendarDayPanel({
                   <Edit3 className="h-3.5 w-3.5" />
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => onCancelEvent(booking)}
-                  className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-red-200 bg-white text-red-600 hover:bg-red-50 hover:border-red-300 transition shrink-0 ml-auto"
-                  title="Cancel Event"
-                  aria-label="Cancel Event"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => onCancelEvent(booking)}
+                    className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-red-200 bg-white text-red-600 hover:bg-red-50 hover:border-red-300 transition shrink-0 ml-auto"
+                    title="Remove Event"
+                    aria-label="Remove Event"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
               </div>
             </div>
           ))

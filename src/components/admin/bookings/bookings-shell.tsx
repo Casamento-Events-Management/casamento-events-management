@@ -178,13 +178,18 @@ export function BookingsShell({
 
   // Handler: Update Booking Details
   const handleUpdate = async (params: {
+    bookingId?: string;
     updates: AdminUpdateBookingPayload;
     notifyClient: boolean;
     adminMessage?: string;
-  }) => {
-    if (!selectedBooking) return;
+  }): Promise<void> => {
+    const targetId = params.bookingId || selectedBooking?.id;
+    if (!targetId) {
+      showBanner('error', 'No booking selected to update.');
+      throw new Error('No booking selected to update.');
+    }
     const res = await updateBookingDetailsAction({
-      bookingId: selectedBooking.id,
+      bookingId: targetId,
       updates: params.updates,
       notifyClient: params.notifyClient,
       adminMessage: params.adminMessage,
@@ -192,11 +197,12 @@ export function BookingsShell({
 
     if (!res.success || !res.booking) {
       showBanner('error', res.error || 'Failed to update booking.');
-      return;
+      throw new Error(res.error || 'Failed to update booking.');
     }
 
-    setBookings((prev) => prev.map((b) => (b.id === res.booking!.id ? res.booking! : b)));
-    showBanner('success', `Details for ${res.booking.booking_reference} have been updated.`);
+    const updated = res.booking;
+    setBookings((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+    showBanner('success', `Details for ${updated.booking_reference} have been updated.`);
   };
 
   // Handler: Create New Event
