@@ -226,7 +226,7 @@ export function CreateBookingModal({
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Weddings, Debut, Corporate"
+                  placeholder="e.g. Social Events, Digital Advertising, etc."
                   value={formData.category_title}
                   onChange={(e) => setFormData({ ...formData, category_title: e.target.value })}
                   className="w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden"
