@@ -12,6 +12,7 @@ import {
   rejectBookingAction,
   updateBookingDetailsAction,
   createBookingAction,
+  getBookingByIdAction,
 } from '@/lib/services/admin-booking-actions';
 import { PendingBookingsMasterList } from './pending-bookings-master-list';
 import { BookingDetailInspector } from './booking-detail-inspector';
@@ -91,15 +92,41 @@ export function BookingsShell({
   }, [isMobileDetailOpen]);
 
   // Keep selection aligned when filter changes
-  const handleStatusFilterChange = (newStatus: BookingStatus | 'all') => {
+  const handleStatusFilterChange = async (newStatus: BookingStatus | 'all') => {
     setStatusFilter(newStatus);
     const firstMatch = bookings.find((b) => !b.is_archived && (newStatus === 'all' || b.status === newStatus));
-    setSelectedId(firstMatch ? firstMatch.id : null);
+    const targetId = firstMatch ? firstMatch.id : null;
+    setSelectedId(targetId);
+
+    if (targetId) {
+      try {
+        const res = await getBookingByIdAction(targetId);
+        if (res.success && res.booking) {
+          setBookings((prev) =>
+            prev.map((b) => (b.id === res.booking!.id ? res.booking! : b))
+          );
+        }
+      } catch (err) {
+        console.error('Failed to sync filtered booking data:', err);
+      }
+    }
   };
 
-  const handleSelectBooking = (booking: BookingRecord) => {
+  const handleSelectBooking = async (booking: BookingRecord) => {
     setSelectedId(booking.id);
     setIsMobileDetailOpen(true);
+
+    // Fetch authoritative fresh record from database for this specific selected item
+    try {
+      const res = await getBookingByIdAction(booking.id);
+      if (res.success && res.booking) {
+        setBookings((prev) =>
+          prev.map((b) => (b.id === res.booking!.id ? res.booking! : b))
+        );
+      }
+    } catch (err) {
+      console.error('Failed to sync selected booking data:', err);
+    }
   };
 
   const showBanner = (type: 'success' | 'error', text: string) => {

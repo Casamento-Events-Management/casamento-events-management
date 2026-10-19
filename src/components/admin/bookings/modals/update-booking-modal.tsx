@@ -8,6 +8,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Edit3, AlertCircle, Loader2, X, Mail, User, Phone, Building, Calendar, MapPin, FileText, Globe, Sparkles } from 'lucide-react';
 import type { BookingRecord, AdminUpdateBookingPayload } from '@/types/booking';
 import { getCountriesList, checkCountryHoliday } from '@/lib/utils/holidayUtils';
+import { getBookingByIdAction } from '@/lib/services/admin-booking-actions';
 
 interface UpdateBookingModalProps {
   booking: BookingRecord;
@@ -27,6 +28,8 @@ export function UpdateBookingModal({
   onConfirm,
 }: UpdateBookingModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [currentBookingRecord, setCurrentBookingRecord] = useState<BookingRecord>(booking);
+  const [isSyncing, setIsSyncing] = useState(true);
   const [formData, setFormData] = useState<AdminUpdateBookingPayload>({
     client_full_name: booking.client_full_name,
     client_email: booking.client_email,
@@ -45,6 +48,44 @@ export function UpdateBookingModal({
   const [adminMessage, setAdminMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Fetch the authoritative stored record from Supabase for this specific item on mount
+  useEffect(() => {
+    let isCancelled = false;
+
+    getBookingByIdAction(booking.id)
+      .then((res) => {
+        if (!isCancelled && res.success && res.booking) {
+          const fresh = res.booking;
+          setCurrentBookingRecord(fresh);
+          setFormData({
+            client_full_name: fresh.client_full_name || '',
+            client_email: fresh.client_email || '',
+            client_phone: fresh.client_phone || '',
+            company_name: fresh.company_name || '',
+            event_country: fresh.event_country || 'PH',
+            event_country_name: fresh.event_country_name || 'Philippines',
+            event_date: fresh.event_date || '',
+            venue_city: fresh.venue_city || '',
+            venue_address: fresh.venue_address || '',
+            special_notes: fresh.special_notes || '',
+            admin_notes: fresh.admin_notes || '',
+          });
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch fresh booking data:', err);
+      })
+      .finally(() => {
+        if (!isCancelled) {
+          setIsSyncing(false);
+        }
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [booking.id]);
 
   const countriesList = useMemo(() => getCountriesList(), []);
 
@@ -100,33 +141,42 @@ export function UpdateBookingModal({
 
   if (!isOpen) return null;
 
-  // Compute what has actually changed
+  // Compute what has actually changed against the authoritative stored record
   const getChangedFields = () => {
     const changes: Array<{ label: string; from: string; to: string }> = [];
-    if (formData.client_full_name !== booking.client_full_name) {
-      changes.push({ label: 'Client Name', from: booking.client_full_name, to: formData.client_full_name || '' });
+    if (formData.client_full_name !== currentBookingRecord.client_full_name) {
+      changes.push({ label: 'Client Name', from: currentBookingRecord.client_full_name, to: formData.client_full_name || '' });
     }
-    if (formData.client_email !== booking.client_email) {
-      changes.push({ label: 'Email', from: booking.client_email, to: formData.client_email || '' });
+    if (formData.client_email !== currentBookingRecord.client_email) {
+      changes.push({ label: 'Email', from: currentBookingRecord.client_email, to: formData.client_email || '' });
     }
-    if ((formData.client_phone || null) !== (booking.client_phone || null)) {
-      changes.push({ label: 'Phone', from: booking.client_phone || 'N/A', to: formData.client_phone || 'N/A' });
+    if ((formData.client_phone || null) !== (currentBookingRecord.client_phone || null)) {
+      changes.push({ label: 'Phone', from: currentBookingRecord.client_phone || 'N/A', to: formData.client_phone || 'N/A' });
     }
-    if ((formData.event_country || 'PH') !== (booking.event_country || 'PH')) {
+    if ((formData.company_name || null) !== (currentBookingRecord.company_name || null)) {
+      changes.push({ label: 'Company', from: currentBookingRecord.company_name || 'None', to: formData.company_name || 'None' });
+    }
+    if ((formData.event_country || 'PH') !== (currentBookingRecord.event_country || 'PH')) {
       changes.push({
         label: 'Event Country',
-        from: booking.event_country_name || booking.event_country || 'Philippines',
+        from: currentBookingRecord.event_country_name || currentBookingRecord.event_country || 'Philippines',
         to: formData.event_country_name || formData.event_country || '',
       });
     }
-    if (formData.event_date !== booking.event_date) {
-      changes.push({ label: 'Event Date', from: booking.event_date, to: formData.event_date || '' });
+    if (formData.event_date !== currentBookingRecord.event_date) {
+      changes.push({ label: 'Event Date', from: currentBookingRecord.event_date, to: formData.event_date || '' });
     }
-    if (formData.venue_city !== booking.venue_city) {
-      changes.push({ label: 'Target Venue Address', from: booking.venue_city, to: formData.venue_city || '' });
+    if (formData.venue_city !== currentBookingRecord.venue_city) {
+      changes.push({ label: 'Target Venue Address', from: currentBookingRecord.venue_city, to: formData.venue_city || '' });
     }
-    if ((formData.venue_address || null) !== (booking.venue_address || null)) {
-      changes.push({ label: 'Venue Details', from: booking.venue_address || 'None', to: formData.venue_address || 'None' });
+    if ((formData.venue_address || null) !== (currentBookingRecord.venue_address || null)) {
+      changes.push({ label: 'Venue Details', from: currentBookingRecord.venue_address || 'None', to: formData.venue_address || 'None' });
+    }
+    if ((formData.special_notes || null) !== (currentBookingRecord.special_notes || null)) {
+      changes.push({ label: 'Client Notes', from: currentBookingRecord.special_notes || 'None', to: formData.special_notes || 'None' });
+    }
+    if ((formData.admin_notes || null) !== (currentBookingRecord.admin_notes || null)) {
+      changes.push({ label: 'Admin Notes', from: currentBookingRecord.admin_notes || 'None', to: formData.admin_notes || 'None' });
     }
     return changes;
   };
@@ -176,11 +226,19 @@ export function UpdateBookingModal({
               <Edit3 className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-base font-serif font-bold text-[#2B3817]">
-                Update Booking Details
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-serif font-bold text-[#2B3817]">
+                  Update Booking Details
+                </h3>
+                {isSyncing && (
+                  <span className="inline-flex items-center gap-1 text-[10px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">
+                    <Loader2 className="h-2.5 w-2.5 animate-spin text-amber-700" />
+                    <span>Syncing latest data...</span>
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-[#2B3817]/70">
-                Ref: {booking.booking_reference}
+                Ref: <span className="font-mono font-semibold text-stone-900">{currentBookingRecord.booking_reference}</span> • {currentBookingRecord.service_title}
               </p>
             </div>
           </div>

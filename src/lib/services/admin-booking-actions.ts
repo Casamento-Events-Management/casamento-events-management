@@ -562,3 +562,29 @@ export async function createBookingAction(
   return { success: true, booking: createdBooking as BookingRecord };
 }
 
+/**
+ * Fetches the latest authoritative stored data for a specific booking by ID directly from Supabase.
+ */
+export async function getBookingByIdAction(bookingId: string): Promise<{
+  success: boolean;
+  error?: string;
+  booking?: BookingRecord;
+}> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData) {
+    return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', bookingId)
+    .single();
+
+  if (error || !data) {
+    return { success: false, error: 'Target booking not found.' };
+  }
+
+  return { success: true, booking: data as BookingRecord };
+}

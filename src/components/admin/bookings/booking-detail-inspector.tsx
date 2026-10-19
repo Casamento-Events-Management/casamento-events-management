@@ -349,26 +349,35 @@ export function BookingDetailInspector({
       </div>
 
       {/* Action Dialogs */}
-      <AcceptBookingModal
-        booking={booking}
-        isOpen={isAcceptModalOpen}
-        onClose={() => setIsAcceptModalOpen(false)}
-        onConfirm={onAccept}
-      />
+      {isAcceptModalOpen && (
+        <AcceptBookingModal
+          key={`${booking.id}-accept`}
+          booking={booking}
+          isOpen={isAcceptModalOpen}
+          onClose={() => setIsAcceptModalOpen(false)}
+          onConfirm={onAccept}
+        />
+      )}
 
-      <RejectBookingModal
-        booking={booking}
-        isOpen={isRejectModalOpen}
-        onClose={() => setIsRejectModalOpen(false)}
-        onConfirm={onReject}
-      />
+      {isRejectModalOpen && (
+        <RejectBookingModal
+          key={`${booking.id}-reject`}
+          booking={booking}
+          isOpen={isRejectModalOpen}
+          onClose={() => setIsRejectModalOpen(false)}
+          onConfirm={onReject}
+        />
+      )}
 
-      <UpdateBookingModal
-        booking={booking}
-        isOpen={isUpdateModalOpen}
-        onClose={() => setIsUpdateModalOpen(false)}
-        onConfirm={onUpdate}
-      />
+      {isUpdateModalOpen && (
+        <UpdateBookingModal
+          key={`${booking.id}-update`}
+          booking={booking}
+          isOpen={isUpdateModalOpen}
+          onClose={() => setIsUpdateModalOpen(false)}
+          onConfirm={onUpdate}
+        />
+      )}
     </div>
   );
 }
