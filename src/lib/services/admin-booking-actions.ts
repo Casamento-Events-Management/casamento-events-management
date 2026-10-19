@@ -7,6 +7,7 @@
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
 import { logAudit } from '@/lib/services/auditService';
 import {
@@ -460,7 +461,7 @@ export async function createBookingAction(
   }
 
   const data = parsed.data;
-  const supabase = await createClient();
+  const supabaseAdmin = createAdminClient();
   const bookingReference = generateBookingReference();
 
   const addOnsArray = data.add_ons_text
@@ -507,7 +508,7 @@ export async function createBookingAction(
     updated_at: now,
   };
 
-  const { data: createdBooking, error: insertError } = await supabase
+  const { data: createdBooking, error: insertError } = await supabaseAdmin
     .from('bookings')
     .insert(insertPayload)
     .select('*')
