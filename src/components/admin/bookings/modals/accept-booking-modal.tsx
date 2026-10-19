@@ -141,7 +141,9 @@ export function AcceptBookingModal({
               <span title="Venue Location">
                 <MapPin className="h-3.5 w-3.5 text-[#3A4F1C]" />
               </span>
-              <span className="text-[#2B3817]">{booking.venue_city}</span>
+              <span className="text-[#2B3817]">
+                {booking.venue_city}{booking.event_country_name ? `, ${booking.event_country_name}` : ''}
+              </span>
             </div>
           </div>
 
@@ -174,7 +176,7 @@ export function AcceptBookingModal({
                   value={adminMessage}
                   onChange={(e) => setAdminMessage(e.target.value)}
                   placeholder="e.g. We look forward to meeting you for our concept briefing."
-                  className="w-full rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-800 placeholder-stone-400 focus:border-[#3A4F1C] focus:outline-hidden"
+                  className="w-full rounded-lg border border-stone-200 px-3 py-1.5 text-xs text-stone-800 placeholder-stone-400 max-h-28 overflow-y-auto resize-y focus:border-[#3A4F1C] focus:outline-hidden"
                 />
               </div>
             )}

@@ -4,9 +4,10 @@
 // create-booking-modal.tsx — Create New Event / Booking Modal
 // =============================================================================
 
-import React, { useState, useEffect, useRef } from 'react';
-import { PlusCircle, AlertCircle, Loader2, X, Calendar, MapPin, User, Mail, Phone, Building, Sparkles, FileText } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { PlusCircle, AlertCircle, Loader2, X, Calendar, MapPin, User, Mail, Phone, Building, Sparkles, FileText, Globe } from 'lucide-react';
 import type { BookingRecord, AdminCreateBookingInput } from '@/types/booking';
+import { getCountriesList, checkCountryHoliday } from '@/lib/utils/holidayUtils';
 
 interface CreateBookingModalProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ export function CreateBookingModal({
     service_title: '',
     category_title: '',
     add_ons_text: '',
+    event_country: 'PH',
+    event_country_name: 'Philippines',
     event_date: '',
     venue_city: '',
     venue_address: '',
@@ -38,6 +41,33 @@ export function CreateBookingModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const countriesList = useMemo(() => getCountriesList(), []);
+
+  // Compute today's date in local YYYY-MM-DD
+  const todayDateString = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  // Dynamic country-aware holiday check
+  const holidayCheck = useMemo(() => {
+    if (!formData.event_date) return { isHoliday: false, name: '' };
+    return checkCountryHoliday(formData.event_date, formData.event_country || 'PH');
+  }, [formData.event_date, formData.event_country]);
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const code = e.target.value;
+    const match = countriesList.find((c) => c.code === code);
+    setFormData((prev) => ({
+      ...prev,
+      event_country: code,
+      event_country_name: match ? match.name : code,
+    }));
+  };
 
   // Esc key and scroll lock
   useEffect(() => {
@@ -69,6 +99,12 @@ export function CreateBookingModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.event_date && formData.event_date < todayDateString) {
+      setError('Please select today or a future date for your event.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -234,49 +270,82 @@ export function CreateBookingModal({
               </div>
 
               <div>
-                <label className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-stone-700 mb-1" title="Target Event Date">
-                  <Calendar className="h-3.5 w-3.5 text-[#3A4F1C]" />
-                  <span>Event Date</span>
+                <label className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-stone-700 mb-1" title="Target Event Country">
+                  <Globe className="h-3.5 w-3.5 text-[#3A4F1C]" />
+                  <span>Target Event Country</span>
                   <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="date"
-                  required
-                  value={formData.event_date}
-                  onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
-                  className="w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden"
-                />
+                <select
+                  value={formData.event_country || 'PH'}
+                  onChange={handleCountryChange}
+                  className="w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden cursor-pointer"
+                >
+                  {countriesList.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name} ({c.code})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
-                <label className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-stone-700 mb-1" title="Venue City or Municipality">
+                <label className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-stone-700 mb-1" title="Target Venue Address">
                   <MapPin className="h-3.5 w-3.5 text-[#3A4F1C]" />
-                  <span>Venue City</span>
+                  <span>Target Venue Address</span>
                   <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Makati City, Tagaytay"
+                  placeholder="e.g. BGC Taguig, Metro Manila"
                   value={formData.venue_city}
                   onChange={(e) => setFormData({ ...formData, venue_city: e.target.value })}
                   className="w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden"
                 />
               </div>
+
+              <div>
+                <label className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-stone-700 mb-1" title="Target Event Date">
+                  <Calendar className="h-3.5 w-3.5 text-[#3A4F1C]" />
+                  <span>Target Event Date</span>
+                  <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  min={todayDateString}
+                  value={formData.event_date}
+                  onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
+                  className="w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] sm:text-xs font-semibold text-stone-700 mb-1" title="Specific Venue Hall, Unit or Landmark">
+                  Venue Details / Hall <span className="text-[10px] font-normal text-stone-500">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Specific hall, floor, or landmark"
+                  value={formData.venue_address || ''}
+                  onChange={(e) => setFormData({ ...formData, venue_address: e.target.value })}
+                  className="w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden"
+                />
+              </div>
             </div>
 
-            <div className="mt-2.5 sm:mt-3">
-              <label className="block text-[11px] sm:text-xs font-semibold text-stone-700 mb-1" title="Venue Full Address">
-                Venue Address
-              </label>
-              <input
-                type="text"
-                placeholder="Specific venue hall, building, or address"
-                value={formData.venue_address || ''}
-                onChange={(e) => setFormData({ ...formData, venue_address: e.target.value })}
-                className="w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden"
-              />
-            </div>
+            {/* Country-Aware Holiday Notification Banner */}
+            {holidayCheck.isHoliday && (
+              <div className="mt-2.5 p-2.5 bg-[#BC6F07]/10 border border-[#BC6F07]/30 rounded-lg text-xs text-[#3A4F1C] space-y-0.5 animate-in fade-in duration-150">
+                <span className="font-semibold text-[#BC6F07] uppercase block tracking-wider text-[10px] flex items-center gap-1">
+                  <Sparkles className="h-3.5 w-3.5 text-[#BC6F07]" />
+                  Public Holiday Detected: {holidayCheck.name}
+                </span>
+                <p className="text-[11px] text-[#3A4F1C]/90 font-light leading-snug">
+                  The selected date lands on a recognized public holiday in {formData.event_country_name || 'the selected country'}. Our team will verify vendor availability and applicable holiday rates during consultation.
+                </p>
+              </div>
+            )}
 
             <div className="mt-2.5 sm:mt-3">
               <label className="block text-[11px] sm:text-xs font-semibold text-stone-700 mb-1" title="Add-on services (separated by commas)">
@@ -304,7 +373,7 @@ export function CreateBookingModal({
                 placeholder="Client-provided preferences or initial remarks"
                 value={formData.special_notes || ''}
                 onChange={(e) => setFormData({ ...formData, special_notes: e.target.value })}
-                className="w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden"
+                className="w-full max-h-28 overflow-y-auto resize-y rounded-lg border border-stone-300 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden"
               />
             </div>
 
@@ -317,7 +386,7 @@ export function CreateBookingModal({
                 placeholder="Operational notes, negotiated terms, or team coordination status"
                 value={formData.admin_notes || ''}
                 onChange={(e) => setFormData({ ...formData, admin_notes: e.target.value })}
-                className="w-full rounded-lg border border-amber-200 bg-amber-50/30 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-amber-400 focus:outline-hidden"
+                className="w-full max-h-28 overflow-y-auto resize-y rounded-lg border border-amber-200 bg-amber-50/30 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-amber-400 focus:outline-hidden"
               />
             </div>
 

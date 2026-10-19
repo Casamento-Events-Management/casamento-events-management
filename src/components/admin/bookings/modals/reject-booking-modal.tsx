@@ -154,7 +154,7 @@ export function RejectBookingModal({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="e.g. We are fully booked for this date and cannot take additional events."
-              className="w-full rounded-xl border border-stone-300 p-3 text-xs text-stone-900 placeholder-stone-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-hidden"
+              className="w-full rounded-xl border border-stone-300 p-3 text-xs text-stone-900 placeholder-stone-400 max-h-32 overflow-y-auto resize-y focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-hidden"
             />
             <p className="mt-1 text-[11px] text-stone-500">
               This explanation will be shared with the client if email notification is enabled.

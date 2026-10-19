@@ -20,6 +20,7 @@ import {
   Calendar,
   User,
   X,
+  Sparkles,
 } from 'lucide-react';
 import type { BookingRecord, AdminUpdateBookingPayload } from '@/types/booking';
 import { BookingPaymentPlaceholder } from './booking-payment-placeholder';
@@ -136,9 +137,10 @@ export function BookingDetailInspector({
 
         {booking.is_holiday_date && booking.holiday_name && (
           <div className="mt-2.5 sm:mt-3 flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs text-amber-800 border border-amber-200">
-            <span title="Holiday Notice" className="shrink-0 inline-flex">
+            <Sparkles className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+            <span>
+              Target date coincides with holiday{booking.event_country_name ? ` (${booking.event_country_name})` : ''}: <strong>{booking.holiday_name}</strong>
             </span>
-            <span>Target date coincides with holiday: <strong>{booking.holiday_name}</strong></span>
           </div>
         )}
       </div>
@@ -244,7 +246,9 @@ export function BookingDetailInspector({
                 <MapPin className="h-3.5 w-3.5 text-[#3A4F1C]" />
               </span>
               <div>
-                <span className="font-medium text-stone-900 text-xs sm:text-xs">{booking.venue_city}</span>
+                <span className="font-medium text-stone-900 text-xs sm:text-xs">
+                  {booking.venue_city}{booking.event_country_name ? `, ${booking.event_country_name}` : ''}
+                </span>
                 {booking.venue_address && (
                   <span className="text-stone-600 block text-[10px] sm:text-[11px]">{booking.venue_address}</span>
                 )}
@@ -257,7 +261,7 @@ export function BookingDetailInspector({
                 <span title="Client Special Notes" className="shrink-0 inline-flex mt-0.5">
                   <FileText className="h-3.5 w-3.5 text-[#3A4F1C]" />
                 </span>
-                <p className="text-stone-800 italic bg-white p-2 sm:p-2.5 rounded-lg border border-stone-200/60 leading-relaxed flex-1 text-[11px] sm:text-xs">
+                <p className="text-stone-800 italic bg-white p-2 sm:p-2.5 rounded-lg border border-stone-200/60 leading-relaxed flex-1 text-[11px] sm:text-xs max-h-28 overflow-y-auto">
                   &ldquo;{booking.special_notes}&rdquo;
                 </p>
               </div>
@@ -277,7 +281,7 @@ export function BookingDetailInspector({
               </span>
               <span>Decline Reason</span>
             </div>
-            <p className="leading-relaxed">{booking.rejection_reason}</p>
+            <p className="leading-relaxed max-h-28 overflow-y-auto">{booking.rejection_reason}</p>
           </div>
         )}
 
@@ -285,7 +289,7 @@ export function BookingDetailInspector({
         {booking.admin_notes && (
           <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-2.5 sm:p-3.5 text-[11px] sm:text-xs text-stone-800">
             <span className="font-semibold text-amber-900 block mb-1">Internal Team Notes:</span>
-            <p className="leading-relaxed whitespace-pre-wrap">{booking.admin_notes}</p>
+            <p className="leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto">{booking.admin_notes}</p>
           </div>
         )}
 

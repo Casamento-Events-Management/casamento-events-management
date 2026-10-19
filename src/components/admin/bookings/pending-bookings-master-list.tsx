@@ -187,12 +187,22 @@ export function PendingBookingsMasterList({
                       <Calendar className="h-3 w-3 text-[#3A4F1C]" />
                     </span>
                     <span className="font-medium text-stone-700">{formatShortDate(booking.event_date)}</span>
+                    {booking.is_holiday_date && (
+                      <span
+                        title={`Holiday: ${booking.holiday_name || 'Public Holiday'}`}
+                        className="inline-flex items-center rounded-sm bg-amber-100 px-1 text-[9px] font-semibold text-amber-800"
+                      >
+                        Holiday
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-1">
-                    <span title="Venue City">
+                    <span title="Target Venue Address">
                       <MapPin className="h-3 w-3 text-[#3A4F1C]" />
                     </span>
-                    <span>{booking.venue_city}</span>
+                    <span className="max-w-[140px] truncate" title={`${booking.venue_city}${booking.event_country_name ? `, ${booking.event_country_name}` : ''}`}>
+                      {booking.venue_city}{booking.event_country_name ? `, ${booking.event_country_name}` : ''}
+                    </span>
                   </div>
                   <div className="flex items-center gap-1 text-stone-400 ml-auto">
                     <span title="Received Date">

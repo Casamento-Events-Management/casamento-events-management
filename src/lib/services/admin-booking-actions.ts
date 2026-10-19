@@ -17,6 +17,7 @@ import {
 } from '@/lib/email';
 import { parseContactEmailRecipients, parseContactEmailCC } from '@/lib/utils/envUtils';
 import { generateBookingReference } from '@/lib/services/bookingDbService';
+import { checkCountryHoliday } from '@/lib/utils/holidayUtils';
 import type { BookingRecord, AdminUpdateBookingPayload, AdminCreateBookingInput } from '@/types/booking';
 
 const updateBookingSchema = z.object({
@@ -24,8 +25,10 @@ const updateBookingSchema = z.object({
   client_email: z.string().email('Valid email is required').optional(),
   client_phone: z.string().nullable().optional(),
   company_name: z.string().nullable().optional(),
+  event_country: z.string().optional(),
+  event_country_name: z.string().nullable().optional(),
   event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD').optional(),
-  venue_city: z.string().min(1, 'Venue city is required').optional(),
+  venue_city: z.string().min(1, 'Target Venue Address is required').optional(),
   venue_address: z.string().nullable().optional(),
   special_notes: z.string().nullable().optional(),
   admin_notes: z.string().nullable().optional(),
@@ -39,8 +42,10 @@ const createBookingSchema = z.object({
   service_title: z.string().min(1, 'Service title is required'),
   category_title: z.string().min(1, 'Category is required'),
   add_ons_text: z.string().nullable().optional(),
+  event_country: z.string().default('PH'),
+  event_country_name: z.string().nullable().optional(),
   event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
-  venue_city: z.string().min(1, 'Venue city is required'),
+  venue_city: z.string().min(1, 'Target Venue Address is required'),
   venue_address: z.string().nullable().optional(),
   special_notes: z.string().nullable().optional(),
   admin_notes: z.string().nullable().optional(),
@@ -372,6 +377,15 @@ export async function updateBookingDetailsAction(params: {
     return { success: true, booking: currentBooking as BookingRecord };
   }
 
+  // Recalculate holiday status if event date or country changes
+  if (cleanUpdates.event_date || cleanUpdates.event_country) {
+    const targetDate = (cleanUpdates.event_date as string) || currentBooking.event_date;
+    const targetCountry = (cleanUpdates.event_country as string) || currentBooking.event_country || 'PH';
+    const holidayCheck = checkCountryHoliday(targetDate, targetCountry);
+    cleanUpdates.is_holiday_date = holidayCheck.isHoliday;
+    cleanUpdates.holiday_name = holidayCheck.name || null;
+  }
+
   cleanUpdates.updated_at = new Date().toISOString();
 
   const { data: updatedBooking, error: updateError } = await supabase
@@ -481,6 +495,8 @@ export async function createBookingAction(
       .replace(/^-+|-+$/g, '');
 
   const now = new Date().toISOString();
+  const holidayCheck = checkCountryHoliday(data.event_date, data.event_country || 'PH');
+
   const insertPayload = {
     booking_reference: bookingReference,
     service_id: `custom-${slugify(data.service_title) || 'event'}`,
@@ -493,9 +509,11 @@ export async function createBookingAction(
     client_email: data.client_email.trim().toLowerCase(),
     client_phone: data.client_phone ? data.client_phone.trim() : null,
     company_name: data.company_name ? data.company_name.trim() : null,
-    event_country: 'PH',
-    event_country_name: 'Philippines',
+    event_country: data.event_country || 'PH',
+    event_country_name: data.event_country_name || (data.event_country === 'PH' ? 'Philippines' : data.event_country),
     event_date: data.event_date,
+    is_holiday_date: holidayCheck.isHoliday,
+    holiday_name: holidayCheck.name || null,
     venue_city: data.venue_city.trim(),
     venue_address: data.venue_address ? data.venue_address.trim() : null,
     special_notes: data.special_notes ? data.special_notes.trim() : null,

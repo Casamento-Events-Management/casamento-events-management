@@ -85,6 +85,8 @@ export interface AdminUpdateBookingPayload {
   client_email?: string;
   client_phone?: string | null;
   company_name?: string | null;
+  event_country?: string;
+  event_country_name?: string | null;
   event_date?: string;
   venue_city?: string;
   venue_address?: string | null;
@@ -103,6 +105,8 @@ export interface AdminCreateBookingInput {
   service_title: string;
   category_title: string;
   add_ons_text?: string | null;
+  event_country?: string;
+  event_country_name?: string | null;
   event_date: string;
   venue_city: string;
   venue_address?: string | null;
