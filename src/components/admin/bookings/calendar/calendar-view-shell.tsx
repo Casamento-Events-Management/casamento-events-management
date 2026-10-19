@@ -4,7 +4,7 @@
 // calendar-view-shell.tsx — Master Shell for Upcoming Events Calendar & Coordination
 // =============================================================================
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import type { BookingRecord, AdminUpdateBookingPayload } from '@/types/booking';
 import { MonthCalendarGrid } from './month-calendar-grid';
 import { WeekCalendarGrid } from './week-calendar-grid';
@@ -53,12 +53,62 @@ export function CalendarViewShell({
   // Currently selected date on the calendar
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
 
+  // Mobile / Tablet Selected Day Panel modal state
+  const [isMobileDayModalOpen, setIsMobileDayModalOpen] = useState(false);
+
   // Modal active targets
   const [reschedulingEvent, setReschedulingEvent] = useState<BookingRecord | null>(null);
   const [cancellingEvent, setCancellingEvent] = useState<BookingRecord | null>(null);
   const [tasksEvent, setTasksEvent] = useState<BookingRecord | null>(null);
   const [editingEvent, setEditingEvent] = useState<BookingRecord | null>(null);
   const [inspectingEvent, setInspectingEvent] = useState<BookingRecord | null>(null);
+
+  // Handle date selection with mobile/tablet modal pop-up trigger
+  const handleSelectDate = (dateStr: string) => {
+    setSelectedDate(dateStr);
+    setIsMobileDayModalOpen(true);
+  };
+
+  // Close mobile modal automatically if screen is resized to desktop (>= 1280px)
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined' && window.innerWidth >= 1280) {
+        setIsMobileDayModalOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle Escape key and outside scroll lock whenever inspectingEvent or isMobileDayModalOpen is active
+  useEffect(() => {
+    const isMobileModalActuallyActive = isMobileDayModalOpen && typeof window !== 'undefined' && window.innerWidth < 1280;
+    const isModalActive = Boolean(inspectingEvent || isMobileModalActuallyActive);
+
+    if (!isModalActive) {
+      document.body.style.overflow = '';
+      return;
+    }
+
+    document.body.style.overflow = 'hidden';
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (inspectingEvent) {
+          setInspectingEvent(null);
+        } else if (isMobileDayModalOpen) {
+          setIsMobileDayModalOpen(false);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [inspectingEvent, isMobileDayModalOpen]);
 
   // Filter only active, confirmed events for the upcoming calendar
   const confirmedEvents = useMemo(() => {
@@ -126,15 +176,15 @@ export function CalendarViewShell({
     <div className="space-y-4">
       {/* Main Workspace Body */}
       {viewMode === 'calendar' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          {/* Left Column: Calendar Grid (~65% width) */}
-          <div className="lg:col-span-8">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+          {/* Left Column: Calendar Grid (Full width on mobile/tablet, ~65% on desktop) */}
+          <div className="xl:col-span-8">
             {calendarSubMode === 'month' ? (
               <MonthCalendarGrid
                 currentDate={currentDate}
                 selectedDate={selectedDate}
                 events={confirmedEvents}
-                onSelectDate={setSelectedDate}
+                onSelectDate={handleSelectDate}
                 onPrevMonth={handlePrevMonth}
                 onNextMonth={handleNextMonth}
                 onToday={handleToday}
@@ -146,7 +196,7 @@ export function CalendarViewShell({
                 currentDate={currentDate}
                 selectedDate={selectedDate}
                 events={confirmedEvents}
-                onSelectDate={setSelectedDate}
+                onSelectDate={handleSelectDate}
                 onSelectEvent={(evt) => setInspectingEvent(evt)}
                 onPrevWeek={handlePrevWeek}
                 onNextWeek={handleNextWeek}
@@ -157,8 +207,8 @@ export function CalendarViewShell({
             )}
           </div>
 
-          {/* Right Column: Selected Day Events Panel (~35% width) */}
-          <div className="lg:col-span-4 lg:sticky lg:top-4">
+          {/* Right Column: Selected Day Events Panel (~35% width, desktop only) */}
+          <div className="hidden xl:block xl:col-span-4 xl:sticky xl:top-4">
             <CalendarDayPanel
               selectedDate={selectedDate}
               events={eventsOnSelectedDate}
@@ -223,6 +273,47 @@ export function CalendarViewShell({
             setEditingEvent(null);
           }}
         />
+      )}
+
+      {/* iPad / Tablet / Mobile Pop-up Modal for Selected Day Events Panel */}
+      {isMobileDayModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setIsMobileDayModalOpen(false)}
+          className="xl:hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg my-6 max-h-[85vh] overflow-hidden rounded-2xl bg-white shadow-xl flex flex-col"
+          >
+            <CalendarDayPanel
+              selectedDate={selectedDate}
+              events={eventsOnSelectedDate}
+              onSelectEvent={(evt) => {
+                setIsMobileDayModalOpen(false);
+                setInspectingEvent(evt);
+              }}
+              onRescheduleEvent={(evt) => {
+                setIsMobileDayModalOpen(false);
+                setReschedulingEvent(evt);
+              }}
+              onEditEvent={(evt) => {
+                setIsMobileDayModalOpen(false);
+                setEditingEvent(evt);
+              }}
+              onTasksEvent={(evt) => {
+                setIsMobileDayModalOpen(false);
+                setTasksEvent(evt);
+              }}
+              onCancelEvent={(evt) => {
+                setIsMobileDayModalOpen(false);
+                setCancellingEvent(evt);
+              }}
+              onClose={() => setIsMobileDayModalOpen(false)}
+            />
+          </div>
+        </div>
       )}
 
       {/* Event Details Inspector Modal */}

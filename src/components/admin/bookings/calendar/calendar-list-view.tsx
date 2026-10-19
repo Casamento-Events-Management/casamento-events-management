@@ -14,7 +14,7 @@ import {
   Edit3,
   Trash2,
   CheckSquare,
-  ChevronRight,
+  FileText,
 } from 'lucide-react';
 import type { BookingRecord } from '@/types/booking';
 import { calculateDaysRemaining } from '@/lib/utils/dateUtils';
@@ -124,21 +124,21 @@ export function CalendarListView({
         />
       </div>
 
-      {/* Events Table / List */}
-      <div className="overflow-x-auto">
+      {/* Events Table / List (limited height with vertical scroll-down) */}
+      <div className="w-full max-h-[600px] sm:max-h-[680px] overflow-y-auto pr-1 sm:pr-2">
         {sortedAndFilteredEvents.length === 0 ? (
           <div className="text-center py-16 text-stone-400 text-xs">
             No confirmed upcoming events match your search criteria.
           </div>
         ) : (
-          <div className="space-y-2.5 min-w-[700px]">
+          <div className="space-y-2.5 w-full pb-2">
             {sortedAndFilteredEvents.map((booking) => (
               <div
                 key={booking.id}
-                className="group flex items-center justify-between gap-4 rounded-xl border border-stone-200/90 bg-white p-3.5 hover:border-[#3A4F1C]/40 hover:bg-[#F7F3E8]/30 transition"
+                className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 rounded-xl border border-stone-200/90 bg-white p-3.5 hover:border-[#3A4F1C]/40 hover:bg-[#F7F3E8]/30 transition"
               >
                 {/* Date & Urgency */}
-                <div className="w-36 shrink-0 space-y-1">
+                <div className="w-full sm:w-36 shrink-0 flex items-center justify-between sm:block space-y-0 sm:space-y-1">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-stone-900">
                     <Calendar className="h-3.5 w-3.5 text-[#3A4F1C]" />
                     <span>{formatShortDate(booking.event_date)}</span>
@@ -146,14 +146,14 @@ export function CalendarListView({
                   <div>{getCountdownBadge(booking.event_date)}</div>
                 </div>
 
-                {/* Event & Client Info */}
+                {/* Event & Client Info (widened) */}
                 <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-xs text-stone-900 truncate">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-xs text-stone-900">
                       {booking.service_title}
                     </span>
                     <span className="font-mono text-[10px] text-stone-400">
-                      {booking.booking_reference}
+                      • {booking.booking_reference}
                     </span>
                     {booking.is_holiday_date && (
                       <span
@@ -166,12 +166,12 @@ export function CalendarListView({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-3 text-[11px] text-stone-500">
+                  <div className="flex items-center gap-3 text-[11px] text-stone-500 flex-wrap">
                     <span className="inline-flex items-center gap-1">
                       <User className="h-3 w-3 text-stone-400" />
                       <span className="text-stone-700 font-medium">{booking.client_full_name}</span>
                     </span>
-                    <span className="inline-flex items-center gap-1 truncate">
+                    <span className="inline-flex items-center gap-1">
                       <MapPin className="h-3 w-3 text-stone-400" />
                       <span>
                         {booking.venue_city}
@@ -181,52 +181,56 @@ export function CalendarListView({
                   </div>
                 </div>
 
-                {/* Actions Row */}
-                <div className="flex items-center gap-1.5 shrink-0 text-xs">
+                {/* Actions Row (Icon-only buttons with titles, neutral details icon) */}
+                <div className="flex items-center gap-1.5 shrink-0 justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-stone-100">
                   <button
                     type="button"
                     onClick={() => onSelectEvent(booking)}
-                    className="inline-flex items-center gap-1 rounded-lg bg-[#3A4F1C]/10 px-2.5 py-1.5 text-[11px] font-semibold text-[#3A4F1C] hover:bg-[#3A4F1C]/20 transition"
+                    className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-stone-200 bg-white text-stone-600 hover:text-[#3A4F1C] hover:border-[#3A4F1C]/40 hover:bg-stone-50 transition shrink-0"
+                    title="View Details"
+                    aria-label="View Details"
                   >
-                    <span>Details</span>
-                    <ChevronRight className="h-3 w-3" />
+                    <FileText className="h-3.5 w-3.5" />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => onTasksEvent(booking)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-stone-700 hover:bg-stone-50 transition"
+                    className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-stone-200 bg-white text-stone-600 hover:text-[#3A4F1C] hover:border-[#3A4F1C]/40 hover:bg-stone-50 transition shrink-0"
+                    title="Tasks"
+                    aria-label="Tasks"
                   >
-                    <CheckSquare className="h-3 w-3 text-[#3A4F1C]" />
-                    <span>Tasks</span>
+                    <CheckSquare className="h-3.5 w-3.5" />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => onRescheduleEvent(booking)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-stone-700 hover:bg-stone-50 transition"
+                    className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-stone-200 bg-white text-stone-600 hover:text-[#3A4F1C] hover:border-[#3A4F1C]/40 hover:bg-stone-50 transition shrink-0"
+                    title="Reschedule"
+                    aria-label="Reschedule"
                   >
-                    <Calendar className="h-3 w-3 text-[#3A4F1C]" />
-                    <span>Reschedule</span>
+                    <Calendar className="h-3.5 w-3.5" />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => onEditEvent(booking)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-stone-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-stone-700 hover:bg-stone-50 transition"
+                    className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-stone-200 bg-white text-stone-600 hover:text-[#3A4F1C] hover:border-[#3A4F1C]/40 hover:bg-stone-50 transition shrink-0"
+                    title="Edit Details"
+                    aria-label="Edit Details"
                   >
-                    <Edit3 className="h-3 w-3 text-[#3A4F1C]" />
-                    <span>Edit</span>
+                    <Edit3 className="h-3.5 w-3.5" />
                   </button>
 
                   <button
                     type="button"
                     onClick={() => onCancelEvent(booking)}
-                    className="inline-flex items-center gap-1 rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-red-600 hover:bg-red-50 transition"
-                    title="Cancel event"
+                    className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-red-200 bg-white text-red-600 hover:bg-red-50 hover:border-red-300 transition shrink-0"
+                    title="Cancel Event"
+                    aria-label="Cancel Event"
                   >
-                    <Trash2 className="h-3 w-3" />
-                    <span>Cancel</span>
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>

@@ -12,8 +12,9 @@ import {
   Edit3,
   Trash2,
   CheckSquare,
-  Eye,
+  FileText,
   User,
+  X,
 } from 'lucide-react';
 import type { BookingRecord } from '@/types/booking';
 import { calculateDaysRemaining } from '@/lib/utils/dateUtils';
@@ -26,6 +27,7 @@ interface CalendarDayPanelProps {
   onEditEvent: (booking: BookingRecord) => void;
   onTasksEvent: (booking: BookingRecord) => void;
   onCancelEvent: (booking: BookingRecord) => void;
+  onClose?: () => void;
 }
 
 export function CalendarDayPanel({
@@ -36,6 +38,7 @@ export function CalendarDayPanel({
   onEditEvent,
   onTasksEvent,
   onCancelEvent,
+  onClose,
 }: CalendarDayPanelProps) {
   const formattedDayTitle = React.useMemo(() => {
     try {
@@ -93,15 +96,28 @@ export function CalendarDayPanel({
   };
 
   return (
-    <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white shadow-2xs overflow-hidden flex flex-col h-full min-h-[500px]">
+    <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white shadow-2xs overflow-hidden flex flex-col h-full xl:min-h-[500px]">
       {/* Day Header */}
-      <div className="border-b border-[#3A4F1C]/10 bg-[#F7F3E8]/50 p-4 sm:p-5">
-        <h3 className="text-sm sm:text-base font-serif font-bold text-[#2B3817]">
-          {formattedDayTitle}
-        </h3>
-        <p className="text-xs text-[#2B3817]/70 mt-0.5">
-          {events.length} {events.length === 1 ? 'confirmed event' : 'confirmed events'}
-        </p>
+      <div className="flex items-center justify-between border-b border-[#3A4F1C]/10 bg-[#F7F3E8]/50 p-4 sm:p-5">
+        <div>
+          <h3 className="text-sm sm:text-base font-serif font-bold text-[#2B3817]">
+            {formattedDayTitle}
+          </h3>
+          <p className="text-xs text-[#2B3817]/70 mt-0.5">
+            {events.length} {events.length === 1 ? 'confirmed event' : 'confirmed events'}
+          </p>
+        </div>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition cursor-pointer"
+            title="Close panel"
+            aria-label="Close panel"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Events List Body */}
@@ -163,11 +179,11 @@ export function CalendarDayPanel({
                 <button
                   type="button"
                   onClick={() => onSelectEvent(booking)}
-                  className="h-7 w-7 rounded-lg inline-flex items-center justify-center bg-[#3A4F1C]/10 text-[#3A4F1C] border border-[#3A4F1C]/20 hover:bg-[#3A4F1C]/20 transition shrink-0"
+                  className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-stone-200 bg-white text-stone-600 hover:text-[#3A4F1C] hover:border-[#3A4F1C]/40 hover:bg-stone-50 transition shrink-0"
                   title="View Details"
                   aria-label="View Details"
                 >
-                  <Eye className="h-3.5 w-3.5" />
+                  <FileText className="h-3.5 w-3.5" />
                 </button>
 
                 <button
