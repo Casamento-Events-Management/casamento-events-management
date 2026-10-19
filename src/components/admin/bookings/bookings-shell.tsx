@@ -5,7 +5,7 @@
 // =============================================================================
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Calendar as CalendarIcon, Plus, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, List, Plus, CheckCircle, AlertCircle } from 'lucide-react';
 import type { BookingRecord, BookingStatus, AdminUpdateBookingPayload, AdminCreateBookingInput } from '@/types/booking';
 import {
   acceptBookingAction,
@@ -17,6 +17,7 @@ import {
 import { PendingBookingsMasterList } from './pending-bookings-master-list';
 import { BookingDetailInspector } from './booking-detail-inspector';
 import { CreateBookingModal } from './modals/create-booking-modal';
+import { CalendarViewShell } from './calendar/calendar-view-shell';
 
 interface BookingsShellProps {
   initialBookings: BookingRecord[];
@@ -26,7 +27,7 @@ interface BookingsShellProps {
 export function BookingsShell({
   initialBookings,
 }: BookingsShellProps) {
-  const [activeTab, setActiveTab] = useState<'requests' | 'calendar'>('requests');
+  const [activeTab, setActiveTab] = useState<'calendar' | 'list' | 'requests'>('calendar');
   const [bookings, setBookings] = useState<BookingRecord[]>(initialBookings);
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,6 +41,11 @@ export function BookingsShell({
   // Compute pending count dynamically from current state
   const pendingCount = useMemo(() => {
     return bookings.filter((b) => b.status === 'pending' && !b.is_archived).length;
+  }, [bookings]);
+
+  // Compute confirmed events count dynamically from current state
+  const confirmedCount = useMemo(() => {
+    return bookings.filter((b) => b.status === 'confirmed' && !b.is_archived).length;
   }, [bookings]);
 
   // Filter bookings based on status and search query
@@ -251,10 +257,11 @@ export function BookingsShell({
         <button
           type="button"
           onClick={() => setActiveTab('calendar')}
-          className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${activeTab === 'calendar'
+          className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
+            activeTab === 'calendar'
               ? 'border-[#3A4F1C] text-[#2B3817]'
               : 'border-transparent text-stone-500 hover:text-stone-800'
-            }`}
+          }`}
         >
           <CalendarIcon className="h-3.5 w-3.5" />
           <span>Calendar</span>
@@ -262,19 +269,45 @@ export function BookingsShell({
 
         <button
           type="button"
-          onClick={() => setActiveTab('requests')}
-          className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${activeTab === 'requests'
+          onClick={() => setActiveTab('list')}
+          className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
+            activeTab === 'list'
               ? 'border-[#3A4F1C] text-[#2B3817]'
               : 'border-transparent text-stone-500 hover:text-stone-800'
-            }`}
+          }`}
+        >
+          <List className="h-3.5 w-3.5" />
+          <span>List</span>
+          {confirmedCount > 0 && (
+            <span
+              className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                activeTab === 'list'
+                  ? 'bg-[#3A4F1C] text-white'
+                  : 'bg-stone-100 text-stone-600'
+              }`}
+            >
+              {confirmedCount}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('requests')}
+          className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
+            activeTab === 'requests'
+              ? 'border-[#3A4F1C] text-[#2B3817]'
+              : 'border-transparent text-stone-500 hover:text-stone-800'
+          }`}
         >
           <span>Requests</span>
           {pendingCount > 0 && (
             <span
-              className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-bold ${activeTab === 'requests'
+              className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                activeTab === 'requests'
                   ? 'bg-[#BC6F07] text-white'
                   : 'bg-[#BC6F07]/15 text-[#BC6F07]'
-                }`}
+              }`}
             >
               {pendingCount}
             </span>
@@ -333,18 +366,14 @@ export function BookingsShell({
           )}
         </div>
       ) : (
-        /* Calendar View Workspace (Feature 2 Preparation) */
-        <div className="rounded-2xl border border-dashed border-[#3A4F1C]/25 bg-white/60 p-12 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#3A4F1C]/10 text-[#3A4F1C] mx-auto mb-3">
-            <CalendarIcon className="h-7 w-7" />
-          </div>
-          <h2 className="text-base font-serif font-bold text-[#2B3817]">
-            Upcoming Events Calendar
-          </h2>
-          <p className="mx-auto mt-1 max-w-md text-xs text-[#2B3817]/70 leading-relaxed">
-            All accepted and confirmed bookings from the Requests tab will be visualized here in monthly, weekly, and day schedule views (Feature 2).
-          </p>
-        </div>
+        /* Calendar / List View Workspace */
+        <CalendarViewShell
+          bookings={bookings}
+          onBookingsChange={setBookings}
+          onUpdateBookingDetails={handleUpdate}
+          onNewEventClick={() => setIsCreateModalOpen(true)}
+          viewMode={activeTab === 'list' ? 'list' : 'calendar'}
+        />
       )}
 
       {/* New Event Creation Modal */}

@@ -23,3 +23,7 @@ export { buildBookingClientConfirmationEmail } from './templates/booking-client-
 export { buildBookingClientAcceptedEmail } from './templates/booking-client-accepted';
 export { buildBookingClientRejectedEmail } from './templates/booking-client-rejected';
 export { buildBookingClientUpdatedEmail } from './templates/booking-client-updated';
+export { buildBookingClientRescheduledEmail } from './templates/booking-client-rescheduled';
+export { buildBookingClientCancelledEmail } from './templates/booking-client-cancelled';
+export { buildBookingClientReminderEmail } from './templates/booking-client-reminder-7d';
+export { buildBookingAdminReminderEmail } from './templates/booking-admin-reminder-7d';

@@ -18,6 +18,7 @@ import {
 import { parseContactEmailRecipients, parseContactEmailCC } from '@/lib/utils/envUtils';
 import { generateBookingReference } from '@/lib/services/bookingDbService';
 import { checkCountryHoliday } from '@/lib/utils/holidayUtils';
+import { triggerImmediateReminderIfApplicable } from '@/lib/services/event-reminder-service';
 import type { BookingRecord, AdminUpdateBookingPayload, AdminCreateBookingInput } from '@/types/booking';
 
 const updateBookingSchema = z.object({
@@ -212,6 +213,9 @@ export async function acceptBookingAction(params: {
       });
     }
   }
+
+  // If event date is <= 7 days away, trigger 7-day reminder immediately
+  await triggerImmediateReminderIfApplicable(updatedBooking as BookingRecord);
 
   revalidatePath('/admin/bookings');
   return { success: true, booking: updatedBooking as BookingRecord };
