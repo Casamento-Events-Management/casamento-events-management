@@ -187,23 +187,31 @@ export function WeekCalendarGrid({
                   No events
                 </div>
               ) : (
-                day.events.map((evt) => (
-                  <div
-                    key={evt.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectEvent(evt);
-                    }}
-                    className="rounded-lg border border-[#3A4F1C]/20 bg-[#F7F3E8] p-1.5 text-xs text-[#2B3817] hover:bg-[#3A4F1C]/15 transition shadow-2xs space-y-0.5"
-                  >
-                    <span className="font-semibold block text-[11px] leading-tight truncate">
-                      {evt.service_title}
-                    </span>
-                    <span className="text-[10px] text-stone-600 block truncate">
-                      {evt.client_full_name}
-                    </span>
-                  </div>
-                ))
+                day.events.map((evt) => {
+                  const isCompleted = evt.status === 'completed';
+                  return (
+                    <div
+                      key={evt.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelectEvent(evt);
+                      }}
+                      className={`rounded-lg border p-1.5 text-xs transition shadow-2xs space-y-0.5 cursor-pointer ${
+                        isCompleted
+                          ? 'border-emerald-300 bg-emerald-50 text-emerald-950 hover:bg-emerald-100'
+                          : 'border-[#3A4F1C]/20 bg-[#F7F3E8] text-[#2B3817] hover:bg-[#3A4F1C]/15'
+                      }`}
+                    >
+                      <span className="font-semibold block text-[11px] leading-tight truncate">
+                        {isCompleted ? '✓ ' : ''}
+                        {evt.service_title}
+                      </span>
+                      <span className="text-[10px] text-stone-600 block truncate">
+                        {evt.client_full_name}
+                      </span>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>

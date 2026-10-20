@@ -7,12 +7,13 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
-import type { BookingRecord, EventTask } from '@/types/booking';
+import type { BookingRecord, EventTask, CompleteBookingInput, ReopenBookingInput } from '@/types/booking';
 import { checkCountryHoliday } from '@/lib/utils/holidayUtils';
 import { logAudit } from '@/lib/services/auditService';
 import {
   buildBookingClientRescheduledEmail,
   buildBookingClientCancelledEmail,
+  buildBookingClientCompletedEmail,
   buildTaskAssignmentMemberEmail,
 } from '@/lib/email';
 import { triggerImmediateReminderIfApplicable } from '@/lib/services/event-reminder-service';
@@ -320,6 +321,195 @@ export async function cancelEventAction(params: {
 }
 
 /**
+ * Concludes an event and marks it as completed.
+ * Authority: Admin operators only ('super_admin' or 'admin'). Staff accounts are rejected.
+ */
+export async function completeEventAction(params: CompleteBookingInput): Promise<{
+  success: boolean;
+  error?: string;
+  booking?: BookingRecord;
+}> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData) {
+    return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot Event Completeds.' };
+  }
+
+  const supabase = await createClient();
+
+  const { data: currentBooking, error: fetchErr } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', params.bookingId)
+    .single();
+
+  if (fetchErr || !currentBooking) {
+    return { success: false, error: 'Booking reservation not found.' };
+  }
+
+  if (currentBooking.status === 'completed') {
+    return { success: false, error: 'This event has already been marked as completed.' };
+  }
+
+  const now = new Date().toISOString();
+
+  // If requested, auto-complete any remaining uncancelled tasks for this event
+  if (params.autoCompletePendingTasks) {
+    const { error: taskErr } = await supabase
+      .from('event_tasks')
+      .update({
+        is_done: true,
+        completed_at: now,
+        updated_at: now,
+      })
+      .eq('booking_id', params.bookingId)
+      .eq('is_done', false)
+      .eq('is_cancelled', false);
+
+    if (taskErr) {
+      console.warn('[completeEventAction] Failed to auto-complete tasks:', taskErr);
+    }
+  }
+
+  // Update booking record: status = 'completed', completed_at = now, completed_by, completion_notes
+  const { data: updatedBooking, error: updateErr } = await supabase
+    .from('bookings')
+    .update({
+      status: 'completed',
+      completed_at: now,
+      completed_by: adminData.user.id,
+      completion_notes: params.completionNotes?.trim() || null,
+      updated_at: now,
+    })
+    .eq('id', params.bookingId)
+    .select('*')
+    .single();
+
+  if (updateErr || !updatedBooking) {
+    console.error('[completeEventAction Error]:', updateErr);
+    return { success: false, error: 'Failed to Event Completed.' };
+  }
+
+  // Audit trail logging
+  await logAudit({
+    actorUserId: adminData.user.id,
+    actorCode: adminData.profile.user_code,
+    actorName: adminData.profile.full_name,
+    actorEmail: adminData.user.email,
+    actorType: 'admin',
+    category: 'Booking',
+    action: 'Complete',
+    severity: 'Info',
+    outcome: 'Success',
+    summary: `${adminData.profile.full_name} marked event ${currentBooking.booking_reference} as completed`,
+    entityType: 'booking',
+    entityId: currentBooking.id,
+    entityRef: currentBooking.booking_reference,
+    metadata: {
+      completionNotes: params.completionNotes?.trim() || null,
+      autoCompletePendingTasks: Boolean(params.autoCompletePendingTasks),
+      notifyClient: Boolean(params.notifyClient),
+    },
+  });
+
+  // Client Thank You Email Notification
+  if (params.notifyClient && currentBooking.client_email) {
+    const emailData = buildBookingClientCompletedEmail(
+      updatedBooking as BookingRecord,
+      params.clientThankYouMessage?.trim()
+    );
+    await sendClientEmail(
+      currentBooking.client_email,
+      emailData.subject,
+      emailData.html,
+      currentBooking.booking_reference
+    );
+  }
+
+  revalidatePath('/admin/bookings');
+  return { success: true, booking: updatedBooking as BookingRecord };
+}
+
+/**
+ * Reopens a mistakenly completed event back to 'confirmed' status.
+ * Authority: Admin operators ('super_admin' or 'admin').
+ */
+export async function reopenEventAction(params: ReopenBookingInput): Promise<{
+  success: boolean;
+  error?: string;
+  booking?: BookingRecord;
+}> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData) {
+    return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot reopen events.' };
+  }
+
+  const supabase = await createClient();
+
+  const { data: currentBooking, error: fetchErr } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('id', params.bookingId)
+    .single();
+
+  if (fetchErr || !currentBooking) {
+    return { success: false, error: 'Booking reservation not found.' };
+  }
+
+  if (currentBooking.status !== 'completed') {
+    return { success: false, error: 'Only completed events can be reopened.' };
+  }
+
+  const now = new Date().toISOString();
+
+  const { data: updatedBooking, error: updateErr } = await supabase
+    .from('bookings')
+    .update({
+      status: 'confirmed',
+      completed_at: null,
+      completed_by: null,
+      updated_at: now,
+    })
+    .eq('id', params.bookingId)
+    .select('*')
+    .single();
+
+  if (updateErr || !updatedBooking) {
+    console.error('[reopenEventAction Error]:', updateErr);
+    return { success: false, error: 'Failed to reopen event.' };
+  }
+
+  // Audit trail logging
+  await logAudit({
+    actorUserId: adminData.user.id,
+    actorCode: adminData.profile.user_code,
+    actorName: adminData.profile.full_name,
+    actorEmail: adminData.user.email,
+    actorType: 'admin',
+    category: 'Booking',
+    action: 'Update',
+    severity: 'Info',
+    outcome: 'Success',
+    summary: `${adminData.profile.full_name} reopened completed event ${currentBooking.booking_reference} back to confirmed`,
+    entityType: 'booking',
+    entityId: currentBooking.id,
+    entityRef: currentBooking.booking_reference,
+    metadata: {
+      reason: params.reason?.trim() || null,
+    },
+  });
+
+  revalidatePath('/admin/bookings');
+  return { success: true, booking: updatedBooking as BookingRecord };
+}
+
+
+/**
  * Fetches all tasks assigned to a specific event.
  */
 export async function getEventTasksAction(
@@ -470,7 +660,7 @@ export async function createEventTaskAction(params: {
       assigneeNames,
       dueDate: params.due_date,
     },
-  }).catch(() => {});
+  }).catch(() => { });
 
   revalidatePath('/admin/bookings');
   return { success: true, task: data as EventTask };

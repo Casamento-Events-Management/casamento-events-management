@@ -250,15 +250,25 @@ export function MonthCalendarGrid({
 
               {/* Event Badges Inside Cell */}
               <div className="space-y-1 my-1">
-                {cell.events.slice(0, maxVisibleBadges).map((evt) => (
-                  <div
-                    key={evt.id}
-                    className="truncate rounded-md px-1.5 py-0.5 text-[10px] font-medium transition border border-[#3A4F1C]/20 bg-[#F7F3E8] text-[#2B3817] hover:bg-[#3A4F1C]/15"
-                    title={`${evt.service_title} — ${evt.client_full_name}`}
-                  >
-                    <span className="font-semibold">{evt.service_title}</span>
-                  </div>
-                ))}
+                {cell.events.slice(0, maxVisibleBadges).map((evt) => {
+                  const isCompleted = evt.status === 'completed';
+                  return (
+                    <div
+                      key={evt.id}
+                      className={`truncate rounded-md px-1.5 py-0.5 text-[10px] font-medium transition border ${
+                        isCompleted
+                          ? 'border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100'
+                          : 'border-[#3A4F1C]/20 bg-[#F7F3E8] text-[#2B3817] hover:bg-[#3A4F1C]/15'
+                      }`}
+                      title={`${evt.service_title} — ${evt.client_full_name}${isCompleted ? ' (Completed)' : ''}`}
+                    >
+                      <span className="font-semibold">
+                        {isCompleted ? '✓ ' : ''}
+                        {evt.service_title}
+                      </span>
+                    </div>
+                  );
+                })}
 
                 {overflowCount > 0 && (
                   <span className="text-[10px] text-stone-500 font-medium pl-1 block">

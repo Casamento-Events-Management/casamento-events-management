@@ -25,6 +25,7 @@ export { buildBookingClientRejectedEmail } from './templates/booking-client-reje
 export { buildBookingClientUpdatedEmail } from './templates/booking-client-updated';
 export { buildBookingClientRescheduledEmail } from './templates/booking-client-rescheduled';
 export { buildBookingClientCancelledEmail } from './templates/booking-client-cancelled';
+export { buildBookingClientCompletedEmail } from './templates/booking-client-completed';
 export { buildBookingClientReminderEmail } from './templates/booking-client-reminder-7d';
 export { buildBookingAdminReminderEmail } from './templates/booking-admin-reminder-7d';
 export { buildTaskAssignmentMemberEmail } from './templates/task-assignment-member';

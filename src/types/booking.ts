@@ -64,6 +64,9 @@ export interface BookingRecord {
   cancelled_at?: string | null;
   cancellation_reason?: string | null;
   cancelled_by?: string | null;
+  completed_at?: string | null;
+  completed_by?: string | null;
+  completion_notes?: string | null;
   reminder_7d_sent_at?: string | null;
   rescheduled_from_date?: string | null;
   email_verified_at: string;
@@ -185,4 +188,23 @@ export interface BookingApiResponse {
   bookingReference?: string;
   message?: string;
   error?: string;
+}
+
+/**
+ * Payload for marking an event completed/done.
+ */
+export interface CompleteBookingInput {
+  bookingId: string;
+  completionNotes?: string;
+  autoCompletePendingTasks?: boolean;
+  notifyClient?: boolean;
+  clientThankYouMessage?: string;
+}
+
+/**
+ * Payload for reopening a mistakenly completed event.
+ */
+export interface ReopenBookingInput {
+  bookingId: string;
+  reason?: string;
 }
