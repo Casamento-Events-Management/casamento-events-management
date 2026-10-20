@@ -12,9 +12,11 @@ import { CalendarDayPanel } from './calendar-day-panel';
 import { CalendarListView } from './calendar-list-view';
 import { RescheduleEventModal } from './modals/reschedule-event-modal';
 import { CancelEventModal } from './modals/cancel-event-modal';
+import { CompleteEventModal } from './modals/complete-event-modal';
 import { EventTasksModal } from './modals/event-tasks-modal';
 import { UpdateBookingModal } from '../modals/update-booking-modal';
 import { BookingDetailInspector } from '../booking-detail-inspector';
+import { reopenEventAction } from '@/lib/services/admin-calendar-actions';
 
 interface CalendarViewShellProps {
   bookings: BookingRecord[];
@@ -62,6 +64,7 @@ export function CalendarViewShell({
   // Modal active targets
   const [reschedulingEvent, setReschedulingEvent] = useState<BookingRecord | null>(null);
   const [cancellingEvent, setCancellingEvent] = useState<BookingRecord | null>(null);
+  const [completingEvent, setCompletingEvent] = useState<BookingRecord | null>(null);
   const [tasksEvent, setTasksEvent] = useState<BookingRecord | null>(null);
   const [editingEvent, setEditingEvent] = useState<BookingRecord | null>(null);
   const [inspectingEvent, setInspectingEvent] = useState<BookingRecord | null>(null);
@@ -113,9 +116,11 @@ export function CalendarViewShell({
     };
   }, [inspectingEvent, isMobileDayModalOpen]);
 
-  // Filter only active, confirmed events for the upcoming calendar
+  // Filter active and completed events for calendar display
   const confirmedEvents = useMemo(() => {
-    return bookings.filter((b) => b.status === 'confirmed' && !b.is_archived);
+    return bookings.filter(
+      (b) => (b.status === 'confirmed' || b.status === 'completed') && !b.is_archived
+    );
   }, [bookings]);
 
   // Events on the currently selected date
@@ -175,6 +180,13 @@ export function CalendarViewShell({
     }
   };
 
+  const handleEventCompleted = (updated: BookingRecord) => {
+    onBookingsChange((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+    if (inspectingEvent?.id === updated.id) {
+      setInspectingEvent(updated);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Main Workspace Body */}
@@ -219,6 +231,7 @@ export function CalendarViewShell({
               onRescheduleEvent={isStaff ? undefined : (evt) => setReschedulingEvent(evt)}
               onEditEvent={isStaff ? undefined : (evt) => setEditingEvent(evt)}
               onTasksEvent={(evt) => setTasksEvent(evt)}
+              onCompleteEvent={isStaff ? undefined : (evt) => setCompletingEvent(evt)}
               onCancelEvent={isStaff ? undefined : (evt) => setCancellingEvent(evt)}
             />
           </div>
@@ -232,6 +245,7 @@ export function CalendarViewShell({
           onRescheduleEvent={isStaff ? undefined : (evt) => setReschedulingEvent(evt)}
           onEditEvent={isStaff ? undefined : (evt) => setEditingEvent(evt)}
           onTasksEvent={(evt) => setTasksEvent(evt)}
+          onCompleteEvent={isStaff ? undefined : (evt) => setCompletingEvent(evt)}
           onCancelEvent={isStaff ? undefined : (evt) => setCancellingEvent(evt)}
         />
       )}
@@ -254,6 +268,16 @@ export function CalendarViewShell({
           isOpen={!!cancellingEvent}
           onClose={() => setCancellingEvent(null)}
           onCancelled={handleEventCancelled}
+        />
+      )}
+
+      {completingEvent && (
+        <CompleteEventModal
+          key={`${completingEvent.id}-complete`}
+          booking={completingEvent}
+          isOpen={!!completingEvent}
+          onClose={() => setCompletingEvent(null)}
+          onCompleted={handleEventCompleted}
         />
       )}
 
@@ -314,6 +338,10 @@ export function CalendarViewShell({
                 setIsMobileDayModalOpen(false);
                 setTasksEvent(evt);
               }}
+              onCompleteEvent={isStaff ? undefined : (evt) => {
+                setIsMobileDayModalOpen(false);
+                setCompletingEvent(evt);
+              }}
               onCancelEvent={isStaff ? undefined : (evt) => {
                 setIsMobileDayModalOpen(false);
                 setCancellingEvent(evt);
@@ -352,6 +380,15 @@ export function CalendarViewShell({
                 onBookingsChange((prev) =>
                   prev.map((b) => (b.id === inspectingEvent.id ? { ...b, admin_notes: notes } : b))
                 );
+              }}
+              onComplete={(b) => {
+                setCompletingEvent(b);
+              }}
+              onReopen={async (b) => {
+                const res = await reopenEventAction({ bookingId: b.id });
+                if (res.success && res.booking) {
+                  handleEventCompleted(res.booking as BookingRecord);
+                }
               }}
               onClose={() => setInspectingEvent(null)}
             />

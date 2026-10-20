@@ -289,7 +289,37 @@ export function TasksViewShell({
     <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white shadow-2xs overflow-hidden flex flex-col space-y-4 p-4 sm:p-6">
       {/* Sub-Tabs: Assigned to Me vs Assigned by Me vs All Team Tasks (Super Admin) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-3">
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Mobile Assigned Filter & Refresh in one line (<sm) */}
+        <div className="sm:hidden flex items-center gap-2 w-full">
+          <div className="relative flex-1">
+            <select
+              id="mobile-assigned-filter"
+              value={activeSubTab}
+              onChange={(e) => handleTabChange(e.target.value as TaskViewFilter)}
+              className="w-full rounded-xl border border-stone-200 bg-white py-1.5 pl-3 pr-8 text-xs font-semibold text-stone-800 focus:border-[#3A4F1C] focus:outline-hidden shadow-2xs cursor-pointer appearance-none"
+            >
+              <option value="assigned_to_me">Assigned to Me</option>
+              {!isStaff && <option value="assigned_by_me">Assigned by Me</option>}
+              {isSuperAdmin && !isStaff && (
+                <option value="all">All Team Tasks (Super Admin)</option>
+              )}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
+          </div>
+
+          <button
+            type="button"
+            onClick={handleRefresh}
+            title="Refresh tasks"
+            disabled={isLoading}
+            className="h-8 w-8 rounded-xl border border-stone-200 bg-white inline-flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-stone-50 transition shrink-0 cursor-pointer shadow-2xs disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin text-[#3A4F1C]' : ''}`} />
+          </button>
+        </div>
+
+        {/* Desktop / Tablet Sub-Tabs (>=sm) */}
+        <div className="hidden sm:flex items-center gap-2 flex-wrap">
           <button
             type="button"
             onClick={() => handleTabChange('assigned_to_me')}
@@ -298,7 +328,6 @@ export function TasksViewShell({
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
               }`}
           >
-            <User className="h-3.5 w-3.5" />
             <span>Assigned to Me</span>
           </button>
 
@@ -311,7 +340,6 @@ export function TasksViewShell({
                   : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                 }`}
             >
-              <Sparkles className="h-3.5 w-3.5" />
               <span>Assigned by Me</span>
             </button>
           )}
@@ -325,11 +353,7 @@ export function TasksViewShell({
                   : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                 }`}
             >
-              <Shield className="h-3.5 w-3.5" />
               <span>All Team Tasks</span>
-              <span className="rounded-full bg-white/20 px-1.5 py-0.2 text-[10px] font-bold">
-                Super Admin
-              </span>
             </button>
           )}
 
@@ -337,9 +361,10 @@ export function TasksViewShell({
             type="button"
             onClick={handleRefresh}
             title="Refresh tasks"
-            className="rounded-lg p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition"
+            disabled={isLoading}
+            className="rounded-lg p-1.5 text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin text-[#3A4F1C]' : ''}`} />
           </button>
         </div>
 

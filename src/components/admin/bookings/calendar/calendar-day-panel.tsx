@@ -15,6 +15,7 @@ import {
   FileText,
   User,
   X,
+  CheckCircle2,
 } from 'lucide-react';
 import type { BookingRecord } from '@/types/booking';
 import { calculateDaysRemaining } from '@/lib/utils/dateUtils';
@@ -26,6 +27,7 @@ interface CalendarDayPanelProps {
   onRescheduleEvent?: (booking: BookingRecord) => void;
   onEditEvent?: (booking: BookingRecord) => void;
   onTasksEvent: (booking: BookingRecord) => void;
+  onCompleteEvent?: (booking: BookingRecord) => void;
   onCancelEvent?: (booking: BookingRecord) => void;
   onClose?: () => void;
 }
@@ -37,6 +39,7 @@ export function CalendarDayPanel({
   onRescheduleEvent,
   onEditEvent,
   onTasksEvent,
+  onCompleteEvent,
   onCancelEvent,
   onClose,
 }: CalendarDayPanelProps) {
@@ -58,8 +61,16 @@ export function CalendarDayPanel({
     }
   }, [selectedDate]);
 
-  const getCountdownPill = (eventDate: string) => {
-    const days = calculateDaysRemaining(eventDate);
+  const getCountdownPill = (booking: BookingRecord) => {
+    if (booking.status === 'completed') {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800 border border-emerald-300">
+          <CheckCircle2 className="h-3 w-3 text-emerald-700" />
+          <span>Completed</span>
+        </span>
+      );
+    }
+    const days = calculateDaysRemaining(booking.event_date);
     if (days < 0) {
       return (
         <span className="inline-flex items-center rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-medium text-stone-600 border border-stone-200">
@@ -152,7 +163,7 @@ export function CalendarDayPanel({
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {getCountdownPill(booking.event_date)}
+                  {getCountdownPill(booking)}
                 </div>
               </div>
 
@@ -176,6 +187,18 @@ export function CalendarDayPanel({
 
               {/* Action Buttons Row */}
               <div className="flex items-center gap-1.5 pt-2 border-t border-stone-100">
+                {onCompleteEvent && booking.status === 'confirmed' && (
+                  <button
+                    type="button"
+                    onClick={() => onCompleteEvent(booking)}
+                    className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-emerald-300 bg-emerald-50/60 text-emerald-800 hover:bg-emerald-700 hover:text-white hover:border-emerald-700 transition shrink-0"
+                    title="Mark as Done (Conclude)"
+                    aria-label="Mark as Done"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => onSelectEvent(booking)}
@@ -195,8 +218,7 @@ export function CalendarDayPanel({
                 >
                   <CheckSquare className="h-3.5 w-3.5" />
                 </button>
-
-                {onRescheduleEvent && (
+                {onRescheduleEvent && booking.status !== 'completed' && (
                   <button
                     type="button"
                     onClick={() => onRescheduleEvent(booking)}
@@ -208,7 +230,7 @@ export function CalendarDayPanel({
                   </button>
                 )}
 
-                {onEditEvent && (
+                {onEditEvent && booking.status !== 'completed' && (
                   <button
                     type="button"
                     onClick={() => onEditEvent(booking)}
@@ -220,7 +242,7 @@ export function CalendarDayPanel({
                   </button>
                 )}
 
-                {onCancelEvent && (
+                {onCancelEvent && booking.status !== 'completed' && (
                   <button
                     type="button"
                     onClick={() => onCancelEvent(booking)}

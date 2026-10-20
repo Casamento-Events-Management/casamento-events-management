@@ -17,8 +17,10 @@ import {
 import { PendingBookingsMasterList } from './pending-bookings-master-list';
 import { BookingDetailInspector } from './booking-detail-inspector';
 import { CreateBookingModal } from './modals/create-booking-modal';
+import { CompleteEventModal } from './calendar/modals/complete-event-modal';
 import { CalendarViewShell } from './calendar/calendar-view-shell';
 import { TasksViewShell } from './tasks/tasks-view-shell';
+import { reopenEventAction } from '@/lib/services/admin-calendar-actions';
 
 interface BookingsShellProps {
   initialBookings: BookingRecord[];
@@ -43,6 +45,7 @@ export function BookingsShell({
   );
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [completingBooking, setCompletingBooking] = useState<BookingRecord | null>(null);
   const [bannerMessage, setBannerMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Compute pending count dynamically from current state
@@ -232,6 +235,16 @@ export function BookingsShell({
     );
   };
 
+  const handleReopen = async (booking: BookingRecord) => {
+    const res = await reopenEventAction({ bookingId: booking.id });
+    if (res.success && res.booking) {
+      setBookings((prev) => prev.map((b) => (b.id === res.booking!.id ? res.booking! : b)));
+      showBanner('success', `Event ${res.booking.booking_reference} has been reopened to confirmed.`);
+    } else {
+      showBanner('error', res.error || 'Failed to reopen event.');
+    }
+  };
+
   return (
     <div className="space-y-5">
       {/* Top Banner Alert if active */}
@@ -388,6 +401,8 @@ export function BookingsShell({
               onUpdate={handleUpdate}
               isStaff={isStaff}
               onNoteAppended={handleNoteAppended}
+              onComplete={(b) => setCompletingBooking(b)}
+              onReopen={handleReopen}
             />
           </div>
 
@@ -411,6 +426,11 @@ export function BookingsShell({
                   onClose={() => setIsMobileDetailOpen(false)}
                   isStaff={isStaff}
                   onNoteAppended={handleNoteAppended}
+                  onComplete={(b) => {
+                    setIsMobileDetailOpen(false);
+                    setCompletingBooking(b);
+                  }}
+                  onReopen={handleReopen}
                 />
               </div>
             </div>
@@ -434,6 +454,19 @@ export function BookingsShell({
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           onCreate={handleCreateEvent}
+        />
+      )}
+
+      {/* Event Conclusion Modal */}
+      {completingBooking && !isStaff && (
+        <CompleteEventModal
+          booking={completingBooking}
+          isOpen={!!completingBooking}
+          onClose={() => setCompletingBooking(null)}
+          onCompleted={(updated) => {
+            setBookings((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
+            showBanner('success', `Event ${updated.booking_reference} has been marked as completed!`);
+          }}
         />
       )}
     </div>

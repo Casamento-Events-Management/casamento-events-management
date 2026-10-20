@@ -42,6 +42,8 @@ interface BookingDetailInspectorProps {
   onClose?: () => void;
   isStaff?: boolean;
   onNoteAppended?: (updatedNotes: string) => void;
+  onComplete?: (booking: BookingRecord) => void;
+  onReopen?: (booking: BookingRecord) => Promise<void>;
 }
 
 export function BookingDetailInspector({
@@ -52,6 +54,8 @@ export function BookingDetailInspector({
   onClose,
   isStaff = false,
   onNoteAppended,
+  onComplete,
+  onReopen,
 }: BookingDetailInspectorProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isAcceptModalOpen, setIsAcceptModalOpen] = useState(false);
@@ -60,6 +64,7 @@ export function BookingDetailInspector({
   const [isAddingNote, setIsAddingNote] = useState(false);
   const [newNoteText, setNewNoteText] = useState('');
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+  const [isReopening, setIsReopening] = useState(false);
   const [localNotes, setLocalNotes] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, key: string) => {
@@ -295,6 +300,31 @@ export function BookingDetailInspector({
           </div>
         )}
 
+        {/* Completed Event Block */}
+        {booking.status === 'completed' && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-2.5 sm:p-3.5 text-[11px] sm:text-xs text-emerald-950 space-y-1.5">
+            <div className="flex items-center gap-1.5 font-semibold text-emerald-900">
+              <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0" />
+              <span>Event Concluded</span>
+            </div>
+            {booking.completed_at && (
+              <p className="text-[11px] text-emerald-800">
+                Marked as completed on {formatEventDate(booking.completed_at.slice(0, 10))}.
+              </p>
+            )}
+            {booking.completion_notes && (
+              <div className="pt-1.5 border-t border-emerald-200/60 mt-1">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-800 block mb-0.5">
+                  Operational Wrap-Up Notes:
+                </span>
+                <p className="text-[11px] text-emerald-950 whitespace-pre-wrap leading-relaxed bg-white/70 p-2 rounded-lg border border-emerald-200/50">
+                  {booking.completion_notes}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Internal Admin Notes */}
         {(localNotes ?? booking.admin_notes) && (
           <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-2.5 sm:p-3.5 text-[11px] sm:text-xs text-stone-800">
@@ -410,15 +440,53 @@ export function BookingDetailInspector({
               <span>Edit</span>
             </button>
           </div>
+        ) : booking.status === 'completed' ? (
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="text-[11px] sm:text-xs text-emerald-800 font-medium flex items-center gap-1.5">
+              <CheckCircle2 className="h-4 w-4 text-emerald-700" />
+              <span>Event concluded successfully.</span>
+            </div>
+            {onReopen && !isStaff && (
+              <button
+                type="button"
+                disabled={isReopening}
+                onClick={async () => {
+                  if (!confirm('Are you sure you want to reopen this event back to confirmed?')) return;
+                  setIsReopening(true);
+                  try {
+                    await onReopen(booking);
+                  } finally {
+                    setIsReopening(false);
+                  }
+                }}
+                className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white py-1.5 px-2.5 text-[11px] font-medium text-stone-700 hover:bg-stone-50 transition cursor-pointer disabled:opacity-50"
+              >
+                {isReopening ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                <span>Reopen Event</span>
+              </button>
+            )}
+          </div>
         ) : (
-          <div className="flex items-center gap-3">
-            <div className="text-[11px] sm:text-xs text-stone-500">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="text-[11px] sm:text-xs text-stone-500 flex-1 min-w-0">
               {booking.status === 'confirmed' ? 'Event is confirmed and scheduled.' : 'This reservation was declined.'}
             </div>
+
+            {onComplete && booking.status === 'confirmed' && !isStaff && (
+              <button
+                type="button"
+                onClick={() => onComplete(booking)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-800 py-1.5 sm:py-2 px-3 text-[11px] sm:text-xs font-semibold text-white shadow-xs hover:bg-emerald-900 transition cursor-pointer"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>Conclude Event</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setIsUpdateModalOpen(true)}
-              className="ml-auto inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white py-1.5 sm:py-2 px-2.5 sm:px-3 text-[11px] sm:text-xs font-medium text-stone-700 hover:bg-stone-50 transition"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white py-1.5 sm:py-2 px-2.5 sm:px-3 text-[11px] sm:text-xs font-medium text-stone-700 hover:bg-stone-50 transition"
             >
               <Edit3 className="h-3.5 w-3.5" />
               <span>Edit Details</span>
