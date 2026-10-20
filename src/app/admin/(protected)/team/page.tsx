@@ -22,6 +22,11 @@ export default async function AdminTeamPage() {
     redirect('/admin/login');
   }
 
+  // Staff (Intern / Viewer) is not allowed to access Team Management
+  if (adminData.profile.role === 'staff') {
+    redirect('/admin/dashboard');
+  }
+
   const staffMembers = await getStaffMembers();
   const isSuperAdmin = adminData.profile.role === 'super_admin';
 

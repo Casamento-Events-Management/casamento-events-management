@@ -23,10 +23,10 @@ interface CalendarDayPanelProps {
   selectedDate: string; // YYYY-MM-DD
   events: BookingRecord[];
   onSelectEvent: (booking: BookingRecord) => void;
-  onRescheduleEvent: (booking: BookingRecord) => void;
-  onEditEvent: (booking: BookingRecord) => void;
+  onRescheduleEvent?: (booking: BookingRecord) => void;
+  onEditEvent?: (booking: BookingRecord) => void;
   onTasksEvent: (booking: BookingRecord) => void;
-  onCancelEvent: (booking: BookingRecord) => void;
+  onCancelEvent?: (booking: BookingRecord) => void;
   onClose?: () => void;
 }
 
@@ -196,26 +196,31 @@ export function CalendarDayPanel({
                   <CheckSquare className="h-3.5 w-3.5" />
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => onRescheduleEvent(booking)}
-                  className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-stone-200 bg-white text-stone-600 hover:text-[#3A4F1C] hover:border-[#3A4F1C]/40 hover:bg-stone-50 transition shrink-0"
-                  title="Reschedule"
-                  aria-label="Reschedule"
-                >
-                  <Calendar className="h-3.5 w-3.5" />
-                </button>
+                {onRescheduleEvent && (
+                  <button
+                    type="button"
+                    onClick={() => onRescheduleEvent(booking)}
+                    className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-stone-200 bg-white text-stone-600 hover:text-[#3A4F1C] hover:border-[#3A4F1C]/40 hover:bg-stone-50 transition shrink-0"
+                    title="Reschedule"
+                    aria-label="Reschedule"
+                  >
+                    <Calendar className="h-3.5 w-3.5" />
+                  </button>
+                )}
 
-                <button
-                  type="button"
-                  onClick={() => onEditEvent(booking)}
-                  className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-stone-200 bg-white text-stone-600 hover:text-[#3A4F1C] hover:border-[#3A4F1C]/40 hover:bg-stone-50 transition shrink-0"
-                  title="Edit Details"
-                  aria-label="Edit Details"
-                >
-                  <Edit3 className="h-3.5 w-3.5" />
-                </button>
+                {onEditEvent && (
+                  <button
+                    type="button"
+                    onClick={() => onEditEvent(booking)}
+                    className="h-7 w-7 rounded-lg inline-flex items-center justify-center border border-stone-200 bg-white text-stone-600 hover:text-[#3A4F1C] hover:border-[#3A4F1C]/40 hover:bg-stone-50 transition shrink-0"
+                    title="Edit Details"
+                    aria-label="Edit Details"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" />
+                  </button>
+                )}
 
+                {onCancelEvent && (
                   <button
                     type="button"
                     onClick={() => onCancelEvent(booking)}
@@ -225,6 +230,7 @@ export function CalendarDayPanel({
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
+                )}
               </div>
             </div>
           ))

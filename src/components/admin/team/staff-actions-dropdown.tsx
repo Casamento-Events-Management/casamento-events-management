@@ -15,6 +15,7 @@ import {
   Send,
   Trash2,
   Loader2,
+  User,
 } from 'lucide-react';
 import {
   toggleStaffStatusAction,
@@ -120,10 +121,9 @@ export function StaffActionsDropdown({
     }
   };
 
-  const handleToggleRole = async () => {
+  const handleSetRole = async (targetRole: 'super_admin' | 'admin' | 'staff') => {
     setIsLoading(true);
     setIsOpen(false);
-    const targetRole = staff.role === 'super_admin' ? 'admin' : 'super_admin';
     try {
       await updateStaffRoleAction({
         userId: staff.user_id,
@@ -131,7 +131,7 @@ export function StaffActionsDropdown({
       });
       if (onRefresh) onRefresh();
     } catch (err) {
-      console.error('[handleToggleRole Error]:', err);
+      console.error('[handleSetRole Error]:', err);
     } finally {
       setIsLoading(false);
     }
@@ -229,24 +229,39 @@ export function StaffActionsDropdown({
               )}
             </button>
 
-            {/* Role Adjustment */}
-            <button
-              type="button"
-              onClick={handleToggleRole}
-              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-[#2B3817] hover:bg-[#3A4F1C]/5 transition cursor-pointer"
-            >
-              {staff.role === 'admin' ? (
-                <>
-                  <ShieldCheck className="h-3.5 w-3.5 text-[#BC6F07]" />
-                  <span>Make Super Admin</span>
-                </>
-              ) : (
-                <>
-                  <ShieldAlert className="h-3.5 w-3.5 text-[#3A4F1C]" />
-                  <span>Demote to Admin</span>
-                </>
-              )}
-            </button>
+            {/* Role Adjustments */}
+            {staff.role !== 'super_admin' && (
+              <button
+                type="button"
+                onClick={() => handleSetRole('super_admin')}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-[#2B3817] hover:bg-[#3A4F1C]/5 transition cursor-pointer"
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-[#BC6F07]" />
+                <span>Make Super Admin</span>
+              </button>
+            )}
+
+            {staff.role !== 'admin' && (
+              <button
+                type="button"
+                onClick={() => handleSetRole('admin')}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-[#2B3817] hover:bg-[#3A4F1C]/5 transition cursor-pointer"
+              >
+                <ShieldAlert className="h-3.5 w-3.5 text-[#3A4F1C]" />
+                <span>Set as Admin</span>
+              </button>
+            )}
+
+            {staff.role !== 'staff' && (
+              <button
+                type="button"
+                onClick={() => handleSetRole('staff')}
+                className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-[#2B3817] hover:bg-[#3A4F1C]/5 transition cursor-pointer"
+              >
+                <User className="h-3.5 w-3.5 text-blue-600" />
+                <span>Set as Staff (Viewer)</span>
+              </button>
+            )}
 
             {/* Resend Invite */}
             <button

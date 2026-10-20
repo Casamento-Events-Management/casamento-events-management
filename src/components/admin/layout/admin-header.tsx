@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LogOut, Shield, User, Loader2 } from 'lucide-react';
+import { LogOut, Shield, Loader2 } from 'lucide-react';
 import { logoutAdminAction } from '@/lib/services/admin-auth-actions';
 import type { AdminProfile } from '@/types/admin-auth';
 
@@ -65,10 +65,12 @@ export function AdminHeader({ admin }: AdminHeaderProps) {
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${
               admin.role === 'super_admin'
                 ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                : admin.role === 'admin'
+                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                : 'bg-blue-100 text-blue-900 border border-blue-300'
             }`}
           >
-            {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+            {admin.role === 'super_admin' ? 'Super Admin' : admin.role === 'admin' ? 'Admin' : 'Staff'}
           </span>
         </div>
 

@@ -231,6 +231,7 @@ export function InviteStaffModal({ isOpen, onClose, onSuccess }: InviteStaffModa
                   onChange={(e) => setRole(e.target.value as AdminRole)}
                   className="w-full rounded-lg border border-[#3A4F1C]/20 py-2 pr-3 pl-9 text-xs text-[#2B3817] transition focus:border-[#BC6F07] focus:ring-1 focus:ring-[#BC6F07] focus:outline-none disabled:bg-gray-50 bg-white"
                 >
+                  <option value="staff">Staff (Intern / Coordinator - View Only)</option>
                   <option value="admin">Admin (Operational & Management Access)</option>
                   <option value="super_admin">Super Admin (Full Administrative Authority)</option>
                 </select>

@@ -125,6 +125,9 @@ export async function acceptBookingAction(params: {
   if (!adminData) {
     return { success: false, error: 'Unauthorized: Active admin session required.' };
   }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot accept booking reservations.' };
+  }
 
   const supabase = await createClient();
 
@@ -232,6 +235,9 @@ export async function rejectBookingAction(params: {
   const adminData = await getCurrentActiveAdmin();
   if (!adminData) {
     return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot decline booking reservations.' };
   }
 
   const cleanReason = params.reason.trim();
@@ -344,6 +350,9 @@ export async function updateBookingDetailsAction(params: {
   const adminData = await getCurrentActiveAdmin();
   if (!adminData) {
     return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot edit booking details.' };
   }
 
   const parsed = updateBookingSchema.safeParse(params.updates);
@@ -472,6 +481,9 @@ export async function createBookingAction(
   if (!adminData) {
     return { success: false, error: 'Unauthorized: Active admin session required.' };
   }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot create booking reservations.' };
+  }
 
   const parsed = createBookingSchema.safeParse(input);
   if (!parsed.success) {
@@ -591,4 +603,78 @@ export async function getBookingByIdAction(bookingId: string): Promise<{
   }
 
   return { success: true, booking: data as BookingRecord };
+}
+
+/**
+ * Server Action: Appends an internal operational note to a booking.
+ * Accessible to Staff, Admin, and Super Admin.
+ */
+export async function appendBookingNoteAction(params: {
+  bookingId: string;
+  note: string;
+}): Promise<{ success: boolean; error?: string; adminNotes?: string }> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData) {
+    return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+
+  const cleanNote = params.note?.trim();
+  if (!cleanNote) {
+    return { success: false, error: 'Note content cannot be empty.' };
+  }
+
+  const supabaseAdmin = createAdminClient();
+  const { data: booking, error: fetchErr } = await supabaseAdmin
+    .from('bookings')
+    .select('id, booking_reference, admin_notes')
+    .eq('id', params.bookingId)
+    .single();
+
+  if (fetchErr || !booking) {
+    return { success: false, error: 'Booking reservation not found.' };
+  }
+
+  const timestamp = new Date().toLocaleString('en-US', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  });
+  const roleDisplay = adminData.profile.role === 'super_admin' ? 'Super Admin' : adminData.profile.role === 'admin' ? 'Admin' : 'Staff';
+  const author = `${adminData.profile.full_name} (${roleDisplay})`;
+  const formattedEntry = `[${timestamp} · ${author}]: ${cleanNote}`;
+  const updatedNotes = booking.admin_notes
+    ? `${booking.admin_notes}\n\n${formattedEntry}`
+    : formattedEntry;
+
+  const { error: updateErr } = await supabaseAdmin
+    .from('bookings')
+    .update({ admin_notes: updatedNotes, updated_at: new Date().toISOString() })
+    .eq('id', params.bookingId);
+
+  if (updateErr) {
+    console.error('[appendBookingNoteAction Error]:', updateErr);
+    return { success: false, error: 'Failed to append internal note.' };
+  }
+
+  await logAudit({
+    actorUserId: adminData.user.id,
+    actorCode: adminData.profile.user_code || 'ADM-001',
+    actorName: adminData.profile.full_name,
+    actorEmail: adminData.user.email,
+    actorType: 'admin',
+    category: 'Booking',
+    action: 'Note Added',
+    severity: 'Info',
+    outcome: 'Success',
+    summary: `${adminData.profile.full_name} added an internal note to booking ${booking.booking_reference}`,
+    entityType: 'booking',
+    entityId: booking.id,
+    entityRef: booking.booking_reference,
+    changes: {
+      admin_notes: { old: booking.admin_notes, new: updatedNotes },
+    },
+    metadata: { noteSnippet: cleanNote.slice(0, 80) },
+  });
+
+  revalidatePath('/admin/bookings');
+  return { success: true, adminNotes: updatedNotes };
 }

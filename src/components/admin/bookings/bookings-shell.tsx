@@ -25,12 +25,14 @@ interface BookingsShellProps {
   initialPendingCount?: number;
   currentUserId?: string;
   isSuperAdmin?: boolean;
+  isStaff?: boolean;
 }
 
 export function BookingsShell({
   initialBookings,
   currentUserId,
   isSuperAdmin,
+  isStaff = false,
 }: BookingsShellProps) {
   const [activeTab, setActiveTab] = useState<'calendar' | 'list' | 'tasks' | 'requests'>('calendar');
   const [bookings, setBookings] = useState<BookingRecord[]>(initialBookings);
@@ -223,6 +225,13 @@ export function BookingsShell({
     return res.booking;
   };
 
+  const handleNoteAppended = (notes: string) => {
+    if (!selectedId) return;
+    setBookings((prev) =>
+      prev.map((b) => (b.id === selectedId ? { ...b, admin_notes: notes } : b))
+    );
+  };
+
   return (
     <div className="space-y-5">
       {/* Top Banner Alert if active */}
@@ -251,16 +260,18 @@ export function BookingsShell({
         </div>
 
         {/* Right side "+ New Event" Button */}
-        <div className="ml-auto shrink-0">
-          <button
-            type="button"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-[#3A4F1C] px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#2B3817] transition cursor-pointer shrink-0"
-          >
-            <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span>New Event</span>
-          </button>
-        </div>
+        {!isStaff && (
+          <div className="ml-auto shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#3A4F1C] px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#2B3817] transition cursor-pointer shrink-0"
+            >
+              <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span>New Event</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Top Navigation Tabs */}
@@ -315,28 +326,30 @@ export function BookingsShell({
           <span>Tasks</span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('requests')}
-          className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
-            activeTab === 'requests'
-              ? 'border-[#3A4F1C] text-[#2B3817]'
-              : 'border-transparent text-stone-500 hover:text-stone-800'
-          }`}
-        >
-          <span>Requests</span>
-          {pendingCount > 0 && (
-            <span
-              className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                activeTab === 'requests'
-                  ? 'bg-[#BC6F07] text-white'
-                  : 'bg-[#BC6F07]/15 text-[#BC6F07]'
-              }`}
-            >
-              {pendingCount}
-            </span>
-          )}
-        </button>
+        {!isStaff && (
+          <button
+            type="button"
+            onClick={() => setActiveTab('requests')}
+            className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
+              activeTab === 'requests'
+                ? 'border-[#3A4F1C] text-[#2B3817]'
+                : 'border-transparent text-stone-500 hover:text-stone-800'
+            }`}
+          >
+            <span>Requests</span>
+            {pendingCount > 0 && (
+              <span
+                className={`inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                  activeTab === 'requests'
+                    ? 'bg-[#BC6F07] text-white'
+                    : 'bg-[#BC6F07]/15 text-[#BC6F07]'
+                }`}
+              >
+                {pendingCount}
+              </span>
+            )}
+          </button>
+        )}
       </div>
 
       {/* Content Workspace */}
@@ -344,6 +357,7 @@ export function BookingsShell({
         <TasksViewShell
           currentUserId={currentUserId}
           isSuperAdmin={isSuperAdmin}
+          isStaff={isStaff}
           onSelectBooking={(b) => {
             setSelectedId(b.id);
             setActiveTab('calendar');
@@ -372,6 +386,8 @@ export function BookingsShell({
               onAccept={handleAccept}
               onReject={handleReject}
               onUpdate={handleUpdate}
+              isStaff={isStaff}
+              onNoteAppended={handleNoteAppended}
             />
           </div>
 
@@ -393,6 +409,8 @@ export function BookingsShell({
                   onReject={handleReject}
                   onUpdate={handleUpdate}
                   onClose={() => setIsMobileDetailOpen(false)}
+                  isStaff={isStaff}
+                  onNoteAppended={handleNoteAppended}
                 />
               </div>
             </div>
@@ -406,15 +424,18 @@ export function BookingsShell({
           onUpdateBookingDetails={handleUpdate}
           onNewEventClick={() => setIsCreateModalOpen(true)}
           viewMode={activeTab === 'list' ? 'list' : 'calendar'}
+          isStaff={isStaff}
         />
       )}
 
       {/* New Event Creation Modal */}
-      <CreateBookingModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onCreate={handleCreateEvent}
-      />
+      {!isStaff && (
+        <CreateBookingModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onCreate={handleCreateEvent}
+        />
+      )}
     </div>
   );
 }

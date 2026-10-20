@@ -22,6 +22,11 @@ export default async function AdminAuditPage() {
     redirect('/admin/login');
   }
 
+  // Staff (Intern / Viewer) is not allowed to access Audit Trail
+  if (adminData.profile.role === 'staff') {
+    redirect('/admin/dashboard');
+  }
+
   return (
     <div className="space-y-6">
       <AuditTable />

@@ -30,6 +30,9 @@ export async function acknowledgeAuditLogAction(
   if (!currentAdmin) {
     return { success: false, error: 'Unauthorized. Admin session required.' };
   }
+  if (currentAdmin.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot access audit logs.' };
+  }
 
   if (!auditLogId) {
     return { success: false, error: 'Audit log identifier is required.' };

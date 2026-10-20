@@ -134,6 +134,9 @@ export async function rescheduleEventAction(params: {
   if (!adminData) {
     return { success: false, error: 'Unauthorized: Active admin session required.' };
   }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot reschedule events.' };
+  }
 
   const supabase = await createClient();
 
@@ -234,6 +237,9 @@ export async function cancelEventAction(params: {
   const adminData = await getCurrentActiveAdmin();
   if (!adminData) {
     return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot cancel events.' };
   }
 
   if (!params.cancellationReason || params.cancellationReason.trim().length === 0) {
@@ -385,6 +391,9 @@ export async function createEventTaskAction(params: {
   if (!adminData) {
     return { success: false, error: 'Unauthorized: Active admin session required.' };
   }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot create event tasks.' };
+  }
 
   if (!params.title || params.title.trim().length === 0) {
     return { success: false, error: 'Task title is required.' };
@@ -480,6 +489,21 @@ export async function toggleEventTaskAction(params: {
   }
 
   const supabase = await createClient();
+
+  if (adminData.profile.role === 'staff') {
+    const { data: task } = await supabase
+      .from('event_tasks')
+      .select('assignee_id, assignee_ids')
+      .eq('id', params.taskId)
+      .single();
+    const isAssigned =
+      task &&
+      (task.assignee_id === adminData.user.id ||
+        (Array.isArray(task.assignee_ids) && task.assignee_ids.includes(adminData.user.id)));
+    if (!isAssigned) {
+      return { success: false, error: 'Forbidden: Staff can only complete tasks assigned to them.' };
+    }
+  }
   const now = new Date().toISOString();
 
   const { error } = await supabase
@@ -510,6 +534,9 @@ export async function deleteEventTaskAction(
   if (!adminData) {
     return { success: false, error: 'Unauthorized: Active admin session required.' };
   }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot delete tasks.' };
+  }
 
   const supabase = await createClient();
   const { error } = await supabase.from('event_tasks').delete().eq('id', taskId);
@@ -535,6 +562,9 @@ export async function sendBatchTaskAssignmentEmailsAction(params: {
   const adminData = await getCurrentActiveAdmin();
   if (!adminData) {
     return { success: false, sentCount: 0, error: 'Unauthorized: Active admin session required.' };
+  }
+  if (adminData.profile.role === 'staff') {
+    return { success: false, sentCount: 0, error: 'Forbidden: Staff viewer accounts cannot send task emails.' };
   }
 
   const supabase = await createClient();

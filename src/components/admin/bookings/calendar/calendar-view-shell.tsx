@@ -27,6 +27,7 @@ interface CalendarViewShellProps {
   }) => Promise<unknown>;
   onNewEventClick?: () => void;
   viewMode?: 'calendar' | 'list';
+  isStaff?: boolean;
 }
 
 export function CalendarViewShell({
@@ -34,6 +35,7 @@ export function CalendarViewShell({
   onBookingsChange,
   onUpdateBookingDetails,
   viewMode = 'calendar',
+  isStaff = false,
 }: CalendarViewShellProps) {
 
   // Sub-view mode for calendar: 'month' vs 'week'
@@ -214,10 +216,10 @@ export function CalendarViewShell({
               selectedDate={selectedDate}
               events={eventsOnSelectedDate}
               onSelectEvent={(evt) => setInspectingEvent(evt)}
-              onRescheduleEvent={(evt) => setReschedulingEvent(evt)}
-              onEditEvent={(evt) => setEditingEvent(evt)}
+              onRescheduleEvent={isStaff ? undefined : (evt) => setReschedulingEvent(evt)}
+              onEditEvent={isStaff ? undefined : (evt) => setEditingEvent(evt)}
               onTasksEvent={(evt) => setTasksEvent(evt)}
-              onCancelEvent={(evt) => setCancellingEvent(evt)}
+              onCancelEvent={isStaff ? undefined : (evt) => setCancellingEvent(evt)}
             />
           </div>
         </div>
@@ -227,10 +229,10 @@ export function CalendarViewShell({
           allBookings={bookings}
           events={confirmedEvents}
           onSelectEvent={(evt) => setInspectingEvent(evt)}
-          onRescheduleEvent={(evt) => setReschedulingEvent(evt)}
-          onEditEvent={(evt) => setEditingEvent(evt)}
+          onRescheduleEvent={isStaff ? undefined : (evt) => setReschedulingEvent(evt)}
+          onEditEvent={isStaff ? undefined : (evt) => setEditingEvent(evt)}
           onTasksEvent={(evt) => setTasksEvent(evt)}
-          onCancelEvent={(evt) => setCancellingEvent(evt)}
+          onCancelEvent={isStaff ? undefined : (evt) => setCancellingEvent(evt)}
         />
       )}
 
@@ -261,6 +263,7 @@ export function CalendarViewShell({
           booking={tasksEvent}
           isOpen={!!tasksEvent}
           onClose={() => setTasksEvent(null)}
+          isStaff={isStaff}
         />
       )}
 
@@ -299,11 +302,11 @@ export function CalendarViewShell({
                 setIsMobileDayModalOpen(false);
                 setInspectingEvent(evt);
               }}
-              onRescheduleEvent={(evt) => {
+              onRescheduleEvent={isStaff ? undefined : (evt) => {
                 setIsMobileDayModalOpen(false);
                 setReschedulingEvent(evt);
               }}
-              onEditEvent={(evt) => {
+              onEditEvent={isStaff ? undefined : (evt) => {
                 setIsMobileDayModalOpen(false);
                 setEditingEvent(evt);
               }}
@@ -311,7 +314,7 @@ export function CalendarViewShell({
                 setIsMobileDayModalOpen(false);
                 setTasksEvent(evt);
               }}
-              onCancelEvent={(evt) => {
+              onCancelEvent={isStaff ? undefined : (evt) => {
                 setIsMobileDayModalOpen(false);
                 setCancellingEvent(evt);
               }}
@@ -335,6 +338,7 @@ export function CalendarViewShell({
           >
             <BookingDetailInspector
               booking={inspectingEvent}
+              isStaff={isStaff}
               onAccept={async () => {}}
               onReject={async () => {}}
               onUpdate={async (params) => {
@@ -343,6 +347,11 @@ export function CalendarViewShell({
                   bookingId: inspectingEvent.id,
                 });
                 setInspectingEvent(null);
+              }}
+              onNoteAppended={(notes) => {
+                onBookingsChange((prev) =>
+                  prev.map((b) => (b.id === inspectingEvent.id ? { ...b, admin_notes: notes } : b))
+                );
               }}
               onClose={() => setInspectingEvent(null)}
             />

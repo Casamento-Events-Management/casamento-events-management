@@ -34,6 +34,7 @@ import { CancelTaskModal } from './modals/cancel-task-modal';
 interface TasksViewShellProps {
   currentUserId?: string;
   isSuperAdmin?: boolean;
+  isStaff?: boolean;
   onSelectBooking?: (booking: BookingRecord) => void;
 }
 
@@ -42,6 +43,7 @@ type StatusFilter = 'all' | 'pending' | 'done' | 'cancelled';
 export function TasksViewShell({
   currentUserId,
   isSuperAdmin = false,
+  isStaff = false,
   onSelectBooking,
 }: TasksViewShellProps) {
   const [activeSubTab, setActiveSubTab] = useState<TaskViewFilter>('assigned_to_me');
@@ -263,12 +265,14 @@ export function TasksViewShell({
 
   // Authority checks for buttons
   const canEdit = (t: EventTask) => {
+    if (isStaff) return false;
     if (isSuperAdmin) return true;
     if (currentUserId && t.created_by === currentUserId) return true;
     return false;
   };
 
   const canCancel = (t: EventTask) => {
+    if (isStaff) return false;
     if (isSuperAdmin) return true;
     if (currentUserId && t.created_by === currentUserId) return true;
     if (
@@ -298,19 +302,21 @@ export function TasksViewShell({
             <span>Assigned to Me</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleTabChange('assigned_by_me')}
-            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${activeSubTab === 'assigned_by_me'
-                ? 'bg-[#3A4F1C] text-white shadow-2xs'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
-              }`}
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>Assigned by Me</span>
-          </button>
+          {!isStaff && (
+            <button
+              type="button"
+              onClick={() => handleTabChange('assigned_by_me')}
+              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${activeSubTab === 'assigned_by_me'
+                  ? 'bg-[#3A4F1C] text-white shadow-2xs'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+                }`}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Assigned by Me</span>
+            </button>
+          )}
 
-          {isSuperAdmin && (
+          {isSuperAdmin && !isStaff && (
             <button
               type="button"
               onClick={() => handleTabChange('all')}
