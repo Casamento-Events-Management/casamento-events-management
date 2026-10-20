@@ -5,7 +5,7 @@
 // =============================================================================
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Calendar as CalendarIcon, List, Plus, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, List, Plus, CheckCircle, AlertCircle, CheckSquare } from 'lucide-react';
 import type { BookingRecord, BookingStatus, AdminUpdateBookingPayload, AdminCreateBookingInput } from '@/types/booking';
 import {
   acceptBookingAction,
@@ -18,16 +18,21 @@ import { PendingBookingsMasterList } from './pending-bookings-master-list';
 import { BookingDetailInspector } from './booking-detail-inspector';
 import { CreateBookingModal } from './modals/create-booking-modal';
 import { CalendarViewShell } from './calendar/calendar-view-shell';
+import { TasksViewShell } from './tasks/tasks-view-shell';
 
 interface BookingsShellProps {
   initialBookings: BookingRecord[];
   initialPendingCount?: number;
+  currentUserId?: string;
+  isSuperAdmin?: boolean;
 }
 
 export function BookingsShell({
   initialBookings,
+  currentUserId,
+  isSuperAdmin,
 }: BookingsShellProps) {
-  const [activeTab, setActiveTab] = useState<'calendar' | 'list' | 'requests'>('calendar');
+  const [activeTab, setActiveTab] = useState<'calendar' | 'list' | 'tasks' | 'requests'>('calendar');
   const [bookings, setBookings] = useState<BookingRecord[]>(initialBookings);
   const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('pending');
   const [searchTerm, setSearchTerm] = useState('');
@@ -299,6 +304,19 @@ export function BookingsShell({
 
         <button
           type="button"
+          onClick={() => setActiveTab('tasks')}
+          className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
+            activeTab === 'tasks'
+              ? 'border-[#3A4F1C] text-[#2B3817]'
+              : 'border-transparent text-stone-500 hover:text-stone-800'
+          }`}
+        >
+          <CheckSquare className="h-3.5 w-3.5" />
+          <span>Tasks</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('requests')}
           className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
             activeTab === 'requests'
@@ -322,7 +340,16 @@ export function BookingsShell({
       </div>
 
       {/* Content Workspace */}
-      {activeTab === 'requests' ? (
+      {activeTab === 'tasks' ? (
+        <TasksViewShell
+          currentUserId={currentUserId}
+          isSuperAdmin={isSuperAdmin}
+          onSelectBooking={(b) => {
+            setSelectedId(b.id);
+            setActiveTab('calendar');
+          }}
+        />
+      ) : activeTab === 'requests' ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* Left Column: Master Queue List (Full width on mobile/tablet, ~60% on desktop) */}
           <div className="lg:col-span-7 xl:col-span-7">

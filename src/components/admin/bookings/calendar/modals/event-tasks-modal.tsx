@@ -1,7 +1,7 @@
 'use client';
 
 // =============================================================================
-// event-tasks-modal.tsx — Event Task Checklist & Assignee Management
+// event-tasks-modal.tsx — Event Task Checklist & Multi-Assignee Management
 // =============================================================================
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -18,6 +18,7 @@ import {
   AlertCircle,
   AtSign,
   Mail,
+  Edit3,
 } from 'lucide-react';
 import type { BookingRecord, EventTask } from '@/types/booking';
 import {
@@ -28,6 +29,7 @@ import {
   getTeamMembersAction,
   sendBatchTaskAssignmentEmailsAction,
 } from '@/lib/services/admin-calendar-actions';
+import { EditTaskModal } from '@/components/admin/bookings/tasks/modals/edit-task-modal';
 
 interface EventTasksModalProps {
   booking: BookingRecord;
@@ -55,12 +57,15 @@ export function EventTasksModal({
 
   // New task form state
   const [newTitle, setNewTitle] = useState('');
-  const [newAssignee, setNewAssignee] = useState('');
-  const [newAssigneeId, setNewAssigneeId] = useState<string | null>(null);
+  const [selectedMembers, setSelectedMembers] = useState<TeamMember[]>([]);
+  const [memberSearchQuery, setMemberSearchQuery] = useState('');
   const [newDueDate, setNewDueDate] = useState('');
   const [newDueTime, setNewDueTime] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [showMemberSuggestions, setShowMemberSuggestions] = useState(false);
+
+  // Editing state
+  const [editingTask, setEditingTask] = useState<EventTask | null>(null);
 
   // Batch task assignment email tracking
   const pendingIdsRef = useRef<string[]>([]);
@@ -144,6 +149,7 @@ export function EventTasksModal({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        if (editingTask) return;
         handleSafeClose();
       }
     };
@@ -155,23 +161,31 @@ export function EventTasksModal({
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, handleSafeClose]);
+  }, [isOpen, handleSafeClose, editingTask]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
+    if (editingTask) return;
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
       handleSafeClose();
     }
   };
 
   const handleSelectMember = (member: TeamMember) => {
-    setNewAssignee(member.name);
-    setNewAssigneeId(member.id);
+    if (!selectedMembers.some((m) => m.id === member.id)) {
+      setSelectedMembers((prev) => [...prev, member]);
+    }
+    setMemberSearchQuery('');
     setShowMemberSuggestions(false);
   };
 
+  const handleRemoveMember = (memberId: string) => {
+    setSelectedMembers((prev) => prev.filter((m) => m.id !== memberId));
+  };
+
   const filteredMembers = teamMembers.filter((m) => {
-    if (!newAssignee.trim()) return true;
-    const cleanQuery = newAssignee.replace(/^@/, '').toLowerCase();
+    if (selectedMembers.some((sm) => sm.id === m.id)) return false;
+    if (!memberSearchQuery.trim()) return true;
+    const cleanQuery = memberSearchQuery.replace(/^@/, '').toLowerCase();
     return (
       m.name.toLowerCase().includes(cleanQuery) ||
       m.email.toLowerCase().includes(cleanQuery) ||
@@ -186,12 +200,17 @@ export function EventTasksModal({
     setIsAdding(true);
     setError(null);
 
+    const assigneeIds = selectedMembers.map((m) => m.id);
+    const assigneeNames = selectedMembers.map((m) => m.name);
+
     try {
       const res = await createEventTaskAction({
         bookingId: booking.id,
         title: newTitle.trim(),
-        assignee_name: newAssignee.trim() ? newAssignee.replace(/^@/, '').trim() : undefined,
-        assignee_id: newAssigneeId || undefined,
+        assignee_ids: assigneeIds,
+        assignee_names: assigneeNames,
+        assignee_id: assigneeIds[0] || undefined,
+        assignee_name: assigneeNames[0] || undefined,
         due_date: newDueDate || undefined,
         due_time: newDueTime || undefined,
       });
@@ -202,15 +221,15 @@ export function EventTasksModal({
 
       setTasks((prev) => [...prev, res.task!]);
 
-      // If assigned to a team member, enqueue for consolidated batch email dispatch
-      if (res.task.assignee_id || res.task.assignee_name) {
+      // If assigned to members, enqueue for consolidated batch email dispatch
+      if (assigneeIds.length > 0) {
         pendingIdsRef.current.push(res.task.id);
         setPendingCount(pendingIdsRef.current.length);
       }
 
       setNewTitle('');
-      setNewAssignee('');
-      setNewAssigneeId(null);
+      setSelectedMembers([]);
+      setMemberSearchQuery('');
       setNewDueDate('');
       setNewDueTime('');
       setShowMemberSuggestions(false);
@@ -354,17 +373,16 @@ export function EventTasksModal({
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {/* Member Mentioning / Assignee Field */}
+              {/* Member Mentioning / Multi-Assignee Input */}
               <div className="relative">
                 <AtSign className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
                 <input
                   type="text"
-                  placeholder="Assignee (e.g. @Maria)"
-                  value={newAssignee}
+                  placeholder="Assign members..."
+                  value={memberSearchQuery}
                   onFocus={() => setShowMemberSuggestions(true)}
                   onChange={(e) => {
-                    setNewAssignee(e.target.value);
-                    setNewAssigneeId(null);
+                    setMemberSearchQuery(e.target.value);
                     setShowMemberSuggestions(true);
                   }}
                   className="w-full rounded-lg border border-stone-300 bg-white py-1.5 pl-8 pr-2 text-xs text-stone-900 placeholder-stone-400 focus:border-[#3A4F1C] focus:outline-hidden"
@@ -374,10 +392,10 @@ export function EventTasksModal({
                 {showMemberSuggestions && teamMembers.length > 0 && (
                   <div className="absolute left-0 right-0 top-full mt-1 z-30 max-h-40 overflow-y-auto rounded-lg border border-stone-200 bg-white shadow-lg p-1">
                     <div className="px-2 py-1 text-[10px] font-semibold text-stone-400 uppercase tracking-wider">
-                      Mention Team Member
+                      Select Member to Assign
                     </div>
                     {filteredMembers.length === 0 ? (
-                      <div className="px-2 py-1 text-xs text-stone-400 italic">No matches</div>
+                      <div className="px-2 py-1 text-xs text-stone-400 italic">No remaining matches</div>
                     ) : (
                       filteredMembers.map((member) => (
                         <button
@@ -428,20 +446,47 @@ export function EventTasksModal({
               </div>
             </div>
 
+            {/* Selected Multi-Assignee Chips */}
+            {selectedMembers.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                <span className="text-[10px] text-stone-400 font-semibold uppercase">Assigned:</span>
+                {selectedMembers.map((m) => (
+                  <span
+                    key={m.id}
+                    className="inline-flex items-center gap-1 rounded-md bg-[#3A4F1C]/15 text-[#3A4F1C] px-2 py-0.5 text-xs font-semibold"
+                  >
+                    <span>@{m.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveMember(m.id)}
+                      className="hover:text-red-600 transition"
+                      title="Remove assignee"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
             {/* Quick Member Mention Badges if teamMembers loaded */}
             {teamMembers.length > 0 && (
               <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                <span className="text-[10px] text-stone-400 font-medium">Mention:</span>
-                {teamMembers.slice(0, 5).map((m) => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => handleSelectMember(m)}
-                    className="inline-flex items-center gap-1 rounded-md bg-stone-100 hover:bg-[#3A4F1C]/15 hover:text-[#3A4F1C] px-1.5 py-0.5 text-[10px] text-stone-600 transition"
-                  >
-                    <span>@{m.name.split(' ')[0]}</span>
-                  </button>
-                ))}
+                <span className="text-[10px] text-stone-400 font-medium">Quick add:</span>
+                {teamMembers.slice(0, 5).map((m) => {
+                  const isAlreadySelected = selectedMembers.some((sm) => sm.id === m.id);
+                  if (isAlreadySelected) return null;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => handleSelectMember(m)}
+                      className="inline-flex items-center gap-1 rounded-md bg-stone-100 hover:bg-[#3A4F1C]/15 hover:text-[#3A4F1C] px-1.5 py-0.5 text-[10px] text-stone-600 transition"
+                    >
+                      <span>+ @{m.name.split(' ')[0]}</span>
+                    </button>
+                  );
+                })}
               </div>
             )}
 
@@ -477,70 +522,99 @@ export function EventTasksModal({
                 No tasks added for this event yet. Use the form above to add checklist items.
               </div>
             ) : (
-              tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className={`group flex items-start gap-3 rounded-xl border p-3 transition ${
-                    task.is_done
-                      ? 'border-stone-200 bg-stone-50/70 opacity-75'
-                      : 'border-stone-200/90 bg-white hover:border-[#3A4F1C]/40'
-                  }`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleToggleTask(task.id, task.is_done)}
-                    className="mt-0.5 text-stone-400 hover:text-[#3A4F1C] transition shrink-0"
-                    title={task.is_done ? 'Mark as incomplete' : 'Mark as completed'}
+              tasks.map((task) => {
+                const assignees =
+                  task.assignee_names && task.assignee_names.length > 0
+                    ? task.assignee_names
+                    : task.assignee_name
+                    ? [task.assignee_name]
+                    : [];
+
+                return (
+                  <div
+                    key={task.id}
+                    className={`group flex items-start gap-3 rounded-xl border p-3 transition ${
+                      task.is_done
+                        ? 'border-stone-200 bg-stone-50/70 opacity-75'
+                        : 'border-stone-200/90 bg-white hover:border-[#3A4F1C]/40'
+                    }`}
                   >
-                    {task.is_done ? (
-                      <CheckSquare className="h-4 w-4 text-[#3A4F1C]" />
-                    ) : (
-                      <Square className="h-4 w-4" />
-                    )}
-                  </button>
-
-                  <div className="flex-1 min-w-0">
-                    <span
-                      className={`text-xs block leading-snug break-words ${
-                        task.is_done
-                          ? 'line-through text-stone-400 font-normal'
-                          : 'text-stone-900 font-medium'
-                      }`}
+                    <button
+                      type="button"
+                      onClick={() => handleToggleTask(task.id, task.is_done)}
+                      className="mt-0.5 text-stone-400 hover:text-[#3A4F1C] transition shrink-0"
+                      title={task.is_done ? 'Mark as incomplete' : 'Mark as completed'}
                     >
-                      {task.title}
-                    </span>
+                      {task.is_done ? (
+                        <CheckSquare className="h-4 w-4 text-[#3A4F1C]" />
+                      ) : (
+                        <Square className="h-4 w-4" />
+                      )}
+                    </button>
 
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-stone-500">
-                      {task.assignee_name && (
-                        <span className="inline-flex items-center gap-1 font-medium text-stone-700 bg-stone-100 rounded-sm px-1 py-0.2">
-                          <User className="h-2.5 w-2.5 text-stone-400" />
-                          <span>@{task.assignee_name}</span>
-                        </span>
-                      )}
-                      {(task.due_date || task.due_time) && (
-                        <span className="inline-flex items-center gap-1">
-                          <Clock className="h-3 w-3 text-stone-400" />
-                          <span>
-                            Due:{' '}
-                            {task.due_date ? task.due_date : ''}
-                            {task.due_date && task.due_time ? ' at ' : ''}
-                            {task.due_time ? formatDueTime(task.due_time) : ''}
+                    <div className="flex-1 min-w-0">
+                      <span
+                        className={`text-xs block leading-snug break-words ${
+                          task.is_done
+                            ? 'line-through text-stone-400 font-normal'
+                            : 'text-stone-900 font-medium'
+                        }`}
+                      >
+                        {task.title}
+                      </span>
+
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-stone-500">
+                        {assignees.length > 0 && (
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <User className="h-3 w-3 text-stone-400 shrink-0" />
+                            {assignees.map((name, i) => (
+                              <span
+                                key={i}
+                                className="inline-flex items-center font-medium text-stone-700 bg-stone-100 rounded-sm px-1 py-0.2"
+                              >
+                                @{name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {(task.due_date || task.due_time) && (
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="h-3 w-3 text-stone-400" />
+                            <span>
+                              Due: {task.due_date ? task.due_date : ''}
+                              {task.due_date && task.due_time ? ' at ' : ''}
+                              {task.due_time ? formatDueTime(task.due_time) : ''}
+                            </span>
                           </span>
-                        </span>
-                      )}
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingTask(task);
+                        }}
+                        title="Edit task details"
+                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 text-stone-400 hover:text-[#3A4F1C] transition shrink-0 cursor-pointer"
+                      >
+                        <Edit3 className="h-3.5 w-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteTask(task.id)}
+                        title="Delete task"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-stone-300 hover:text-red-600 transition shrink-0"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteTask(task.id)}
-                    title="Delete task"
-                    className="opacity-0 group-hover:opacity-100 p-1 text-stone-300 hover:text-red-600 transition shrink-0"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
@@ -552,7 +626,7 @@ export function EventTasksModal({
               <>
                 <Mail className="h-3.5 w-3.5 text-[#3A4F1C]" />
                 <span className="text-[#3A4F1C] font-medium">
-                  {pendingCount} new {pendingCount === 1 ? 'task assignment' : 'task assignments'} (consolidated email will be sent to members)
+                  {pendingCount} new {pendingCount === 1 ? 'task assignment' : 'task assignments'} (click Done & Notify to email members)
                 </span>
               </>
             )}
@@ -577,6 +651,20 @@ export function EventTasksModal({
           </div>
         </div>
       </div>
+
+      {/* Embedded Edit Modal */}
+      {editingTask && (
+        <EditTaskModal
+          key={editingTask.id}
+          task={editingTask}
+          isOpen={true}
+          onClose={() => setEditingTask(null)}
+          onSuccess={(updated) => {
+            setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+            setEditingTask(null);
+          }}
+        />
+      )}
     </div>
   );
 }

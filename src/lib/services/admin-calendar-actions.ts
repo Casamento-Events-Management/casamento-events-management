@@ -329,6 +329,7 @@ export async function getEventTasksAction(
     .from('event_tasks')
     .select('*')
     .eq('booking_id', bookingId)
+    .neq('is_cancelled', true)
     .order('is_done', { ascending: true })
     .order('created_at', { ascending: true });
 
@@ -375,6 +376,8 @@ export async function createEventTaskAction(params: {
   title: string;
   assignee_name?: string;
   assignee_id?: string;
+  assignee_ids?: string[];
+  assignee_names?: string[];
   due_date?: string;
   due_time?: string;
 }): Promise<{ success: boolean; error?: string; task?: EventTask }> {
@@ -390,13 +393,19 @@ export async function createEventTaskAction(params: {
   const supabase = await createClient();
   const now = new Date().toISOString();
 
+  const assigneeIds = params.assignee_ids || (params.assignee_id ? [params.assignee_id] : []);
+  const assigneeNames = params.assignee_names || (params.assignee_name ? [params.assignee_name] : []);
+
   const insertPayload: Record<string, unknown> = {
     booking_id: params.bookingId,
     title: params.title.trim(),
-    assignee_name: params.assignee_name?.trim() || null,
-    assignee_id: params.assignee_id || null,
+    assignee_ids: assigneeIds,
+    assignee_names: assigneeNames,
+    assignee_id: assigneeIds[0] || null,
+    assignee_name: assigneeNames[0] || null,
     due_date: params.due_date || null,
     is_done: false,
+    is_cancelled: false,
     created_by: adminData.user.id,
     created_at: now,
     updated_at: now,
@@ -412,12 +421,16 @@ export async function createEventTaskAction(params: {
     .select('*')
     .single();
 
-  // If due_time column does not exist yet on Supabase DB, fallback without due_time
-  if (error && error.message.includes('due_time')) {
-    delete insertPayload.due_time;
+  // Fallback if schema migration pending
+  if (error && (error.message.includes('due_time') || error.message.includes('assignee_ids'))) {
+    const fallbackPayload = { ...insertPayload };
+    delete fallbackPayload.due_time;
+    delete fallbackPayload.assignee_ids;
+    delete fallbackPayload.assignee_names;
+    delete fallbackPayload.is_cancelled;
     const retry = await supabase
       .from('event_tasks')
-      .insert(insertPayload)
+      .insert(fallbackPayload)
       .select('*')
       .single();
     data = retry.data;
@@ -428,6 +441,27 @@ export async function createEventTaskAction(params: {
     console.error('[createEventTaskAction Error]:', error);
     return { success: false, error: 'Failed to create task.' };
   }
+
+  // Audit trail for Task Create
+  logAudit({
+    actorUserId: adminData.user.id,
+    actorCode: adminData.profile.user_code,
+    actorName: adminData.profile.full_name,
+    actorEmail: adminData.user.email,
+    actorType: 'admin',
+    category: 'Booking',
+    action: 'Create',
+    severity: 'Info',
+    outcome: 'Success',
+    summary: `${adminData.profile.full_name} created task "${params.title}" with ${assigneeNames.length} assignee(s)`,
+    entityType: 'event_task',
+    entityId: data.id,
+    metadata: {
+      bookingId: params.bookingId,
+      assigneeNames,
+      dueDate: params.due_date,
+    },
+  }).catch(() => {});
 
   revalidatePath('/admin/bookings');
   return { success: true, task: data as EventTask };
@@ -537,21 +571,31 @@ export async function sendBatchTaskAssignmentEmailsAction(params: {
 
   const activeProfiles = profiles || [];
 
-  const findProfile = (task: EventTask) => {
-    if (task.assignee_id) {
-      const match = activeProfiles.find((p) => p.user_id === task.assignee_id);
-      if (match) return match;
+  const getProfilesForTask = (task: EventTask): typeof activeProfiles => {
+    const matches: typeof activeProfiles = [];
+    if (task.assignee_ids && task.assignee_ids.length > 0) {
+      for (const uid of task.assignee_ids) {
+        const p = activeProfiles.find((ap) => ap.user_id === uid);
+        if (p && !matches.some((m) => m.user_id === p.user_id)) {
+          matches.push(p);
+        }
+      }
     }
-    if (task.assignee_name) {
+    if (matches.length === 0 && task.assignee_id) {
+      const p = activeProfiles.find((ap) => ap.user_id === task.assignee_id);
+      if (p) matches.push(p);
+    }
+    if (matches.length === 0 && task.assignee_name) {
       const clean = task.assignee_name.replace(/^@/, '').trim().toLowerCase();
-      return activeProfiles.find(
-        (p) =>
-          p.full_name.toLowerCase() === clean ||
-          p.email.toLowerCase() === clean ||
-          p.full_name.toLowerCase().includes(clean)
+      const p = activeProfiles.find(
+        (ap) =>
+          ap.full_name.toLowerCase() === clean ||
+          ap.email.toLowerCase() === clean ||
+          ap.full_name.toLowerCase().includes(clean)
       );
+      if (p) matches.push(p);
     }
-    return undefined;
+    return matches;
   };
 
   const newTaskIdSet = new Set(params.newTaskIds || []);
@@ -567,30 +611,34 @@ export async function sendBatchTaskAssignmentEmailsAction(params: {
   const memberMap = new Map<string, MemberTaskGroup>();
 
   for (const task of allTasks) {
-    const profile = findProfile(task);
-    if (!profile || !profile.email) continue;
+    const matchedProfiles = getProfilesForTask(task);
+    if (matchedProfiles.length === 0) continue;
 
-    const emailKey = profile.email.toLowerCase().trim();
-    let group = memberMap.get(emailKey);
-    if (!group) {
-      group = {
-        memberName: profile.full_name,
-        memberEmail: profile.email,
-        allTasks: [],
-        newTasks: [],
-      };
-      memberMap.set(emailKey, group);
-    }
+    for (const profile of matchedProfiles) {
+      if (!profile.email) continue;
 
-    group.allTasks.push(task);
+      const emailKey = profile.email.toLowerCase().trim();
+      let group = memberMap.get(emailKey);
+      if (!group) {
+        group = {
+          memberName: profile.full_name,
+          memberEmail: profile.email,
+          allTasks: [],
+          newTasks: [],
+        };
+        memberMap.set(emailKey, group);
+      }
 
-    // Is this task newly assigned in this session or not yet notified?
-    const isNew = newTaskIdSet.size > 0
-      ? newTaskIdSet.has(task.id)
-      : !task.notified_at;
+      group.allTasks.push(task);
 
-    if (isNew) {
-      group.newTasks.push(task);
+      // Is this task newly assigned in this session or not yet notified?
+      const isNew = newTaskIdSet.size > 0
+        ? newTaskIdSet.has(task.id)
+        : !task.notified_at;
+
+      if (isNew) {
+        group.newTasks.push(task);
+      }
     }
   }
 
@@ -651,7 +699,7 @@ export async function sendBatchTaskAssignmentEmailsAction(params: {
         actorEmail: adminData.user.email,
         actorType: 'admin',
         category: 'Booking',
-        action: 'TaskAssignmentNotification',
+        action: 'Task Assignment Notification',
         severity: 'Info',
         outcome: 'Success',
         summary: `${adminData.profile.full_name} sent consolidated task notification to ${group.memberName} (${group.memberEmail}) with ${group.allTasks.length} task(s) (${group.newTasks.length} new) for ${booking.booking_reference}`,

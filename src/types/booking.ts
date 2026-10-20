@@ -80,14 +80,30 @@ export interface EventTask {
   title: string;
   assignee_name?: string | null;
   assignee_id?: string | null;
+  assignee_ids?: string[];
+  assignee_names?: string[];
   due_date?: string | null;
   due_time?: string | null;
   notified_at?: string | null;
   is_done: boolean;
   completed_at?: string | null;
+  is_cancelled?: boolean;
+  cancelled_at?: string | null;
+  cancelled_by?: string | null;
+  cancellation_reason?: string | null;
   created_by?: string | null;
+  creator_name?: string | null;
   created_at: string;
   updated_at: string;
+  booking?: {
+    id: string;
+    booking_reference: string;
+    service_title: string;
+    event_date: string;
+    client_full_name: string;
+    venue_city: string;
+    status: string;
+  };
 }
 
 /**

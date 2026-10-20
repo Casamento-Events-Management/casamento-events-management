@@ -34,6 +34,8 @@ export default async function AdminBookingsPage() {
       <BookingsShell
         initialBookings={bookings}
         initialPendingCount={pendingCount}
+        currentUserId={adminData.user.id}
+        isSuperAdmin={adminData.profile.role === 'super_admin'}
       />
     </div>
   );

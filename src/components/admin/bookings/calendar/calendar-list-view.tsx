@@ -261,10 +261,10 @@ export function CalendarListView({
           {(
             [
               { id: 'all', label: 'All', count: filterCounts.all },
-              { id: '7', label: 'Within 7 Days', count: filterCounts[7] },
-              { id: '14', label: 'Within 14 Days', count: filterCounts[14] },
-              { id: '30', label: 'Within 30 Days', count: filterCounts[30] },
-              { id: '90', label: 'Within 90 Days', count: filterCounts[90] },
+              { id: '7', label: '7 Days', count: filterCounts[7] },
+              { id: '14', label: '14 Days', count: filterCounts[14] },
+              { id: '30', label: '30 Days', count: filterCounts[30] },
+              { id: '90', label: '90 Days', count: filterCounts[90] },
             ] as const
           ).map((pill) => (
             <button
