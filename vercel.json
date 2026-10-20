@@ -1,8 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/keepalive",
-      "schedule": "0 0 */3 * *"
+      "path": "/api/cron/event-reminders",
+      "schedule": "0 1 * * *"
     }
   ]
 }
