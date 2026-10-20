@@ -63,12 +63,29 @@ create policy "Admin operators can insert bookings"
   with check (public.is_admin_operator());
 
 -- 4. RLS Policies on public.event_tasks
--- Staff can view tasks, operators can manage all tasks, staff can only mark assigned tasks done.
+-- All active admins (super_admin, admin, staff) can view event tasks.
+-- Admin operators can insert, update, and delete all event tasks.
+-- Staff can update completion on tasks assigned to them.
 drop policy if exists "Active admins can manage event tasks" on public.event_tasks;
 drop policy if exists "Admin operators can manage event tasks" on public.event_tasks;
-create policy "Admin operators can manage event tasks"
+drop policy if exists "Active admins can view event tasks" on public.event_tasks;
+create policy "Active admins can view event tasks"
   on public.event_tasks
-  for all
+  for select
+  to authenticated
+  using (public.is_active_admin());
+
+drop policy if exists "Admin operators can insert event tasks" on public.event_tasks;
+create policy "Admin operators can insert event tasks"
+  on public.event_tasks
+  for insert
+  to authenticated
+  with check (public.is_admin_operator());
+
+drop policy if exists "Admin operators can update event tasks" on public.event_tasks;
+create policy "Admin operators can update event tasks"
+  on public.event_tasks
+  for update
   to authenticated
   using (public.is_admin_operator())
   with check (public.is_admin_operator());
@@ -81,15 +98,22 @@ create policy "Staff can update completion on assigned tasks"
   using (
     public.is_active_admin() and (
       assignee_id = (select auth.uid()) or
-      (select auth.uid()) = any(assignee_ids)
+      (select auth.uid()) = any(coalesce(assignee_ids, '{}'::uuid[]))
     )
   )
   with check (
     public.is_active_admin() and (
       assignee_id = (select auth.uid()) or
-      (select auth.uid()) = any(assignee_ids)
+      (select auth.uid()) = any(coalesce(assignee_ids, '{}'::uuid[]))
     )
   );
+
+drop policy if exists "Admin operators can delete event tasks" on public.event_tasks;
+create policy "Admin operators can delete event tasks"
+  on public.event_tasks
+  for delete
+  to authenticated
+  using (public.is_admin_operator());
 
 -- 5. RLS Policies on public.audit_logs & public.audit_log_acknowledgments
 -- Strictly restrict viewing and acknowledgment to admin operators (Staff cannot access Audit Trail).
