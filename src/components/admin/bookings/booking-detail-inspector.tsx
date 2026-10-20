@@ -21,12 +21,14 @@ import {
   User,
   X,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
 import type { BookingRecord, AdminUpdateBookingPayload } from '@/types/booking';
 import { BookingPaymentPlaceholder } from './booking-payment-placeholder';
 import { AcceptBookingModal } from './modals/accept-booking-modal';
 import { RejectBookingModal } from './modals/reject-booking-modal';
 import { UpdateBookingModal } from './modals/update-booking-modal';
+import { appendBookingNoteAction } from '@/lib/services/admin-booking-actions';
 
 interface BookingDetailInspectorProps {
   booking: BookingRecord | null;
@@ -38,6 +40,8 @@ interface BookingDetailInspectorProps {
     adminMessage?: string;
   }) => Promise<void>;
   onClose?: () => void;
+  isStaff?: boolean;
+  onNoteAppended?: (updatedNotes: string) => void;
 }
 
 export function BookingDetailInspector({
@@ -46,11 +50,17 @@ export function BookingDetailInspector({
   onReject,
   onUpdate,
   onClose,
+  isStaff = false,
+  onNoteAppended,
 }: BookingDetailInspectorProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isAcceptModalOpen, setIsAcceptModalOpen] = useState(false);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [newNoteText, setNewNoteText] = useState('');
+  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+  const [localNotes, setLocalNotes] = useState<string | null>(null);
 
   const copyToClipboard = (text: string, key: string) => {
     navigator.clipboard.writeText(text);
@@ -269,8 +279,8 @@ export function BookingDetailInspector({
           </div>
         </div>
 
-        {/* Future-Ready Payment Placeholder */}
-        <BookingPaymentPlaceholder />
+        {/* Future-Ready Payment Placeholder (Hidden for Staff) */}
+        {!isStaff && <BookingPaymentPlaceholder />}
 
         {/* Rejection Log */}
         {booking.rejection_reason && (
@@ -286,10 +296,10 @@ export function BookingDetailInspector({
         )}
 
         {/* Internal Admin Notes */}
-        {booking.admin_notes && (
+        {(localNotes ?? booking.admin_notes) && (
           <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-2.5 sm:p-3.5 text-[11px] sm:text-xs text-stone-800">
             <span className="font-semibold text-amber-900 block mb-1">Internal Team Notes:</span>
-            <p className="leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto">{booking.admin_notes}</p>
+            <p className="leading-relaxed whitespace-pre-wrap max-h-32 overflow-y-auto">{localNotes ?? booking.admin_notes}</p>
           </div>
         )}
 
@@ -301,7 +311,76 @@ export function BookingDetailInspector({
 
       {/* Action Footer Buttons */}
       <div className="border-t border-[#3A4F1C]/10 bg-[#F7F3E8]/30 p-3 sm:p-4">
-        {booking.status === 'pending' ? (
+        {isStaff ? (
+          <div className="space-y-2">
+            {!isAddingNote ? (
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-stone-500 font-medium">
+
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsAddingNote(true)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#3A4F1C]/30 bg-white py-1.5 px-3 text-[11px] font-semibold text-[#3A4F1C] hover:bg-[#3A4F1C]/10 transition cursor-pointer"
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                  <span>+ Add Operational Note</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <textarea
+                  value={newNoteText}
+                  onChange={(e) => setNewNoteText(e.target.value)}
+                  placeholder="Enter internal operational note for this event..."
+                  rows={2}
+                  className="w-full rounded-xl border border-stone-300 bg-white p-2.5 text-xs text-stone-900 placeholder:text-stone-400 focus:border-[#3A4F1C] focus:outline-none"
+                />
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    disabled={isSubmittingNote}
+                    onClick={() => {
+                      setIsAddingNote(false);
+                      setNewNoteText('');
+                    }}
+                    className="px-2.5 py-1 text-[11px] text-stone-500 hover:text-stone-800 font-medium cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSubmittingNote || !newNoteText.trim()}
+                    onClick={async () => {
+                      if (!newNoteText.trim()) return;
+                      setIsSubmittingNote(true);
+                      try {
+                        const res = await appendBookingNoteAction({
+                          bookingId: booking.id,
+                          note: newNoteText.trim(),
+                        });
+                        if (res.success && res.adminNotes) {
+                          setLocalNotes(res.adminNotes);
+                          if (onNoteAppended) onNoteAppended(res.adminNotes);
+                          setIsAddingNote(false);
+                          setNewNoteText('');
+                        }
+                      } catch (err) {
+                        console.error('[AddNote Error]:', err);
+                      } finally {
+                        setIsSubmittingNote(false);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[#3A4F1C] text-white text-[11px] font-semibold hover:bg-[#2B3817] disabled:opacity-50 cursor-pointer"
+                  >
+                    {isSubmittingNote ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
+                    <span>Save Note</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : booking.status === 'pending' ? (
           <div className="flex flex-col sm:flex-row items-center gap-2">
             <button
               type="button"

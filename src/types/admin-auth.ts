@@ -2,7 +2,7 @@
 // types/admin-auth.ts — Admin Authentication & Authorization Types
 // =============================================================================
 
-export type AdminRole = 'super_admin' | 'admin';
+export type AdminRole = 'super_admin' | 'admin' | 'staff';
 
 export interface AdminProfile {
     id: string;
@@ -10,6 +10,7 @@ export interface AdminProfile {
     user_code?: string;
     email: string;
     full_name: string;
+    phone?: string | null;
     role: AdminRole;
     is_active: boolean;
     created_at: string;

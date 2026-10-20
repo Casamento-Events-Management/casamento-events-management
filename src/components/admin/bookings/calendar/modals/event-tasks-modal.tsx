@@ -35,6 +35,7 @@ interface EventTasksModalProps {
   booking: BookingRecord;
   isOpen: boolean;
   onClose: () => void;
+  isStaff?: boolean;
 }
 
 interface TeamMember {
@@ -48,6 +49,7 @@ export function EventTasksModal({
   booking,
   isOpen,
   onClose,
+  isStaff = false,
 }: EventTasksModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [tasks, setTasks] = useState<EventTask[]>([]);
@@ -356,10 +358,11 @@ export function EventTasksModal({
           )}
 
           {/* New Task Inline Form */}
-          <form
-            onSubmit={handleCreateTask}
-            className="rounded-xl border border-stone-200/90 bg-[#F7F3E8]/30 p-3.5 space-y-2.5"
-          >
+          {!isStaff && (
+            <form
+              onSubmit={handleCreateTask}
+              className="rounded-xl border border-stone-200/90 bg-[#F7F3E8]/30 p-3.5 space-y-2.5"
+            >
             <span className="text-xs font-semibold text-stone-800 block">
               Add New Event Task
             </span>
@@ -505,6 +508,7 @@ export function EventTasksModal({
               </button>
             </div>
           </form>
+          )}
 
           {/* Task List */}
           <div className="space-y-2 pt-1">
@@ -590,28 +594,30 @@ export function EventTasksModal({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingTask(task);
-                        }}
-                        title="Edit task details"
-                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 text-stone-400 hover:text-[#3A4F1C] transition shrink-0 cursor-pointer"
-                      >
-                        <Edit3 className="h-3.5 w-3.5" />
-                      </button>
+                    {!isStaff && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingTask(task);
+                          }}
+                          title="Edit task details"
+                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1 text-stone-400 hover:text-[#3A4F1C] transition shrink-0 cursor-pointer"
+                        >
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </button>
 
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteTask(task.id)}
-                        title="Delete task"
-                        className="opacity-0 group-hover:opacity-100 p-1 text-stone-300 hover:text-red-600 transition shrink-0"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteTask(task.id)}
+                          title="Delete task"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-stone-300 hover:text-red-600 transition shrink-0"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })

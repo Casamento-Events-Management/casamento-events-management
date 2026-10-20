@@ -10,7 +10,7 @@ export const inviteStaffSchema = z.object({
     .string()
     .min(2, 'Full name must be at least 2 characters')
     .max(100, 'Full name is too long'),
-  role: z.enum(['admin', 'super_admin'], {
+  role: z.enum(['admin', 'super_admin', 'staff'], {
     message: 'Please select a valid role',
   }),
 });
@@ -26,9 +26,23 @@ export type ToggleStaffStatusInput = z.infer<typeof toggleStaffStatusSchema>;
 
 export const updateStaffRoleSchema = z.object({
   userId: z.string().uuid('Invalid user identifier'),
-  role: z.enum(['admin', 'super_admin'], {
+  role: z.enum(['admin', 'super_admin', 'staff'], {
     message: 'Please select a valid role',
   }),
 });
 
 export type UpdateStaffRoleInput = z.infer<typeof updateStaffRoleSchema>;
+
+export const updateSelfProfileSchema = z.object({
+  fullName: z
+    .string()
+    .min(2, 'Full name must be at least 2 characters')
+    .max(100, 'Full name is too long'),
+  phone: z
+    .string()
+    .max(25, 'Phone number is too long')
+    .optional()
+    .nullable(),
+});
+
+export type UpdateSelfProfileInput = z.infer<typeof updateSelfProfileSchema>;

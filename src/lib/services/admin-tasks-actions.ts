@@ -154,6 +154,13 @@ export async function updateEventTaskAction(params: {
   const isSuperAdmin = adminData.profile.role === 'super_admin';
   const isCreator = currentTask.created_by === adminData.user.id;
 
+  if (adminData.profile.role === 'staff') {
+    return {
+      success: false,
+      error: 'Forbidden: Staff viewer accounts cannot edit tasks.',
+    };
+  }
+
   if (!isCreator && !isSuperAdmin) {
     return {
       success: false,
@@ -340,6 +347,13 @@ export async function cancelEventTaskAction(params: {
   const isAssignee =
     (currentTask.assignee_ids && currentTask.assignee_ids.includes(adminData.user.id)) ||
     currentTask.assignee_id === adminData.user.id;
+
+  if (adminData.profile.role === 'staff') {
+    return {
+      success: false,
+      error: 'Forbidden: Staff viewer accounts cannot cancel tasks.',
+    };
+  }
 
   if (!isAssignee && !isCreator && !isSuperAdmin) {
     return {

@@ -146,11 +146,19 @@ export function StaffTable({
                           className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-semibold tracking-wide uppercase ${
                             member.role === 'super_admin'
                               ? 'border border-amber-300 bg-amber-100 text-amber-900'
-                              : 'border border-emerald-300 bg-emerald-100 text-emerald-900'
+                              : member.role === 'admin'
+                              ? 'border border-emerald-300 bg-emerald-100 text-emerald-900'
+                              : 'border border-blue-300 bg-blue-100 text-blue-900'
                           }`}
                         >
                           <Shield className="h-3 w-3" />
-                          <span>{member.role === 'super_admin' ? 'Super Admin' : 'Admin'}</span>
+                          <span>
+                            {member.role === 'super_admin'
+                              ? 'Super Admin'
+                              : member.role === 'admin'
+                              ? 'Admin'
+                              : 'Staff'}
+                          </span>
                         </span>
                       </td>
 

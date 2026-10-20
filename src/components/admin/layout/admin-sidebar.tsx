@@ -18,8 +18,10 @@ import {
   Menu,
   X,
   Users,
+  UserCog,
 } from 'lucide-react';
 import { logoutAdminAction } from '@/lib/services/admin-auth-actions';
+import { EditProfileModal } from '@/components/admin/layout/edit-profile-modal';
 import type { AdminProfile } from '@/types/admin-auth';
 
 interface AdminSidebarProps {
@@ -31,6 +33,7 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
   const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   // Close mobile drawer on route changes or escape key press
   useEffect(() => {
@@ -65,6 +68,8 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
     }
   };
 
+  const isStaff = admin.role === 'staff';
+
   const navItems = [
     {
       name: 'Overview',
@@ -73,20 +78,24 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
       active: pathname === '/admin/dashboard',
       badge: null,
     },
-    {
-      name: 'Team Management',
-      href: '/admin/team',
-      icon: Users,
-      active: pathname.startsWith('/admin/team'),
-      badge: null,
-    },
-    {
-      name: 'Audit Trail',
-      href: '/admin/audit',
-      icon: FileText,
-      active: pathname.startsWith('/admin/audit'),
-      badge: null,
-    },
+    ...(!isStaff
+      ? [
+          {
+            name: 'Team Management',
+            href: '/admin/team',
+            icon: Users,
+            active: pathname.startsWith('/admin/team'),
+            badge: null,
+          },
+          {
+            name: 'Audit Trail',
+            href: '/admin/audit',
+            icon: FileText,
+            active: pathname.startsWith('/admin/audit'),
+            badge: null,
+          },
+        ]
+      : []),
     {
       name: 'Bookings & Dates',
       href: '/admin/bookings',
@@ -94,13 +103,17 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
       active: pathname.startsWith('/admin/bookings'),
       badge: null,
     },
-    {
-      name: 'Payments & Billing',
-      href: '#',
-      icon: CreditCard,
-      active: false,
-      badge: 'Upcoming',
-    },
+    ...(!isStaff
+      ? [
+          {
+            name: 'Payments & Billing',
+            href: '#',
+            icon: CreditCard,
+            active: false,
+            badge: 'Upcoming',
+          },
+        ]
+      : []),
   ];
 
   const renderNavLinks = () => (
@@ -171,27 +184,41 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
           className={`shrink-0 rounded-full px-2 py-0.5 text-[9px] font-semibold tracking-wide uppercase ${
             admin.role === 'super_admin'
               ? 'border border-amber-300 bg-amber-100 text-amber-900'
-              : 'border border-emerald-300 bg-emerald-100 text-emerald-900'
+              : admin.role === 'admin'
+              ? 'border border-emerald-300 bg-emerald-100 text-emerald-900'
+              : 'border border-blue-300 bg-blue-100 text-blue-900'
           }`}
         >
-          {admin.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+          {admin.role === 'super_admin' ? 'Super Admin' : admin.role === 'admin' ? 'Admin' : 'Staff'}
         </span>
       </div>
 
-      <button
-        type="button"
-        onClick={handleLogout}
-        disabled={isLoggingOut}
-        className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#3A4F1C]/20 bg-white py-2 px-3 text-xs font-medium text-[#2B3817] transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 focus:outline-none disabled:opacity-50 cursor-pointer"
-        title="Sign Out of Admin Portal"
-      >
-        {isLoggingOut ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        ) : (
-          <LogOut className="h-3.5 w-3.5" />
-        )}
-        <span>Sign Out</span>
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => setIsProfileModalOpen(true)}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#3A4F1C]/20 bg-white py-2 px-2 text-xs font-medium text-[#2B3817] transition hover:bg-[#3A4F1C]/10 focus:outline-none cursor-pointer"
+          title="Edit your account profile"
+        >
+          <UserCog className="h-3.5 w-3.5 text-[#3A4F1C]" />
+          <span>Profile</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-[#3A4F1C]/20 bg-white py-2 px-2 text-xs font-medium text-[#2B3817] transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 focus:outline-none disabled:opacity-50 cursor-pointer"
+          title="Sign Out of Admin Portal"
+        >
+          {isLoggingOut ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <LogOut className="h-3.5 w-3.5" />
+          )}
+          <span>Sign Out</span>
+        </button>
+      </div>
     </div>
   );
 
@@ -329,6 +356,13 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
           {renderProfileAndLogout()}
         </div>
       </aside>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        admin={admin}
+      />
     </>
   );
 }

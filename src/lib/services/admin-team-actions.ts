@@ -18,9 +18,11 @@ import {
   inviteStaffSchema,
   toggleStaffStatusSchema,
   updateStaffRoleSchema,
+  updateSelfProfileSchema,
   type InviteStaffInput,
   type ToggleStaffStatusInput,
   type UpdateStaffRoleInput,
+  type UpdateSelfProfileInput,
 } from '@/lib/schemas/admin-team';
 import type { AdminProfile } from '@/types/admin-auth';
 
@@ -376,9 +378,11 @@ export async function updateStaffRoleAction(input: UpdateStaffRoleInput): Promis
   });
 
   revalidatePath('/admin/team');
+  const roleLabel =
+    role === 'super_admin' ? 'Super Admin' : role === 'admin' ? 'Admin' : 'Staff (Viewer)';
   return {
     success: true,
-    message: `Staff role successfully updated to ${role === 'super_admin' ? 'Super Admin' : 'Admin'}.`,
+    message: `Staff role successfully updated to ${roleLabel}.`,
   };
 }
 
@@ -502,3 +506,54 @@ export async function removeStaffAction(userId: string): Promise<ActionResponse>
     message: 'Staff account successfully removed.',
   };
 }
+
+/**
+ * Server Action: Update authenticated user's own profile (full name, phone).
+ * Accessible to any active administrative session (super_admin, admin, staff).
+ */
+export async function updateSelfProfileAction(input: UpdateSelfProfileInput): Promise<ActionResponse> {
+  const currentAdmin = await getCurrentActiveAdmin();
+  if (!currentAdmin) {
+    return { success: false, error: 'Unauthorized. Active administrative session required.' };
+  }
+
+  const parsed = updateSelfProfileSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message || 'Invalid profile information.',
+    };
+  }
+
+  const { fullName, phone } = parsed.data;
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('admin_profiles')
+    .update({
+      full_name: fullName.trim(),
+      phone: phone && phone.trim().length > 0 ? phone.trim() : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', currentAdmin.user.id);
+
+  if (error) {
+    console.error('[updateSelfProfileAction Error]:', error);
+    return { success: false, error: 'Failed to update personal profile details.' };
+  }
+
+  await logAuditEvent({
+    actorUserId: currentAdmin.user.id,
+    actorEmail: currentAdmin.user.email,
+    action: 'Admin Profile Updated',
+    targetResource: 'admin_profiles',
+    details: { fullName, phone: phone || null },
+  });
+
+  revalidatePath('/admin', 'layout');
+  return {
+    success: true,
+    message: 'Your personal profile has been updated.',
+  };
+}
+

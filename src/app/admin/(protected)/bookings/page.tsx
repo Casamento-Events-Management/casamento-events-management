@@ -36,6 +36,7 @@ export default async function AdminBookingsPage() {
         initialPendingCount={pendingCount}
         currentUserId={adminData.user.id}
         isSuperAdmin={adminData.profile.role === 'super_admin'}
+        isStaff={adminData.profile.role === 'staff'}
       />
     </div>
   );
