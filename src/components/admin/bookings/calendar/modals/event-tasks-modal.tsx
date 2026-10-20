@@ -4,7 +4,7 @@
 // event-tasks-modal.tsx — Event Task Checklist & Assignee Management
 // =============================================================================
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   CheckSquare,
   Square,
@@ -17,6 +17,7 @@ import {
   X,
   AlertCircle,
   AtSign,
+  Mail,
 } from 'lucide-react';
 import type { BookingRecord, EventTask } from '@/types/booking';
 import {
@@ -25,6 +26,7 @@ import {
   toggleEventTaskAction,
   deleteEventTaskAction,
   getTeamMembersAction,
+  sendBatchTaskAssignmentEmailsAction,
 } from '@/lib/services/admin-calendar-actions';
 
 interface EventTasksModalProps {
@@ -59,6 +61,45 @@ export function EventTasksModal({
   const [newDueTime, setNewDueTime] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [showMemberSuggestions, setShowMemberSuggestions] = useState(false);
+
+  // Batch task assignment email tracking
+  const pendingIdsRef = useRef<string[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
+  const [isDispatchingNotifications, setIsDispatchingNotifications] = useState(false);
+  const isFlushingRef = useRef(false);
+
+  // Flushes all pending task assignment notifications in a consolidated batch
+  const flushPendingNotifications = useCallback(async () => {
+    if (isFlushingRef.current) return;
+    const toSend = [...pendingIdsRef.current];
+    if (toSend.length === 0) return;
+
+    isFlushingRef.current = true;
+    setIsDispatchingNotifications(true);
+    try {
+      const res = await sendBatchTaskAssignmentEmailsAction({
+        bookingId: booking.id,
+        newTaskIds: toSend,
+      });
+      if (res.success) {
+        pendingIdsRef.current = pendingIdsRef.current.filter((id) => !toSend.includes(id));
+        setPendingCount(pendingIdsRef.current.length);
+      }
+    } catch (err) {
+      console.error('[flushPendingNotifications Error]:', err);
+    } finally {
+      isFlushingRef.current = false;
+      setIsDispatchingNotifications(false);
+    }
+  }, [booking.id]);
+
+  // Safe close handler that ensures any pending assigned tasks are dispatched first
+  const handleSafeClose = useCallback(async () => {
+    if (pendingIdsRef.current.length > 0) {
+      await flushPendingNotifications();
+    }
+    onClose();
+  }, [flushPendingNotifications, onClose]);
 
   // Load tasks and team members on open
   useEffect(() => {
@@ -103,7 +144,7 @@ export function EventTasksModal({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        handleSafeClose();
       }
     };
 
@@ -114,11 +155,11 @@ export function EventTasksModal({
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, handleSafeClose]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      onClose();
+      handleSafeClose();
     }
   };
 
@@ -160,6 +201,13 @@ export function EventTasksModal({
       }
 
       setTasks((prev) => [...prev, res.task!]);
+
+      // If assigned to a team member, enqueue for consolidated batch email dispatch
+      if (res.task.assignee_id || res.task.assignee_name) {
+        pendingIdsRef.current.push(res.task.id);
+        setPendingCount(pendingIdsRef.current.length);
+      }
+
       setNewTitle('');
       setNewAssignee('');
       setNewAssigneeId(null);
@@ -201,6 +249,8 @@ export function EventTasksModal({
   const handleDeleteTask = async (taskId: string) => {
     const previous = [...tasks];
     setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    pendingIdsRef.current = pendingIdsRef.current.filter((id) => id !== taskId);
+    setPendingCount(pendingIdsRef.current.length);
 
     try {
       const res = await deleteEventTaskAction(taskId);
@@ -269,7 +319,7 @@ export function EventTasksModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleSafeClose}
             title="Close (Esc)"
             className="ml-auto rounded-lg p-1.5 text-stone-400 hover:bg-stone-100 hover:text-stone-700 transition"
           >
@@ -496,14 +546,35 @@ export function EventTasksModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-end px-6 py-3 border-t border-stone-100 bg-stone-50">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-lg border border-stone-200 bg-white px-4 py-2 text-xs font-medium text-stone-700 hover:bg-stone-50 transition"
-          >
-            Done
-          </button>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-3 border-t border-stone-100 bg-stone-50">
+          <div className="text-[11px] text-stone-500 flex items-center gap-1.5 min-h-[20px]">
+            {pendingCount > 0 && (
+              <>
+                <Mail className="h-3.5 w-3.5 text-[#3A4F1C]" />
+                <span className="text-[#3A4F1C] font-medium">
+                  {pendingCount} new {pendingCount === 1 ? 'task assignment' : 'task assignments'} (consolidated email will be sent to members)
+                </span>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              type="button"
+              disabled={isDispatchingNotifications}
+              onClick={handleSafeClose}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-4 py-2 text-xs font-semibold text-stone-700 hover:bg-[#3A4F1C] hover:text-white hover:border-[#3A4F1C] transition shadow-2xs disabled:opacity-50"
+            >
+              {isDispatchingNotifications ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Sending email...</span>
+                </>
+              ) : (
+                <span>{pendingCount > 0 ? 'Done & Notify' : 'Done'}</span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
