@@ -2,12 +2,13 @@
 // app/admin/(protected)/bookings/page.tsx — Admin Bookings & Dates Workspace
 // =============================================================================
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
 import { getAdminBookings } from '@/lib/services/adminBookingService';
 import { BookingsShell } from '@/components/admin/bookings/bookings-shell';
+import { DashboardSkeleton } from '@/components/admin/skeleton/dashboard-skeleton';
 
 export const metadata: Metadata = {
   title: 'Bookings & Dates | Casamento Admin Portal',
@@ -31,13 +32,15 @@ export default async function AdminBookingsPage() {
 
   return (
     <div className="space-y-6">
-      <BookingsShell
-        initialBookings={bookings}
-        initialPendingCount={pendingCount}
-        currentUserId={adminData.user.id}
-        isSuperAdmin={adminData.profile.role === 'super_admin'}
-        isStaff={adminData.profile.role === 'staff'}
-      />
+      <Suspense fallback={<DashboardSkeleton />}>
+        <BookingsShell
+          initialBookings={bookings}
+          initialPendingCount={pendingCount}
+          currentUserId={adminData.user.id}
+          isSuperAdmin={adminData.profile.role === 'super_admin'}
+          isStaff={adminData.profile.role === 'staff'}
+        />
+      </Suspense>
     </div>
   );
 }

@@ -4,7 +4,9 @@
 // calendar-list-view.tsx — Chronological Upcoming Events & Archived Items View
 // =============================================================================
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { syncUrlParams, getUrlParam } from '@/lib/utils/urlParamUtils';
 import {
   Calendar,
   MapPin,
@@ -46,9 +48,50 @@ export function CalendarListView({
   onCompleteEvent,
   onCancelEvent,
 }: CalendarListViewProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'upcoming' | 'completed' | 'archived'>('upcoming');
+  const searchParams = useSearchParams();
+
+  const [activeSubTab, setActiveSubTab] = useState<'upcoming' | 'completed' | 'archived'>(() => {
+    const param = searchParams.get('listTab');
+    if (param === 'completed' || param === 'archived' || param === 'upcoming') {
+      return param;
+    }
+    return 'upcoming';
+  });
   const [searchTerm, setSearchTerm] = useState('');
-  const [daysFilter, setDaysFilter] = useState<DaysFilter>('all');
+  const [daysFilter, setDaysFilter] = useState<DaysFilter>(() => {
+    const param = searchParams.get('days');
+    if (param === '7' || param === '14' || param === '30' || param === '90' || param === 'all') {
+      return param as DaysFilter;
+    }
+    return 'all';
+  });
+
+  // Sync state if URL search parameters change externally (e.g. Back/Forward)
+  useEffect(() => {
+    const handlePopState = () => {
+      const paramListTab = getUrlParam('listTab');
+      if (paramListTab === 'completed' || paramListTab === 'archived' || paramListTab === 'upcoming') {
+        setActiveSubTab(paramListTab);
+      }
+      const paramDays = getUrlParam('days');
+      if (paramDays === '7' || paramDays === '14' || paramDays === '30' || paramDays === '90' || paramDays === 'all') {
+        setDaysFilter(paramDays as DaysFilter);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleSubTabChange = (newSubTab: 'upcoming' | 'completed' | 'archived') => {
+    setActiveSubTab(newSubTab);
+    syncUrlParams({ listTab: newSubTab === 'upcoming' ? null : newSubTab });
+  };
+
+  const handleDaysFilterChange = (newDays: DaysFilter) => {
+    setDaysFilter(newDays);
+    syncUrlParams({ days: newDays === 'all' ? null : newDays });
+  };
 
   // Segregate upcoming vs completed vs archived/cancelled
   const { upcomingBase, completedBase, archivedBase } = useMemo(() => {
@@ -226,7 +269,7 @@ export function CalendarListView({
             <select
               id="mobile-list-status"
               value={activeSubTab}
-              onChange={(e) => setActiveSubTab(e.target.value as 'upcoming' | 'completed' | 'archived')}
+              onChange={(e) => handleSubTabChange(e.target.value as 'upcoming' | 'completed' | 'archived')}
               className="w-full rounded-xl border border-stone-200 bg-white py-1.5 pl-3 pr-8 text-xs font-semibold text-stone-800 focus:border-[#3A4F1C] focus:outline-hidden shadow-2xs cursor-pointer appearance-none"
             >
               <option value="upcoming">Upcoming Events ({upcomingBase.length})</option>
@@ -241,7 +284,7 @@ export function CalendarListView({
         <div className="hidden sm:flex items-center gap-2 flex-wrap">
           <button
             type="button"
-            onClick={() => setActiveSubTab('upcoming')}
+            onClick={() => handleSubTabChange('upcoming')}
             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition ${activeSubTab === 'upcoming'
                 ? 'bg-[#3A4F1C] text-white shadow-2xs'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
@@ -261,7 +304,7 @@ export function CalendarListView({
 
           <button
             type="button"
-            onClick={() => setActiveSubTab('completed')}
+            onClick={() => handleSubTabChange('completed')}
             className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${activeSubTab === 'completed'
                 ? 'bg-emerald-800 text-white shadow-2xs'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
@@ -281,7 +324,7 @@ export function CalendarListView({
 
           <button
             type="button"
-            onClick={() => setActiveSubTab('archived')}
+            onClick={() => handleSubTabChange('archived')}
             className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${activeSubTab === 'archived'
                 ? 'bg-stone-800 text-white shadow-2xs'
                 : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
@@ -331,7 +374,7 @@ export function CalendarListView({
               <select
                 id="mobile-days-filter"
                 value={daysFilter}
-                onChange={(e) => setDaysFilter(e.target.value as DaysFilter)}
+                onChange={(e) => handleDaysFilterChange(e.target.value as DaysFilter)}
                 className="w-full rounded-xl border border-stone-200 bg-white py-1.5 pl-3 pr-8 text-xs font-semibold text-stone-800 focus:border-[#3A4F1C] focus:outline-hidden shadow-2xs cursor-pointer appearance-none"
               >
                 <option value="all">All ({filterCounts.all})</option>
@@ -359,7 +402,7 @@ export function CalendarListView({
               <button
                 key={pill.id}
                 type="button"
-                onClick={() => setDaysFilter(pill.id)}
+                onClick={() => handleDaysFilterChange(pill.id)}
                 className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition ${daysFilter === pill.id
                     ? 'bg-[#3A4F1C]/15 text-[#3A4F1C] border border-[#3A4F1C]/30 font-semibold'
                     : 'border border-stone-200 text-stone-600 hover:bg-stone-50 hover:text-stone-900'

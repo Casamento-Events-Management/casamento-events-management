@@ -479,7 +479,7 @@ export function BookingDetailInspector({
                 className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-800 py-1.5 sm:py-2 px-3 text-[11px] sm:text-xs font-semibold text-white shadow-xs hover:bg-emerald-900 transition cursor-pointer"
               >
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>Conclude Event</span>
+                <span>Event Completed</span>
               </button>
             )}
 

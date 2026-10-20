@@ -334,7 +334,7 @@ export async function completeEventAction(params: CompleteBookingInput): Promise
     return { success: false, error: 'Unauthorized: Active admin session required.' };
   }
   if (adminData.profile.role === 'staff') {
-    return { success: false, error: 'Forbidden: Staff viewer accounts cannot conclude events.' };
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot Event Completeds.' };
   }
 
   const supabase = await createClient();
@@ -389,7 +389,7 @@ export async function completeEventAction(params: CompleteBookingInput): Promise
 
   if (updateErr || !updatedBooking) {
     console.error('[completeEventAction Error]:', updateErr);
-    return { success: false, error: 'Failed to conclude event.' };
+    return { success: false, error: 'Failed to Event Completed.' };
   }
 
   // Audit trail logging
@@ -660,7 +660,7 @@ export async function createEventTaskAction(params: {
       assigneeNames,
       dueDate: params.due_date,
     },
-  }).catch(() => {});
+  }).catch(() => { });
 
   revalidatePath('/admin/bookings');
   return { success: true, task: data as EventTask };

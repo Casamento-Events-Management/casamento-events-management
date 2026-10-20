@@ -5,7 +5,9 @@
 // =============================================================================
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Calendar as CalendarIcon, List, Plus, CheckCircle, AlertCircle, CheckSquare } from 'lucide-react';
+import { syncUrlParams, getUrlParam } from '@/lib/utils/urlParamUtils';
 import type { BookingRecord, BookingStatus, AdminUpdateBookingPayload, AdminCreateBookingInput } from '@/types/booking';
 import {
   acceptBookingAction,
@@ -36,16 +38,44 @@ export function BookingsShell({
   isSuperAdmin,
   isStaff = false,
 }: BookingsShellProps) {
-  const [activeTab, setActiveTab] = useState<'calendar' | 'list' | 'tasks' | 'requests'>('calendar');
+  const searchParams = useSearchParams();
+
+  // Tab state initialized from URL or defaults to 'calendar'
+  const tabParam = searchParams.get('tab');
+  const initialTab =
+    tabParam === 'calendar' || tabParam === 'list' || tabParam === 'tasks' || tabParam === 'requests'
+      ? tabParam
+      : 'calendar';
+  const [activeTab, setActiveTab] = useState<'calendar' | 'list' | 'tasks' | 'requests'>(initialTab);
+
   const [bookings, setBookings] = useState<BookingRecord[]>(initialBookings);
-  const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>('pending');
+
+  // Status filter initialized from URL or defaults to 'pending'
+  const statusParam = searchParams.get('status') as BookingStatus | 'all' | null;
+  const initialStatus =
+    statusParam && ['pending', 'confirmed', 'completed', 'cancelled', 'all'].includes(statusParam)
+      ? statusParam
+      : 'pending';
+  const [statusFilter, setStatusFilter] = useState<BookingStatus | 'all'>(initialStatus);
+
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(
-    initialBookings.find((b) => b.status === 'pending')?.id || initialBookings[0]?.id || null
-  );
-  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [completingBooking, setCompletingBooking] = useState<BookingRecord | null>(null);
+
+  // Selected booking ID from URL or default
+  const bookingIdParam = searchParams.get('bookingId');
+  const [selectedId, setSelectedId] = useState<string | null>(() => {
+    if (bookingIdParam) return bookingIdParam;
+    return initialBookings.find((b) => b.status === initialStatus)?.id || initialBookings[0]?.id || null;
+  });
+
+  const modalParam = searchParams.get('modal');
+  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(() => modalParam === 'inspect');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(() => modalParam === 'create');
+  const [completingBooking, setCompletingBooking] = useState<BookingRecord | null>(() => {
+    if (modalParam === 'complete' && bookingIdParam) {
+      return initialBookings.find((b) => b.id === bookingIdParam) || null;
+    }
+    return null;
+  });
   const [bannerMessage, setBannerMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Compute pending count dynamically from current state
@@ -88,6 +118,57 @@ export function BookingsShell({
     return bookings.find((b) => b.id === selectedId) || null;
   }, [bookings, selectedId]);
 
+  // Fetch authoritative record if URL points to a booking not yet in initial memory
+  useEffect(() => {
+    const curBookingId = searchParams.get('bookingId');
+    if (curBookingId && !bookings.some((b) => b.id === curBookingId)) {
+      getBookingByIdAction(curBookingId).then((res) => {
+        if (res.success && res.booking) {
+          setBookings((prev) => [res.booking!, ...prev.filter((b) => b.id !== res.booking!.id)]);
+          if (searchParams.get('modal') === 'complete') {
+            setCompletingBooking(res.booking);
+          }
+        }
+      });
+    }
+  }, [searchParams, bookings]);
+
+  // Sync state if URL changes externally (e.g. Back/Forward button navigation)
+  useEffect(() => {
+    const handlePopState = () => {
+      const currentTab = getUrlParam('tab');
+      if (currentTab && ['calendar', 'list', 'tasks', 'requests'].includes(currentTab)) {
+        setActiveTab(currentTab as 'calendar' | 'list' | 'tasks' | 'requests');
+      }
+
+      const currentStatus = getUrlParam('status') as BookingStatus | 'all' | null;
+      if (currentStatus && ['pending', 'confirmed', 'completed', 'cancelled', 'all'].includes(currentStatus)) {
+        setStatusFilter(currentStatus);
+      }
+
+      const currentModal = getUrlParam('modal');
+      setIsCreateModalOpen(currentModal === 'create');
+
+      const curBookingId = getUrlParam('bookingId');
+      if (curBookingId) {
+        setSelectedId(curBookingId);
+        if (currentModal === 'complete') {
+          const found = bookings.find((b) => b.id === curBookingId);
+          if (found) setCompletingBooking(found);
+        } else {
+          setCompletingBooking(null);
+        }
+        setIsMobileDetailOpen(currentModal === 'inspect');
+      } else {
+        if (currentModal !== 'complete') setCompletingBooking(null);
+        if (currentModal !== 'inspect') setIsMobileDetailOpen(false);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [bookings]);
+
   // Esc key closes mobile detail modal
   useEffect(() => {
     if (!isMobileDetailOpen) return;
@@ -95,6 +176,7 @@ export function BookingsShell({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsMobileDetailOpen(false);
+        syncUrlParams({ modal: null });
       }
     };
 
@@ -107,12 +189,26 @@ export function BookingsShell({
     };
   }, [isMobileDetailOpen]);
 
+  // Handle Tab Change with URL sync
+  const handleTabChange = (tab: 'calendar' | 'list' | 'tasks' | 'requests') => {
+    setActiveTab(tab);
+    setIsMobileDetailOpen(false);
+    setSelectedId(null);
+    setCompletingBooking(null);
+    syncUrlParams({
+      tab,
+      modal: null,
+      bookingId: null,
+    });
+  };
+
   // Keep selection aligned when filter changes
   const handleStatusFilterChange = async (newStatus: BookingStatus | 'all') => {
     setStatusFilter(newStatus);
     const firstMatch = bookings.find((b) => !b.is_archived && (newStatus === 'all' || b.status === newStatus));
     const targetId = firstMatch ? firstMatch.id : null;
     setSelectedId(targetId);
+    syncUrlParams({ status: newStatus, bookingId: targetId });
 
     if (targetId) {
       try {
@@ -130,7 +226,12 @@ export function BookingsShell({
 
   const handleSelectBooking = async (booking: BookingRecord) => {
     setSelectedId(booking.id);
-    setIsMobileDetailOpen(true);
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+    setIsMobileDetailOpen(isMobile);
+    syncUrlParams({
+      bookingId: booking.id,
+      modal: isMobile ? 'inspect' : null,
+    });
 
     // Fetch authoritative fresh record from database for this specific selected item
     try {
@@ -277,7 +378,10 @@ export function BookingsShell({
           <div className="ml-auto shrink-0">
             <button
               type="button"
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => {
+                setIsCreateModalOpen(true);
+                syncUrlParams({ modal: 'create' });
+              }}
               className="inline-flex items-center gap-1.5 rounded-xl bg-[#3A4F1C] px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-semibold text-white shadow-xs hover:bg-[#2B3817] transition cursor-pointer shrink-0"
             >
               <Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -291,7 +395,7 @@ export function BookingsShell({
       <div className="border-b border-[#3A4F1C]/15 flex items-center gap-6">
         <button
           type="button"
-          onClick={() => setActiveTab('calendar')}
+          onClick={() => handleTabChange('calendar')}
           className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
             activeTab === 'calendar'
               ? 'border-[#3A4F1C] text-[#2B3817]'
@@ -304,7 +408,7 @@ export function BookingsShell({
 
         <button
           type="button"
-          onClick={() => setActiveTab('list')}
+          onClick={() => handleTabChange('list')}
           className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
             activeTab === 'list'
               ? 'border-[#3A4F1C] text-[#2B3817]'
@@ -328,7 +432,7 @@ export function BookingsShell({
 
         <button
           type="button"
-          onClick={() => setActiveTab('tasks')}
+          onClick={() => handleTabChange('tasks')}
           className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
             activeTab === 'tasks'
               ? 'border-[#3A4F1C] text-[#2B3817]'
@@ -342,7 +446,7 @@ export function BookingsShell({
         {!isStaff && (
           <button
             type="button"
-            onClick={() => setActiveTab('requests')}
+            onClick={() => handleTabChange('requests')}
             className={`flex items-center gap-2 pb-3 text-xs font-semibold transition border-b-2 -mb-px ${
               activeTab === 'requests'
                 ? 'border-[#3A4F1C] text-[#2B3817]'
@@ -373,7 +477,8 @@ export function BookingsShell({
           isStaff={isStaff}
           onSelectBooking={(b) => {
             setSelectedId(b.id);
-            setActiveTab('calendar');
+            handleTabChange('calendar');
+            syncUrlParams({ tab: 'calendar', bookingId: b.id, modal: 'inspect' });
           }}
         />
       ) : activeTab === 'requests' ? (
@@ -401,7 +506,10 @@ export function BookingsShell({
               onUpdate={handleUpdate}
               isStaff={isStaff}
               onNoteAppended={handleNoteAppended}
-              onComplete={(b) => setCompletingBooking(b)}
+              onComplete={(b) => {
+                setCompletingBooking(b);
+                syncUrlParams({ modal: 'complete', bookingId: b.id });
+              }}
               onReopen={handleReopen}
             />
           </div>
@@ -411,7 +519,10 @@ export function BookingsShell({
             <div
               role="dialog"
               aria-modal="true"
-              onClick={() => setIsMobileDetailOpen(false)}
+              onClick={() => {
+                setIsMobileDetailOpen(false);
+                syncUrlParams({ modal: null });
+              }}
               className="lg:hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
             >
               <div
@@ -423,12 +534,16 @@ export function BookingsShell({
                   onAccept={handleAccept}
                   onReject={handleReject}
                   onUpdate={handleUpdate}
-                  onClose={() => setIsMobileDetailOpen(false)}
+                  onClose={() => {
+                    setIsMobileDetailOpen(false);
+                    syncUrlParams({ modal: null });
+                  }}
                   isStaff={isStaff}
                   onNoteAppended={handleNoteAppended}
                   onComplete={(b) => {
                     setIsMobileDetailOpen(false);
                     setCompletingBooking(b);
+                    syncUrlParams({ modal: 'complete', bookingId: b.id });
                   }}
                   onReopen={handleReopen}
                 />
@@ -442,7 +557,10 @@ export function BookingsShell({
           bookings={bookings}
           onBookingsChange={setBookings}
           onUpdateBookingDetails={handleUpdate}
-          onNewEventClick={() => setIsCreateModalOpen(true)}
+          onNewEventClick={() => {
+            setIsCreateModalOpen(true);
+            syncUrlParams({ modal: 'create' });
+          }}
           viewMode={activeTab === 'list' ? 'list' : 'calendar'}
           isStaff={isStaff}
         />
@@ -452,7 +570,10 @@ export function BookingsShell({
       {!isStaff && (
         <CreateBookingModal
           isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
+          onClose={() => {
+            setIsCreateModalOpen(false);
+            syncUrlParams({ modal: null });
+          }}
           onCreate={handleCreateEvent}
         />
       )}
@@ -462,7 +583,10 @@ export function BookingsShell({
         <CompleteEventModal
           booking={completingBooking}
           isOpen={!!completingBooking}
-          onClose={() => setCompletingBooking(null)}
+          onClose={() => {
+            setCompletingBooking(null);
+            syncUrlParams({ modal: null, bookingId: null });
+          }}
           onCompleted={(updated) => {
             setBookings((prev) => prev.map((b) => (b.id === updated.id ? updated : b)));
             showBanner('success', `Event ${updated.booking_reference} has been marked as completed!`);

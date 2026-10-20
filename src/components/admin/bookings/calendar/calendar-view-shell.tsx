@@ -5,6 +5,8 @@
 // =============================================================================
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { syncUrlParams, getUrlParam } from '@/lib/utils/urlParamUtils';
 import type { BookingRecord, AdminUpdateBookingPayload } from '@/types/booking';
 import { MonthCalendarGrid } from './month-calendar-grid';
 import { WeekCalendarGrid } from './week-calendar-grid';
@@ -40,11 +42,13 @@ export function CalendarViewShell({
   isStaff = false,
 }: CalendarViewShellProps) {
 
-  // Sub-view mode for calendar: 'month' vs 'week'
-  const [calendarSubMode, setCalendarSubMode] = useState<'month' | 'week'>('month');
+  const searchParams = useSearchParams();
 
-  // Active month/year navigation pointer
-  const [currentDate, setCurrentDate] = useState(() => new Date());
+  // Sub-view mode for calendar: 'month' vs 'week'
+  const calViewParam = searchParams.get('calView');
+  const [calendarSubMode, setCalendarSubMode] = useState<'month' | 'week'>(() =>
+    calViewParam === 'week' ? 'week' : 'month'
+  );
 
   // Today's YYYY-MM-DD
   const todayStr = useMemo(() => {
@@ -56,23 +60,196 @@ export function CalendarViewShell({
   }, []);
 
   // Currently selected date on the calendar
-  const [selectedDate, setSelectedDate] = useState<string>(todayStr);
+  const dateParam = searchParams.get('date');
+  const initialDateStr = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : todayStr;
+  const [selectedDate, setSelectedDate] = useState<string>(initialDateStr);
+
+  // Active month/year navigation pointer
+  const [currentDate, setCurrentDate] = useState(() => {
+    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      const [y, m] = dateParam.split('-').map(Number);
+      return new Date(y, m - 1, 1);
+    }
+    return new Date();
+  });
+
+  // Check live URL parameters and ensure they apply only to calendar or list view
+  const curTab = typeof window !== 'undefined' ? (getUrlParam('tab') || 'calendar') : (searchParams.get('tab') || 'calendar');
+  const isCalendarOrListTab = curTab === 'calendar' || curTab === 'list';
+  const modalParam = isCalendarOrListTab
+    ? (typeof window !== 'undefined' ? getUrlParam('modal') : searchParams.get('modal'))
+    : null;
+  const bookingIdParam = isCalendarOrListTab
+    ? (typeof window !== 'undefined' ? getUrlParam('bookingId') : searchParams.get('bookingId'))
+    : null;
 
   // Mobile / Tablet Selected Day Panel modal state
-  const [isMobileDayModalOpen, setIsMobileDayModalOpen] = useState(false);
+  const [isMobileDayModalOpen, setIsMobileDayModalOpen] = useState(() => modalParam === 'day');
 
   // Modal active targets
-  const [reschedulingEvent, setReschedulingEvent] = useState<BookingRecord | null>(null);
-  const [cancellingEvent, setCancellingEvent] = useState<BookingRecord | null>(null);
-  const [completingEvent, setCompletingEvent] = useState<BookingRecord | null>(null);
-  const [tasksEvent, setTasksEvent] = useState<BookingRecord | null>(null);
-  const [editingEvent, setEditingEvent] = useState<BookingRecord | null>(null);
-  const [inspectingEvent, setInspectingEvent] = useState<BookingRecord | null>(null);
+  const [reschedulingEvent, setReschedulingEvent] = useState<BookingRecord | null>(() => {
+    return modalParam === 'reschedule' && bookingIdParam
+      ? bookings.find((b) => b.id === bookingIdParam) || null
+      : null;
+  });
+  const [cancellingEvent, setCancellingEvent] = useState<BookingRecord | null>(() => {
+    return modalParam === 'cancel' && bookingIdParam
+      ? bookings.find((b) => b.id === bookingIdParam) || null
+      : null;
+  });
+  const [completingEvent, setCompletingEvent] = useState<BookingRecord | null>(() => {
+    return modalParam === 'complete' && bookingIdParam
+      ? bookings.find((b) => b.id === bookingIdParam) || null
+      : null;
+  });
+  const [tasksEvent, setTasksEvent] = useState<BookingRecord | null>(() => {
+    return modalParam === 'tasks' && bookingIdParam
+      ? bookings.find((b) => b.id === bookingIdParam) || null
+      : null;
+  });
+  const [editingEvent, setEditingEvent] = useState<BookingRecord | null>(() => {
+    return modalParam === 'edit' && bookingIdParam
+      ? bookings.find((b) => b.id === bookingIdParam) || null
+      : null;
+  });
+  const [inspectingEvent, setInspectingEvent] = useState<BookingRecord | null>(() => {
+    return modalParam === 'inspect' && bookingIdParam
+      ? bookings.find((b) => b.id === bookingIdParam) || null
+      : null;
+  });
 
-  // Handle date selection with mobile/tablet modal pop-up trigger
+  // Synchronize modal targets and date when URL search params change externally (e.g. Back/Forward)
+  useEffect(() => {
+    const handlePopState = () => {
+      const liveTab = getUrlParam('tab') || 'calendar';
+      if (liveTab !== 'calendar' && liveTab !== 'list') {
+        setInspectingEvent(null);
+        setReschedulingEvent(null);
+        setCancellingEvent(null);
+        setCompletingEvent(null);
+        setTasksEvent(null);
+        setEditingEvent(null);
+        setIsMobileDayModalOpen(false);
+        return;
+      }
+
+      const curDate = getUrlParam('date');
+      if (curDate && /^\d{4}-\d{2}-\d{2}$/.test(curDate)) {
+        setSelectedDate(curDate);
+      }
+
+      const curCalView = getUrlParam('calView');
+      if (curCalView === 'month' || curCalView === 'week') {
+        setCalendarSubMode(curCalView);
+      }
+
+      const curModal = getUrlParam('modal');
+      const curBookingId = getUrlParam('bookingId');
+
+      setIsMobileDayModalOpen(curModal === 'day');
+
+      if (curBookingId) {
+        const match = bookings.find((b) => b.id === curBookingId) || null;
+        setInspectingEvent(curModal === 'inspect' ? match : null);
+        setReschedulingEvent(curModal === 'reschedule' ? match : null);
+        setCancellingEvent(curModal === 'cancel' ? match : null);
+        setCompletingEvent(curModal === 'complete' ? match : null);
+        setTasksEvent(curModal === 'tasks' ? match : null);
+        setEditingEvent(curModal === 'edit' ? match : null);
+      } else {
+        setInspectingEvent(null);
+        setReschedulingEvent(null);
+        setCancellingEvent(null);
+        setCompletingEvent(null);
+        setTasksEvent(null);
+        setEditingEvent(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [bookings]);
+
+  // Handle date selection with mobile/tablet modal pop-up trigger and URL sync
   const handleSelectDate = (dateStr: string) => {
     setSelectedDate(dateStr);
-    setIsMobileDayModalOpen(true);
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1280;
+    if (isMobile) {
+      setIsMobileDayModalOpen(true);
+      syncUrlParams({ date: dateStr, modal: 'day' });
+    } else {
+      syncUrlParams({ date: dateStr });
+    }
+  };
+
+  const handleCloseMobileDayModal = () => {
+    setIsMobileDayModalOpen(false);
+    syncUrlParams({ modal: null });
+  };
+
+  const handleSubModeChange = (mode: 'month' | 'week') => {
+    setCalendarSubMode(mode);
+    syncUrlParams({ calView: mode });
+  };
+
+  const handleOpenInspect = (evt: BookingRecord) => {
+    setInspectingEvent(evt);
+    syncUrlParams({ modal: 'inspect', bookingId: evt.id });
+  };
+
+  const handleCloseInspect = () => {
+    setInspectingEvent(null);
+    syncUrlParams({ modal: null, bookingId: null });
+  };
+
+  const handleOpenReschedule = (evt: BookingRecord) => {
+    setReschedulingEvent(evt);
+    syncUrlParams({ modal: 'reschedule', bookingId: evt.id });
+  };
+
+  const handleCloseReschedule = () => {
+    setReschedulingEvent(null);
+    syncUrlParams({ modal: null, bookingId: null });
+  };
+
+  const handleOpenCancel = (evt: BookingRecord) => {
+    setCancellingEvent(evt);
+    syncUrlParams({ modal: 'cancel', bookingId: evt.id });
+  };
+
+  const handleCloseCancel = () => {
+    setCancellingEvent(null);
+    syncUrlParams({ modal: null, bookingId: null });
+  };
+
+  const handleOpenComplete = (evt: BookingRecord) => {
+    setCompletingEvent(evt);
+    syncUrlParams({ modal: 'complete', bookingId: evt.id });
+  };
+
+  const handleCloseComplete = () => {
+    setCompletingEvent(null);
+    syncUrlParams({ modal: null, bookingId: null });
+  };
+
+  const handleOpenTasks = (evt: BookingRecord) => {
+    setTasksEvent(evt);
+    syncUrlParams({ modal: 'tasks', bookingId: evt.id });
+  };
+
+  const handleCloseTasks = () => {
+    setTasksEvent(null);
+    syncUrlParams({ modal: null, bookingId: null });
+  };
+
+  const handleOpenEdit = (evt: BookingRecord) => {
+    setEditingEvent(evt);
+    syncUrlParams({ modal: 'edit', bookingId: evt.id });
+  };
+
+  const handleCloseEdit = () => {
+    setEditingEvent(null);
+    syncUrlParams({ modal: null, bookingId: null });
   };
 
   // Close mobile modal automatically if screen is resized to desktop (>= 1280px)
@@ -101,9 +278,9 @@ export function CalendarViewShell({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (inspectingEvent) {
-          setInspectingEvent(null);
+          handleCloseInspect();
         } else if (isMobileDayModalOpen) {
-          setIsMobileDayModalOpen(false);
+          handleCloseMobileDayModal();
         }
       }
     };
@@ -204,7 +381,7 @@ export function CalendarViewShell({
                 onNextMonth={handleNextMonth}
                 onToday={handleToday}
                 viewMode={calendarSubMode}
-                onViewModeChange={setCalendarSubMode}
+                onViewModeChange={handleSubModeChange}
               />
             ) : (
               <WeekCalendarGrid
@@ -212,12 +389,12 @@ export function CalendarViewShell({
                 selectedDate={selectedDate}
                 events={confirmedEvents}
                 onSelectDate={handleSelectDate}
-                onSelectEvent={(evt) => setInspectingEvent(evt)}
+                onSelectEvent={handleOpenInspect}
                 onPrevWeek={handlePrevWeek}
                 onNextWeek={handleNextWeek}
                 onToday={handleToday}
                 viewMode={calendarSubMode}
-                onViewModeChange={setCalendarSubMode}
+                onViewModeChange={handleSubModeChange}
               />
             )}
           </div>
@@ -227,12 +404,12 @@ export function CalendarViewShell({
             <CalendarDayPanel
               selectedDate={selectedDate}
               events={eventsOnSelectedDate}
-              onSelectEvent={(evt) => setInspectingEvent(evt)}
-              onRescheduleEvent={isStaff ? undefined : (evt) => setReschedulingEvent(evt)}
-              onEditEvent={isStaff ? undefined : (evt) => setEditingEvent(evt)}
-              onTasksEvent={(evt) => setTasksEvent(evt)}
-              onCompleteEvent={isStaff ? undefined : (evt) => setCompletingEvent(evt)}
-              onCancelEvent={isStaff ? undefined : (evt) => setCancellingEvent(evt)}
+              onSelectEvent={handleOpenInspect}
+              onRescheduleEvent={isStaff ? undefined : handleOpenReschedule}
+              onEditEvent={isStaff ? undefined : handleOpenEdit}
+              onTasksEvent={handleOpenTasks}
+              onCompleteEvent={isStaff ? undefined : handleOpenComplete}
+              onCancelEvent={isStaff ? undefined : handleOpenCancel}
             />
           </div>
         </div>
@@ -241,12 +418,12 @@ export function CalendarViewShell({
         <CalendarListView
           allBookings={bookings}
           events={confirmedEvents}
-          onSelectEvent={(evt) => setInspectingEvent(evt)}
-          onRescheduleEvent={isStaff ? undefined : (evt) => setReschedulingEvent(evt)}
-          onEditEvent={isStaff ? undefined : (evt) => setEditingEvent(evt)}
-          onTasksEvent={(evt) => setTasksEvent(evt)}
-          onCompleteEvent={isStaff ? undefined : (evt) => setCompletingEvent(evt)}
-          onCancelEvent={isStaff ? undefined : (evt) => setCancellingEvent(evt)}
+          onSelectEvent={handleOpenInspect}
+          onRescheduleEvent={isStaff ? undefined : handleOpenReschedule}
+          onEditEvent={isStaff ? undefined : handleOpenEdit}
+          onTasksEvent={handleOpenTasks}
+          onCompleteEvent={isStaff ? undefined : handleOpenComplete}
+          onCancelEvent={isStaff ? undefined : handleOpenCancel}
         />
       )}
 
@@ -256,7 +433,7 @@ export function CalendarViewShell({
           key={`${reschedulingEvent.id}-reschedule`}
           booking={reschedulingEvent}
           isOpen={!!reschedulingEvent}
-          onClose={() => setReschedulingEvent(null)}
+          onClose={handleCloseReschedule}
           onRescheduled={handleEventRescheduled}
         />
       )}
@@ -266,7 +443,7 @@ export function CalendarViewShell({
           key={`${cancellingEvent.id}-cancel`}
           booking={cancellingEvent}
           isOpen={!!cancellingEvent}
-          onClose={() => setCancellingEvent(null)}
+          onClose={handleCloseCancel}
           onCancelled={handleEventCancelled}
         />
       )}
@@ -276,7 +453,7 @@ export function CalendarViewShell({
           key={`${completingEvent.id}-complete`}
           booking={completingEvent}
           isOpen={!!completingEvent}
-          onClose={() => setCompletingEvent(null)}
+          onClose={handleCloseComplete}
           onCompleted={handleEventCompleted}
         />
       )}
@@ -286,7 +463,7 @@ export function CalendarViewShell({
           key={`${tasksEvent.id}-tasks`}
           booking={tasksEvent}
           isOpen={!!tasksEvent}
-          onClose={() => setTasksEvent(null)}
+          onClose={handleCloseTasks}
           isStaff={isStaff}
         />
       )}
@@ -296,13 +473,13 @@ export function CalendarViewShell({
           key={`${editingEvent.id}-update`}
           booking={editingEvent}
           isOpen={!!editingEvent}
-          onClose={() => setEditingEvent(null)}
+          onClose={handleCloseEdit}
           onConfirm={async (params) => {
             await onUpdateBookingDetails({
               ...params,
               bookingId: editingEvent.id,
             });
-            setEditingEvent(null);
+            handleCloseEdit();
           }}
         />
       )}
@@ -312,7 +489,7 @@ export function CalendarViewShell({
         <div
           role="dialog"
           aria-modal="true"
-          onClick={() => setIsMobileDayModalOpen(false)}
+          onClick={handleCloseMobileDayModal}
           className="xl:hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150"
         >
           <div
@@ -323,30 +500,30 @@ export function CalendarViewShell({
               selectedDate={selectedDate}
               events={eventsOnSelectedDate}
               onSelectEvent={(evt) => {
-                setIsMobileDayModalOpen(false);
-                setInspectingEvent(evt);
+                handleCloseMobileDayModal();
+                handleOpenInspect(evt);
               }}
               onRescheduleEvent={isStaff ? undefined : (evt) => {
-                setIsMobileDayModalOpen(false);
-                setReschedulingEvent(evt);
+                handleCloseMobileDayModal();
+                handleOpenReschedule(evt);
               }}
               onEditEvent={isStaff ? undefined : (evt) => {
-                setIsMobileDayModalOpen(false);
-                setEditingEvent(evt);
+                handleCloseMobileDayModal();
+                handleOpenEdit(evt);
               }}
               onTasksEvent={(evt) => {
-                setIsMobileDayModalOpen(false);
-                setTasksEvent(evt);
+                handleCloseMobileDayModal();
+                handleOpenTasks(evt);
               }}
               onCompleteEvent={isStaff ? undefined : (evt) => {
-                setIsMobileDayModalOpen(false);
-                setCompletingEvent(evt);
+                handleCloseMobileDayModal();
+                handleOpenComplete(evt);
               }}
               onCancelEvent={isStaff ? undefined : (evt) => {
-                setIsMobileDayModalOpen(false);
-                setCancellingEvent(evt);
+                handleCloseMobileDayModal();
+                handleOpenCancel(evt);
               }}
-              onClose={() => setIsMobileDayModalOpen(false)}
+              onClose={handleCloseMobileDayModal}
             />
           </div>
         </div>
@@ -357,7 +534,7 @@ export function CalendarViewShell({
         <div
           role="dialog"
           aria-modal="true"
-          onClick={() => setInspectingEvent(null)}
+          onClick={handleCloseInspect}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
         >
           <div
@@ -374,7 +551,7 @@ export function CalendarViewShell({
                   ...params,
                   bookingId: inspectingEvent.id,
                 });
-                setInspectingEvent(null);
+                handleCloseInspect();
               }}
               onNoteAppended={(notes) => {
                 onBookingsChange((prev) =>
@@ -382,7 +559,8 @@ export function CalendarViewShell({
                 );
               }}
               onComplete={(b) => {
-                setCompletingEvent(b);
+                handleCloseInspect();
+                handleOpenComplete(b);
               }}
               onReopen={async (b) => {
                 const res = await reopenEventAction({ bookingId: b.id });
@@ -390,7 +568,7 @@ export function CalendarViewShell({
                   handleEventCompleted(res.booking as BookingRecord);
                 }
               }}
-              onClose={() => setInspectingEvent(null)}
+              onClose={handleCloseInspect}
             />
           </div>
         </div>

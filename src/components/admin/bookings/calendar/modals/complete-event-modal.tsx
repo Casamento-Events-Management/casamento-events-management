@@ -118,7 +118,7 @@ export function CompleteEventModal({
       });
 
       if (!res.success || !res.booking) {
-        setErrorMessage(res.error || 'Failed to conclude event.');
+        setErrorMessage(res.error || 'Failed to Event Completed.');
         setIsSubmitting(false);
         return;
       }
@@ -151,7 +151,7 @@ export function CompleteEventModal({
             </div>
             <div>
               <h3 className="font-serif text-base font-bold text-[#2B3817]">
-                Conclude Event
+                Event Completed
               </h3>
               <p className="text-xs text-stone-500">
                 Mark as successfully completed &bull;{' '}
@@ -262,9 +262,8 @@ export function CompleteEventModal({
                     </span>
                   </span>
                   <ChevronDown
-                    className={`h-4 w-4 transition-transform duration-200 text-stone-500 ${
-                      isTasksAccordionOpen ? 'rotate-180' : ''
-                    }`}
+                    className={`h-4 w-4 transition-transform duration-200 text-stone-500 ${isTasksAccordionOpen ? 'rotate-180' : ''
+                      }`}
                   />
                 </button>
 
@@ -283,11 +282,10 @@ export function CompleteEventModal({
                         return (
                           <div
                             key={task.id}
-                            className={`flex items-start justify-between gap-2.5 rounded-lg border p-2 text-xs transition ${
-                              isDone
+                            className={`flex items-start justify-between gap-2.5 rounded-lg border p-2 text-xs transition ${isDone
                                 ? 'bg-stone-50/70 border-stone-200/70 text-stone-500'
                                 : 'bg-white border-amber-200/80 text-stone-900 shadow-2xs'
-                            }`}
+                              }`}
                           >
                             <div className="flex items-start gap-2 min-w-0">
                               {isDone ? (
@@ -297,9 +295,8 @@ export function CompleteEventModal({
                               )}
                               <div className="min-w-0">
                                 <p
-                                  className={`font-medium leading-tight ${
-                                    isDone ? 'line-through text-stone-400' : 'text-stone-800'
-                                  }`}
+                                  className={`font-medium leading-tight ${isDone ? 'line-through text-stone-400' : 'text-stone-800'
+                                    }`}
                                 >
                                   {task.title}
                                 </p>
@@ -321,11 +318,10 @@ export function CompleteEventModal({
                             </div>
 
                             <span
-                              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                                isDone
+                              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${isDone
                                   ? 'bg-emerald-100 text-emerald-800'
                                   : 'bg-amber-100 text-amber-800'
-                              }`}
+                                }`}
                             >
                               {isDone ? 'Done' : 'Pending'}
                             </span>
@@ -414,7 +410,7 @@ export function CompleteEventModal({
               ) : (
                 <>
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  <span>Conclude Event (Done)</span>
+                  <span>Event Completed (Done)</span>
                 </>
               )}
             </button>

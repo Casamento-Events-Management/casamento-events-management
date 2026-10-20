@@ -5,6 +5,8 @@
 // =============================================================================
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { syncUrlParams, getUrlParam } from '@/lib/utils/urlParamUtils';
 import {
   CheckSquare,
   Square,
@@ -14,11 +16,9 @@ import {
   Clock,
   Edit3,
   Trash2,
-  Shield,
   Loader2,
   AlertCircle,
   RefreshCw,
-  Sparkles,
   ChevronDown,
 } from 'lucide-react';
 import type { EventTask, BookingRecord } from '@/types/booking';
@@ -46,8 +46,22 @@ export function TasksViewShell({
   isStaff = false,
   onSelectBooking,
 }: TasksViewShellProps) {
-  const [activeSubTab, setActiveSubTab] = useState<TaskViewFilter>('assigned_to_me');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const searchParams = useSearchParams();
+
+  const [activeSubTab, setActiveSubTab] = useState<TaskViewFilter>(() => {
+    const viewParam = searchParams.get('taskView');
+    if (viewParam === 'assigned_by_me' || viewParam === 'all' || viewParam === 'assigned_to_me') {
+      return viewParam as TaskViewFilter;
+    }
+    return 'assigned_to_me';
+  });
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => {
+    const statusParam = searchParams.get('taskStatus');
+    if (statusParam === 'pending' || statusParam === 'done' || statusParam === 'cancelled' || statusParam === 'all') {
+      return statusParam as StatusFilter;
+    }
+    return 'all';
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [tasks, setTasks] = useState<EventTask[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,11 +71,78 @@ export function TasksViewShell({
   const [editingTask, setEditingTask] = useState<EventTask | null>(null);
   const [cancellingTask, setCancellingTask] = useState<EventTask | null>(null);
 
+  // Sync state if URL search parameters change externally (e.g. Back/Forward button navigation)
+  useEffect(() => {
+    const handlePopState = () => {
+      const liveTab = getUrlParam('tab');
+      if (liveTab !== 'tasks') {
+        setEditingTask(null);
+        setCancellingTask(null);
+        return;
+      }
+
+      const curView = getUrlParam('taskView');
+      if (curView === 'assigned_to_me' || curView === 'assigned_by_me' || curView === 'all') {
+        setActiveSubTab(curView as TaskViewFilter);
+      }
+
+      const curStatus = getUrlParam('taskStatus');
+      if (curStatus === 'all' || curStatus === 'pending' || curStatus === 'done' || curStatus === 'cancelled') {
+        setStatusFilter(curStatus as StatusFilter);
+      }
+
+      const curModal = getUrlParam('modal');
+      const curTaskId = getUrlParam('taskId');
+
+      if (curTaskId && tasks.length > 0) {
+        const match = tasks.find((t) => t.id === curTaskId) || null;
+        setEditingTask(curModal === 'editTask' ? match : null);
+        setCancellingTask(curModal === 'cancelTask' ? match : null);
+      } else if (!curModal) {
+        setEditingTask(null);
+        setCancellingTask(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [tasks]);
+
   // Handle tab switching
   const handleTabChange = (tab: TaskViewFilter) => {
     if (tab === activeSubTab) return;
     setIsLoading(true);
     setActiveSubTab(tab);
+    syncUrlParams({
+      taskView: tab === 'assigned_to_me' ? null : tab,
+      modal: null,
+      taskId: null,
+    });
+  };
+
+  const handleStatusFilterChange = (status: StatusFilter) => {
+    setStatusFilter(status);
+    syncUrlParams({ taskStatus: status === 'all' ? null : status });
+  };
+
+  const handleOpenEdit = (task: EventTask) => {
+    setEditingTask(task);
+    syncUrlParams({ modal: 'editTask', taskId: task.id });
+  };
+
+  const handleCloseEdit = () => {
+    setEditingTask(null);
+    syncUrlParams({ modal: null, taskId: null });
+  };
+
+  const handleOpenCancel = (task: EventTask) => {
+    setCancellingTask(task);
+    syncUrlParams({ modal: 'cancelTask', taskId: task.id });
+  };
+
+  const handleCloseCancel = () => {
+    setCancellingTask(null);
+    syncUrlParams({ modal: null, taskId: null });
   };
 
   // Manual refresh
@@ -91,6 +172,16 @@ export function TasksViewShell({
         if (isCancelled) return;
         if (res.success && res.tasks) {
           setTasks(res.tasks);
+          const curTab = getUrlParam('tab');
+          if (curTab === 'tasks') {
+            const modalParam = getUrlParam('modal');
+            const taskIdParam = getUrlParam('taskId');
+            if (taskIdParam && modalParam) {
+              const match = res.tasks.find((t) => t.id === taskIdParam) || null;
+              if (modalParam === 'editTask') setEditingTask(match);
+              if (modalParam === 'cancelTask') setCancellingTask(match);
+            }
+          }
         } else {
           setError(res.error || 'Failed to load tasks.');
         }
@@ -390,7 +481,7 @@ export function TasksViewShell({
           <select
             id="mobile-status-filter"
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+            onChange={(e) => handleStatusFilterChange(e.target.value as StatusFilter)}
             className="w-full rounded-xl border border-stone-200 bg-white py-1.5 pl-3 pr-8 text-xs font-medium text-stone-800 focus:border-[#3A4F1C] focus:outline-hidden shadow-2xs cursor-pointer appearance-none"
           >
             <option value="all">All ({statusCounts.all})</option>
@@ -418,7 +509,7 @@ export function TasksViewShell({
           <button
             key={pill.id}
             type="button"
-            onClick={() => setStatusFilter(pill.id)}
+            onClick={() => handleStatusFilterChange(pill.id)}
             className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition ${
               statusFilter === pill.id
                 ? 'bg-[#3A4F1C]/15 text-[#3A4F1C] border border-[#3A4F1C]/30 font-semibold'
@@ -590,7 +681,7 @@ export function TasksViewShell({
                     {canEdit(t) && !isCancelled && (
                       <button
                         type="button"
-                        onClick={() => setEditingTask(t)}
+                        onClick={() => handleOpenEdit(t)}
                         className="h-6.5 w-6.5 sm:h-7 sm:w-7 rounded-lg inline-flex items-center justify-center border border-stone-200 bg-white text-stone-600 hover:text-[#3A4F1C] hover:border-[#3A4F1C]/40 hover:bg-stone-50 transition shrink-0"
                         title="Edit Task Details"
                         aria-label="Edit Task Details"
@@ -603,7 +694,7 @@ export function TasksViewShell({
                     {canCancel(t) && !isCancelled && (
                       <button
                         type="button"
-                        onClick={() => setCancellingTask(t)}
+                        onClick={() => handleOpenCancel(t)}
                         className="h-6.5 w-6.5 sm:h-7 sm:w-7 rounded-lg inline-flex items-center justify-center border border-red-200 bg-white text-red-600 hover:bg-red-50 hover:border-red-300 transition shrink-0"
                         title="Cancel Task"
                         aria-label="Cancel Task"
@@ -625,9 +716,10 @@ export function TasksViewShell({
           key={editingTask.id}
           task={editingTask}
           isOpen={true}
-          onClose={() => setEditingTask(null)}
+          onClose={handleCloseEdit}
           onSuccess={(updated) => {
             setTasks((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+            handleCloseEdit();
           }}
         />
       )}
@@ -638,13 +730,14 @@ export function TasksViewShell({
           key={cancellingTask.id}
           task={cancellingTask}
           isOpen={true}
-          onClose={() => setCancellingTask(null)}
+          onClose={handleCloseCancel}
           onSuccess={(cancelledId) => {
             setTasks((prev) =>
               prev.map((t) =>
                 t.id === cancelledId ? { ...t, is_cancelled: true } : t
               )
             );
+            handleCloseCancel();
           }}
         />
       )}
