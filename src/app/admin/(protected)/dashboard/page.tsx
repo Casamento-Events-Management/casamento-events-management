@@ -1,47 +1,39 @@
 // =============================================================================
-// app/admin/(protected)/dashboard/page.tsx — Admin Portal Dashboard Landing
+// app/admin/(protected)/dashboard/page.tsx — Admin Operations Overview
 // =============================================================================
 
 import React from 'react';
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
-import { ShieldCheck } from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
+import { fetchOverviewData } from '@/lib/services/admin-overview-service';
+import { fetchPendingFeedbacks } from '@/lib/services/admin-feedback-service';
+import { OverviewShell } from '@/components/admin/overview/overview-shell';
 
 export const metadata: Metadata = {
-  title: 'Dashboard | Casamento Admin Portal',
+  title: 'Overview | Casamento Admin Portal',
+  description: 'Operations overview, urgent action items, upcoming events, and personal checklist.',
 };
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboardPage() {
   const adminData = await getCurrentActiveAdmin();
-  const profile = adminData?.profile;
+  if (!adminData) {
+    redirect('/admin/login');
+  }
 
-  return (
-    <div className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white p-6 shadow-sm sm:p-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="mt-1 text-2xl font-serif font-bold text-[#2B3817] sm:text-3xl">
-              Welcome back, {profile?.full_name || 'Administrator'}
-            </h1>
-            <p className="mt-1 text-sm text-[#2B3817]/70">
-              Casamento Events Management Portal · Connected via verified administrative session.
-            </p>
-          </div>
-        </div>
-      </div>
+  // Fetch initial overview dataset via SSR
+  const supabase = await createClient();
+  const initialData = await fetchOverviewData(supabase, adminData.profile);
 
-      {/* Workspace Readiness Shell */}
-      <div className="rounded-2xl border border-dashed border-[#3A4F1C]/20 bg-white/50 p-8 text-center">
-        <h2 className="text-base font-semibold text-[#2B3817]">
-          Authentication & Authorization Workspace Ready
-        </h2>
-        <p className="mx-auto mt-2 max-w-xl text-xs text-[#2B3817]/70 leading-relaxed">
-          The Admin Gateway is armed and secure. Dashboard features and management modules will be mounted here.
-        </p>
-      </div>
-    </div>
-  );
+  // If Admin or Superadmin, query pending client feedbacks directly from Sanity CMS
+  if (adminData.profile.role !== 'staff') {
+    const pendingFeedbacks = await fetchPendingFeedbacks();
+    initialData.pendingFeedbacks = pendingFeedbacks;
+    initialData.needsAttention.pendingFeedbacksCount = pendingFeedbacks.length;
+  }
+
+  return <OverviewShell initialData={initialData} profile={adminData.profile} />;
 }
