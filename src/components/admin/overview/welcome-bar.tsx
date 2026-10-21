@@ -12,14 +12,12 @@ interface WelcomeBarProps {
   profile: AdminProfile;
   needsAttentionCount: number;
   isRefreshing: boolean;
-  onRefresh: () => void;
 }
 
 export function WelcomeBar({
   profile,
   needsAttentionCount,
   isRefreshing,
-  onRefresh,
 }: WelcomeBarProps) {
   const todayFormatted = new Intl.DateTimeFormat('en-US', {
     weekday: 'short',
@@ -59,16 +57,6 @@ export function WelcomeBar({
               <span>All caught up</span>
             </div>
           )}
-
-          <button
-            type="button"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            title="Refresh overview data"
-            className="ml-auto sm:ml-0 h-8 w-8 rounded-xl border border-stone-200 bg-white inline-flex items-center justify-center text-stone-600 hover:text-stone-900 hover:bg-stone-50 transition shrink-0 cursor-pointer shadow-2xs disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin text-[#3A4F1C]' : ''}`} />
-          </button>
         </div>
       </div>
     </div>

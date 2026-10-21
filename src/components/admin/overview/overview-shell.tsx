@@ -116,7 +116,6 @@ export function OverviewShell({ initialData, profile }: OverviewShellProps) {
         profile={profile}
         needsAttentionCount={totalNeedsAttentionCount}
         isRefreshing={isRefreshing}
-        onRefresh={refreshData}
       />
 
       {/* Action Required / Calm State */}
@@ -131,6 +130,26 @@ export function OverviewShell({ initialData, profile }: OverviewShellProps) {
 
       {/* 2-Column Responsive Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Right Column: Personal Tasks & Monthly Numbers (5 cols) */}
+        <div className="lg:col-span-5 space-y-5">
+          <PersonalTasksList
+            initialTasks={data.personalTasks}
+            onTaskToggled={() => {
+              // Soft background refresh on task toggle to update counts
+              setTimeout(refreshData, 800);
+            }}
+          />
+
+          {!isStaff && (
+            <PendingFeedbackList
+              initialFeedbacks={data.pendingFeedbacks}
+              onFeedbackAction={() => {
+                void refreshData();
+              }}
+            />
+          )}
+        </div>
+
         {/* Left Column: Upcoming Schedule, Recent Activity & Pending Feedback (7 cols) */}
         <div className="lg:col-span-7 space-y-5">
           <UpcomingEventsList events={data.upcomingEvents} />
@@ -142,23 +161,7 @@ export function OverviewShell({ initialData, profile }: OverviewShellProps) {
           )}
         </div>
 
-        {/* Right Column: Personal Tasks & Monthly Numbers (5 cols) */}
-        <div className="lg:col-span-5 space-y-5">
-          <PersonalTasksList
-            initialTasks={data.personalTasks}
-            onTaskToggled={() => {
-              // Soft background refresh on task toggle to update counts
-              setTimeout(refreshData, 800);
-            }}
-          />
 
-          <PendingFeedbackList
-            initialFeedbacks={data.pendingFeedbacks}
-            onFeedbackAction={() => {
-              void refreshData();
-            }}
-          />
-        </div>
       </div>
     </div>
   );
