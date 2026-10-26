@@ -284,8 +284,8 @@ export function BookingDetailInspector({
           </div>
         </div>
 
-        {/* Future-Ready Payment Placeholder (Hidden for Staff) */}
-        {!isStaff && <BookingPaymentPlaceholder />}
+        {/* Payment & Billing Card (Hidden for Staff) */}
+        {!isStaff && <BookingPaymentPlaceholder booking={booking} />}
 
         {/* Rejection Log */}
         {booking.rejection_reason && (

@@ -30,3 +30,10 @@ export { buildBookingClientReminderEmail } from './templates/booking-client-remi
 export { buildBookingAdminReminderEmail } from './templates/booking-admin-reminder-7d';
 export { buildTaskAssignmentMemberEmail } from './templates/task-assignment-member';
 export type { TaskAssignmentItem, TaskAssignmentEmailParams } from './templates/task-assignment-member';
+
+export { buildPaymentClientReceiptEmail } from './templates/payment-client-receipt';
+export type { PaymentClientReceiptPayload } from './templates/payment-client-receipt';
+
+export { buildBookingClientAgreedTotalEmail } from './templates/booking-client-agreed-total';
+export type { BookingClientAgreedTotalPayload } from './templates/booking-client-agreed-total';
+

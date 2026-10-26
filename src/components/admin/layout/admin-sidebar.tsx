@@ -107,10 +107,10 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
       ? [
           {
             name: 'Payments & Billing',
-            href: '#',
+            href: '/admin/payments',
             icon: CreditCard,
-            active: false,
-            badge: 'Upcoming',
+            active: pathname.startsWith('/admin/payments'),
+            badge: null,
           },
         ]
       : []),

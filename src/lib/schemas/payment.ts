@@ -13,12 +13,12 @@ export const setAgreedTotalSchema = z.object({
     .number()
     .positive('Agreed total must be greater than zero')
     .max(10_000_000, 'Agreed total exceeds standard operational limit (10,000,000 PHP)'),
-  currency: z.string().default('PHP'),
+  currency: z.string().optional().default('PHP'),
   sendEmailToClient: z.boolean().default(true),
   notes: z.string().max(500, 'Notes cannot exceed 500 characters').optional().nullable(),
 });
 
-export type SetAgreedTotalInput = z.infer<typeof setAgreedTotalSchema>;
+export type SetAgreedTotalInput = z.input<typeof setAgreedTotalSchema>;
 
 /**
  * Validates manual entry of payment received outside online gateways.
@@ -59,7 +59,7 @@ export const manualPaymentSchema = z.object({
   sendReceiptEmail: z.boolean().default(false),
 });
 
-export type ManualPaymentInput = z.infer<typeof manualPaymentSchema>;
+export type ManualPaymentInput = z.input<typeof manualPaymentSchema>;
 
 /**
  * Validates marking a payment as refunded with an explanatory reason.
