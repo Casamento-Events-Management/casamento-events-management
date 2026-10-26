@@ -95,7 +95,7 @@ export function RefundPaymentModal({
       });
 
       if (!res.success) {
-        throw new Error(res.error || 'Failed to record refund');
+        throw new Error(res.error || 'Failed to refund');
       }
 
       onSuccess();
@@ -170,22 +170,20 @@ export function RefundPaymentModal({
                   setRefundType('full');
                   setRefundAmountPesos(originalAmountPesos.toString());
                 }}
-                className={`py-2 px-3 rounded-xl border text-xs font-semibold text-center transition cursor-pointer ${
-                  refundType === 'full'
+                className={`py-2 px-3 rounded-xl border text-xs font-semibold text-center transition cursor-pointer ${refundType === 'full'
                     ? 'border-rose-600 bg-rose-50 text-rose-800 ring-1 ring-rose-500'
                     : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
-                }`}
+                  }`}
               >
                 Full ({formatPesos(payment.amount_centavos)})
               </button>
               <button
                 type="button"
                 onClick={() => setRefundType('partial')}
-                className={`py-2 px-3 rounded-xl border text-xs font-semibold text-center transition cursor-pointer ${
-                  refundType === 'partial'
+                className={`py-2 px-3 rounded-xl border text-xs font-semibold text-center transition cursor-pointer ${refundType === 'partial'
                     ? 'border-rose-600 bg-rose-50 text-rose-800 ring-1 ring-rose-500'
                     : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
-                }`}
+                  }`}
               >
                 Partial Refund
               </button>

@@ -174,7 +174,7 @@ export function SetAgreedTotalModal({
         <div className="flex items-center justify-between px-5 py-4 bg-[#3A4F1C] text-[#F7F3E8]">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-[#BC6F07]" />
-            <h3 className="font-serif font-semibold text-sm sm:text-base">Declare Agreed Total</h3>
+            <h3 className="font-serif font-semibold text-sm sm:text-base">Agreed Total</h3>
           </div>
           <button
             onClick={onClose}
@@ -250,7 +250,7 @@ export function SetAgreedTotalModal({
                             setAgreedTotalPesos((b.agreed_total_centavos / 100).toString());
                           }
                         }}
-                        className="w-full text-left p-2.5 hover:bg-stone-50 flex items-center justify-between text-xs cursor-pointer"
+                        className="w-full text-left p-3 hover:bg-stone-50 flex items-center justify-between text-xs cursor-pointer"
                       >
                         <div>
                           <p className="font-semibold text-[#2B3817]">
@@ -259,9 +259,12 @@ export function SetAgreedTotalModal({
                           </p>
                           <p className="text-[10px] text-stone-500">{b.service_title}</p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right space-y-0.5">
+                          <span className="text-[10px] text-stone-500 block">
+                            Paid: <strong className="text-emerald-700">{formatPesos(b.total_paid_centavos)}</strong>
+                          </span>
                           <span className="text-[10px] text-stone-400 block">
-                            Paid: {formatPesos(b.total_paid_centavos)}
+                            Pending: <strong className="text-amber-700 font-semibold">{formatPesos(b.remaining_balance_centavos)}</strong>
                           </span>
                         </div>
                       </button>

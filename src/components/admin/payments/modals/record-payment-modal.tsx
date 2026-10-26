@@ -100,9 +100,17 @@ export function RecordPaymentModal({
       setIsSearchingBookings(true);
       const res = await searchBookingsForPaymentAction(bookingSearch);
       if (active && res.success && res.bookings) {
-        setBookingOptions(res.bookings);
+        // Only include bookings that have an agreed total declared and an outstanding balance
+        const eligible = res.bookings.filter(
+          (b) =>
+            b.agreed_total_centavos !== null &&
+            b.agreed_total_centavos > 0 &&
+            b.remaining_balance_centavos !== null &&
+            b.remaining_balance_centavos > 0
+        );
+        setBookingOptions(eligible);
         if (initialBookingId) {
-          const match = res.bookings.find((b) => b.id === initialBookingId);
+          const match = eligible.find((b) => b.id === initialBookingId);
           if (match) setSelectedBooking(match);
         }
       }
@@ -230,17 +238,17 @@ export function RecordPaymentModal({
       role="dialog"
       aria-modal="true"
       onClick={handleBackdropClick}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
     >
       <div
         ref={modalRef}
-        className="relative w-full max-w-xl bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-2xl shadow-xl overflow-hidden my-6"
+        className="relative w-full max-w-lg bg-[#F7F3E8] border border-[#3A4F1C]/20 rounded-2xl shadow-xl overflow-hidden my-3 max-h-[92vh] flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 bg-[#3A4F1C] text-[#F7F3E8]">
+        <div className="flex items-center justify-between px-4 py-3 bg-[#3A4F1C] text-[#F7F3E8] shrink-0">
           <div className="flex items-center gap-2">
             <CreditCard className="h-4 w-4 text-[#BC6F07]" />
-            <h3 className="font-serif font-semibold text-sm sm:text-base">Record Payment</h3>
+            <h3 className="font-serif font-semibold text-xs sm:text-sm">Record Payment</h3>
           </div>
           <button
             onClick={onClose}
@@ -251,16 +259,16 @@ export function RecordPaymentModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 text-xs text-stone-700">
+        <form onSubmit={handleSubmit} className="p-3.5 sm:p-4 space-y-2.5 text-xs text-stone-700 overflow-y-auto">
           {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 flex items-start gap-2">
+            <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 flex items-start gap-2">
               <AlertCircle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {/* 1. Select Booking */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label className="font-semibold text-stone-800 uppercase tracking-wider text-[10px]">
               Target Booking <span className="text-rose-600">*</span>
             </label>
@@ -310,6 +318,15 @@ export function RecordPaymentModal({
                   <div className="p-2 text-center text-stone-400 text-[11px]">Searching bookings...</div>
                 )}
 
+                {!isSearchingBookings && bookingOptions.length === 0 && !selectedBooking && (
+                  <div className="mt-1.5 p-3 rounded-xl border border-amber-200 bg-amber-50/60 text-center text-xs text-amber-800 space-y-1">
+                    <p className="font-semibold">No bookings awaiting payment</p>
+                    <p className="text-[11px] text-amber-700">
+                      To record a payment, the booking must have an Agreed Total declared and an outstanding balance.
+                    </p>
+                  </div>
+                )}
+
                 {bookingOptions.length > 0 && !selectedBooking && (
                   <div className="mt-1.5 max-h-40 overflow-y-auto rounded-xl border border-stone-200 bg-white divide-y divide-stone-100 shadow-sm">
                     {bookingOptions.map((b) => (
@@ -317,7 +334,7 @@ export function RecordPaymentModal({
                         type="button"
                         key={b.id}
                         onClick={() => setSelectedBooking(b)}
-                        className="w-full text-left p-2.5 hover:bg-stone-50 flex items-center justify-between text-xs cursor-pointer"
+                        className="w-full text-left p-3 hover:bg-stone-50 flex items-center justify-between text-xs cursor-pointer"
                       >
                         <div>
                           <p className="font-semibold text-[#2B3817]">
@@ -446,9 +463,9 @@ export function RecordPaymentModal({
             </label>
 
             {proofFile ? (
-              <div className="p-3 bg-white border border-stone-200 rounded-xl flex items-center justify-between">
+              <div className="p-2 sm:p-2.5 bg-white border border-stone-200 rounded-xl flex items-center justify-between">
                 <div className="flex items-center gap-2 truncate">
-                  <FileText className="h-4 w-4 text-emerald-700 shrink-0" />
+                  <FileText className="h-3.5 w-3.5 text-emerald-700 shrink-0" />
                   <span className="font-medium text-xs truncate">{proofFile.name}</span>
                   <span className="text-[10px] text-stone-400">
                     ({(proofFile.size / 1024).toFixed(0)} KB)
@@ -465,12 +482,14 @@ export function RecordPaymentModal({
             ) : (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-stone-300 hover:border-[#3A4F1C]/40 bg-white/60 p-4 rounded-xl text-center cursor-pointer transition"
+                className="border-2 border-dashed border-stone-300 hover:border-[#3A4F1C]/40 bg-white/60 p-2.5 rounded-xl text-center cursor-pointer transition"
               >
-                <UploadCloud className="h-5 w-5 text-stone-400 mx-auto mb-1" />
-                <p className="text-xs text-stone-600 font-medium">
-                  Click or drag to attach deposit slip or screenshot
-                </p>
+                <div className="flex items-center justify-center gap-1.5">
+                  <UploadCloud className="h-4 w-4 text-stone-400" />
+                  <p className="text-xs text-stone-600 font-medium">
+                    Attach deposit slip or screenshot
+                  </p>
+                </div>
                 <input
                   ref={fileInputRef}
                   type="file"

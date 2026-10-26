@@ -606,6 +606,33 @@ export async function getBookingByIdAction(bookingId: string): Promise<{
 }
 
 /**
+ * Fetches a booking by its reference code (e.g. CSM-2026-XXXXX).
+ */
+export async function getBookingByReferenceAction(bookingReference: string): Promise<{
+  success: boolean;
+  error?: string;
+  booking?: BookingRecord;
+}> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData) {
+    return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('booking_reference', bookingReference)
+    .single();
+
+  if (error || !data) {
+    return { success: false, error: 'Target booking not found.' };
+  }
+
+  return { success: true, booking: data as BookingRecord };
+}
+
+/**
  * Server Action: Appends an internal operational note to a booking.
  * Accessible to Staff, Admin, and Super Admin.
  */

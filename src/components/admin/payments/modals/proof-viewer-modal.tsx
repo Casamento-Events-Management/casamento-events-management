@@ -27,6 +27,7 @@ export function ProofViewerModal({ payment, isOpen, onClose }: ProofViewerModalP
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Esc key and scroll lock
   useEffect(() => {
@@ -84,6 +85,30 @@ export function ProofViewerModal({ payment, isOpen, onClose }: ProofViewerModalP
     payment.proof_attachment_mime_type === 'application/pdf' ||
     payment.proof_attachment_name?.toLowerCase().endsWith('.pdf');
 
+  const handleDownloadProof = async () => {
+    if (!signedUrl || isDownloading) return;
+    setIsDownloading(true);
+    try {
+      const response = await fetch(signedUrl);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = payment?.proof_attachment_name || `payment_proof_${payment?.payment_number || 'receipt'}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('[handleDownloadProof Error]:', err);
+      // Fallback: open signed URL in a new window
+      window.open(signedUrl, '_blank');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div
       role="dialog"
@@ -117,22 +142,21 @@ export function ProofViewerModal({ payment, isOpen, onClose }: ProofViewerModalP
         </div>
 
         {/* Security Banner */}
-        <div className="bg-emerald-50/80 border-b border-emerald-100 px-4 py-2 flex items-center justify-between text-[11px] text-emerald-900 shrink-0">
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Authenticated Operator Access · Link valid for 60 minutes</span>
-          </div>
+        <div className="bg-emerald-50/80 border-b border-emerald-100 px-4 py-2 flex items-center justify-end text-[11px] text-emerald-900 shrink-0">
           {signedUrl && (
-            <a
-              href={signedUrl}
-              download={payment.proof_attachment_name || 'payment-proof'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-emerald-800 hover:text-emerald-950 font-semibold"
+            <button
+              type="button"
+              onClick={handleDownloadProof}
+              disabled={isDownloading}
+              className="inline-flex items-center gap-1 text-emerald-800 hover:text-emerald-950 font-semibold cursor-pointer disabled:opacity-50"
             >
-              <Download className="h-3 w-3" />
-              <span>Download</span>
-            </a>
+              {isDownloading ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Download className="h-3 w-3" />
+              )}
+              <span>{isDownloading ? 'Downloading...' : 'Download Proof'}</span>
+            </button>
           )}
         </div>
 

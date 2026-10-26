@@ -99,3 +99,16 @@ export const resendReceiptSchema = z.object({
 });
 
 export type ResendReceiptInput = z.infer<typeof resendReceiptSchema>;
+
+/**
+ * Validates sending a payment invoice for the balance (or partial installment) to the client.
+ */
+export const sendPaymentInvoiceSchema = z.object({
+  bookingId: z.string().uuid('Invalid booking identifier'),
+  invoiceAmountPesos: z.number().positive('Invoice amount must be greater than zero'),
+  recipientEmail: z.string().email('Invalid recipient email address format'),
+  dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Due date must be YYYY-MM-DD').optional().nullable(),
+  customNotes: z.string().max(500, 'Custom notes cannot exceed 500 characters').optional().nullable(),
+});
+
+export type SendPaymentInvoiceInput = z.input<typeof sendPaymentInvoiceSchema>;

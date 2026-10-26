@@ -13,14 +13,17 @@ import {
   manualPaymentSchema,
   refundPaymentSchema,
   resendReceiptSchema,
+  sendPaymentInvoiceSchema,
   type SetAgreedTotalInput,
   type ManualPaymentInput,
   type RefundPaymentInput,
   type ResendReceiptInput,
+  type SendPaymentInvoiceInput,
 } from '@/lib/schemas/payment';
 import {
   buildPaymentClientReceiptEmail,
   buildBookingClientAgreedTotalEmail,
+  buildPaymentClientInvoiceEmail,
 } from '@/lib/email';
 import { parseContactEmailRecipients, parseContactEmailCC } from '@/lib/utils/envUtils';
 import { pesosToCentavos, formatPesos } from '@/lib/utils/currencyUtils';
@@ -305,13 +308,11 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
       );
     }
 
-    query = query.range(from, to);
-
-    const { data, count, error } = await query;
+    const { data: rawPayments, count, error } = await query;
     if (error) throw error;
 
     // Fetch balances for the returned payments' bookings to provide context
-    const bookingIds = Array.from(new Set((data || []).map((p) => p.booking_id)));
+    const bookingIds = Array.from(new Set((rawPayments || []).map((p) => p.booking_id)));
     const balanceMap = new Map<string, number | null>();
 
     if (bookingIds.length > 0) {
@@ -328,7 +329,7 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
         paidMap.set(p.booking_id, cur + (net > 0 ? net : 0));
       }
 
-      for (const row of data || []) {
+      for (const row of rawPayments || []) {
         const agreed = row.booking?.agreed_total_centavos;
         if (agreed !== null && agreed !== undefined) {
           const totalPaid = paidMap.get(row.booking_id) || 0;
@@ -339,20 +340,138 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
       }
     }
 
-    const extendedPayments: ExtendedPaymentRecord[] = (data || []).map((row) => ({
+    const extendedPayments: ExtendedPaymentRecord[] = (rawPayments || []).map((row) => ({
       ...row,
       booking: row.booking
         ? {
-            ...row.booking,
-            remaining_balance_centavos: balanceMap.get(row.booking_id) ?? null,
-          }
+          ...row.booking,
+          remaining_balance_centavos: balanceMap.get(row.booking_id) ?? null,
+        }
         : undefined,
     }));
 
+    // If filter includes pending payments or all payments (and no incompatible method filter),
+    // include active bookings with pending payments (unpaid, partially_paid, downpayment_pending)
+    // even if they do not yet have a payment record
+    const pendingBookingRows: ExtendedPaymentRecord[] = [];
+    const shouldIncludePendingBookings =
+      (!filters.status || filters.status === 'all' || filters.status === 'pending') &&
+      (!filters.method || filters.method === 'all') &&
+      !filters.startDate &&
+      !filters.endDate;
+
+    if (shouldIncludePendingBookings) {
+      let bookingsQuery = supabase
+        .from('bookings')
+        .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, payment_status, status, created_at')
+        .eq('is_archived', false)
+        .not('status', 'in', '("cancelled","completed")')
+        .in('payment_status', ['unpaid', 'downpayment_pending', 'partially_paid']);
+
+      if (filters.search && filters.search.trim().length > 0) {
+        const q = filters.search.trim();
+        bookingsQuery = bookingsQuery.or(
+          `booking_reference.ilike.%${q}%,client_full_name.ilike.%${q}%,client_email.ilike.%${q}%,service_title.ilike.%${q}%`
+        );
+      }
+
+      const { data: pendingBookings } = await bookingsQuery;
+
+      if (pendingBookings && pendingBookings.length > 0) {
+        // Query payments for these bookings to get current paid and remaining balance
+        const pBookingIds = pendingBookings.map((b) => b.id);
+        const { data: pPayments } = await supabase
+          .from('payments')
+          .select('booking_id, amount_centavos, refund_amount_centavos')
+          .in('booking_id', pBookingIds)
+          .eq('status', 'paid');
+
+        const pPaidMap = new Map<string, number>();
+        for (const p of pPayments || []) {
+          const cur = pPaidMap.get(p.booking_id) || 0;
+          const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
+          pPaidMap.set(p.booking_id, cur + (net > 0 ? net : 0));
+        }
+
+        // Only include bookings that haven't been fully paid
+        for (const b of pendingBookings) {
+          const totalPaid = pPaidMap.get(b.id) || 0;
+          const agreed = b.agreed_total_centavos;
+          const remaining = agreed !== null && agreed !== undefined ? Math.max(0, agreed - totalPaid) : null;
+
+          // If agreed total is set and balance is 0, skip
+          if (agreed !== null && agreed !== undefined && remaining === 0) {
+            continue;
+          }
+
+          // Create synthetic pending ledger entry
+          pendingBookingRows.push({
+            id: `pending-${b.id}`,
+            booking_id: b.id,
+            booking_reference: b.booking_reference,
+            payment_number: `PENDING-${b.booking_reference}`,
+            receipt_number: null,
+            payment_type: 'manual',
+            payment_method: 'pending',
+            channel_details: {},
+            amount_centavos: remaining ?? 0,
+            currency: 'PHP',
+            status: 'pending',
+            paid_at: b.created_at,
+            recorded_by: null,
+            notes: agreed === null ? 'Agreed total not declared yet' : 'Pending payment collection',
+            proof_attachment_path: null,
+            proof_attachment_name: null,
+            proof_attachment_size_bytes: null,
+            proof_attachment_mime_type: null,
+            receipt_pdf_path: null,
+            receipt_sent_at: null,
+            receipt_sent_to: null,
+            is_refunded: false,
+            refund_amount_centavos: null,
+            refund_reason: null,
+            refunded_at: null,
+            refunded_by: null,
+            online_provider: null,
+            provider_txn_id: null,
+            provider_ref: null,
+            provider_payer_email: null,
+            created_at: b.created_at,
+            updated_at: b.created_at,
+            booking: {
+              service_title: b.service_title,
+              client_full_name: b.client_full_name,
+              client_email: b.client_email,
+              event_date: b.event_date,
+              agreed_total_centavos: agreed,
+              remaining_balance_centavos: remaining,
+            },
+          });
+        }
+      }
+    }
+
+    // Combine payments and pending bookings
+    let allEntries: ExtendedPaymentRecord[] = [];
+    if (filters.status === 'pending') {
+      // Show pending records (both actual pending payments and pending bookings)
+      const actualPending = extendedPayments.filter((p) => p.status === 'pending');
+      allEntries = [...actualPending, ...pendingBookingRows];
+    } else {
+      // Prepend or merge pending bookings into the list
+      allEntries = [...extendedPayments, ...pendingBookingRows];
+      // Sort by paid_at / created_at descending
+      allEntries.sort((a, b) => new Date(b.paid_at || b.created_at).getTime() - new Date(a.paid_at || a.created_at).getTime());
+    }
+
+    const totalCombinedCount = (count ?? 0) + pendingBookingRows.length;
+    // Slice according to pagination
+    const paginatedEntries = allEntries.slice(from, to + 1);
+
     return {
       success: true,
-      payments: extendedPayments,
-      totalCount: count ?? 0,
+      payments: paginatedEntries,
+      totalCount: totalCombinedCount,
     };
   } catch (err) {
     console.error('[fetchPaymentsAction Error]:', err);
@@ -391,7 +510,7 @@ export async function searchBookingsForPaymentAction(searchQuery?: string): Prom
       .from('bookings')
       .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, payment_status')
       .eq('is_archived', false)
-      .neq('status', 'cancelled')
+      .not('status', 'in', '("cancelled","completed")')
       .order('event_date', { ascending: false })
       .limit(30);
 
@@ -475,12 +594,19 @@ export async function recordManualPaymentAction(rawInput: ManualPaymentInput): P
     // 1. Fetch booking record
     const { data: booking, error: bErr } = await supabase
       .from('bookings')
-      .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos')
+      .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, status')
       .eq('id', input.bookingId)
       .single();
 
     if (bErr || !booking) {
       return { success: false, error: 'Selected booking not found.' };
+    }
+
+    if (booking.status === 'completed' || booking.status === 'cancelled') {
+      return {
+        success: false,
+        error: `Cannot record payment for an event that is already ${booking.status}.`,
+      };
     }
 
     // 2. Generate identifiers
@@ -600,12 +726,19 @@ export async function setAgreedTotalAction(rawInput: SetAgreedTotalInput): Promi
     // 1. Fetch booking
     const { data: booking, error: bErr } = await supabase
       .from('bookings')
-      .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos')
+      .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, status')
       .eq('id', input.bookingId)
       .single();
 
     if (bErr || !booking) {
       return { success: false, error: 'Selected booking not found.' };
+    }
+
+    if (booking.status === 'completed' || booking.status === 'cancelled') {
+      return {
+        success: false,
+        error: `Cannot set or update agreed total for an event that is already ${booking.status}.`,
+      };
     }
 
     const newAgreedCentavos = pesosToCentavos(input.agreedTotalPesos);
@@ -756,7 +889,7 @@ export async function refundPaymentAction(rawInput: RefundPaymentInput): Promise
     return { success: true };
   } catch (err) {
     console.error('[refundPaymentAction Exception]:', err);
-    return { success: false, error: 'Failed to record refund.' };
+    return { success: false, error: 'Failed to refund.' };
   }
 }
 
@@ -877,6 +1010,132 @@ export async function resendReceiptAction(rawInput: ResendReceiptInput): Promise
 }
 
 /**
+ * Dispatches a payment invoice email to the client for their outstanding balance or installment.
+ */
+export async function sendPaymentInvoiceAction(rawInput: SendPaymentInvoiceInput): Promise<{
+  success: boolean;
+  invoiceNumber?: string;
+  error?: string;
+}> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData || adminData.profile.role === 'staff') {
+    return { success: false, error: 'Unauthorized: Operator privileges required' };
+  }
+
+  const parsed = sendPaymentInvoiceSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input data' };
+  }
+
+  const input = parsed.data;
+  const supabase = createAdminClient();
+
+  try {
+    // 1. Fetch booking
+    const { data: booking, error: bErr } = await supabase
+      .from('bookings')
+      .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, status')
+      .eq('id', input.bookingId)
+      .single();
+
+    if (bErr || !booking) {
+      return { success: false, error: 'Booking record not found.' };
+    }
+
+    if (booking.status === 'completed' || booking.status === 'cancelled') {
+      return { success: false, error: `Cannot send invoice for an event that is ${booking.status}.` };
+    }
+
+    // 2. Query total paid to compute current balance
+    const { data: allPayments } = await supabase
+      .from('payments')
+      .select('amount_centavos, refund_amount_centavos')
+      .eq('booking_id', booking.id)
+      .eq('status', 'paid');
+
+    const totalPaidCentavos = (allPayments || []).reduce((acc, p) => {
+      const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
+      return acc + (net > 0 ? net : 0);
+    }, 0);
+
+    const agreedCentavos = booking.agreed_total_centavos || 0;
+    const balanceCentavos = Math.max(0, agreedCentavos - totalPaidCentavos);
+    const requestedInvoiceCentavos = pesosToCentavos(input.invoiceAmountPesos);
+
+    if (agreedCentavos <= 0) {
+      return { success: false, error: 'Cannot send invoice without a declared Agreed Contract Total.' };
+    }
+
+    if (balanceCentavos <= 0) {
+      return { success: false, error: 'This booking has already been fully paid. Outstanding balance is ₱0.00.' };
+    }
+
+    if (requestedInvoiceCentavos > balanceCentavos) {
+      return {
+        success: false,
+        error: `Requested invoice amount (${formatPesos(requestedInvoiceCentavos)}) cannot exceed the outstanding balance of ${formatPesos(balanceCentavos)}.`,
+      };
+    }
+
+    // 3. Generate invoice reference: CSM-INV-YYYY-XXXXX
+    const year = new Date().getFullYear();
+    const randomSuffix = Math.floor(10000 + Math.random() * 90000);
+    const invoiceNumber = `CSM-INV-${year}-${randomSuffix}`;
+
+    const targetEmail = input.recipientEmail.trim().toLowerCase();
+
+    // 4. Build and dispatch email
+    const { subject, html } = buildPaymentClientInvoiceEmail({
+      clientFullName: booking.client_full_name,
+      clientEmail: targetEmail,
+      bookingReference: booking.booking_reference,
+      serviceTitle: booking.service_title,
+      eventDate: booking.event_date,
+      invoiceNumber,
+      invoiceAmountFormatted: formatPesos(requestedInvoiceCentavos),
+      totalAgreedFormatted: formatPesos(agreedCentavos),
+      remainingBalanceFormatted: formatPesos(balanceCentavos),
+      dueDateFormatted: input.dueDate
+        ? new Date(input.dueDate).toLocaleDateString('en-PH', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        })
+        : undefined,
+      customNotes: input.customNotes?.trim() || undefined,
+    });
+
+    const sendRes = await dispatchClientEmail(targetEmail, subject, html, invoiceNumber);
+    if (!sendRes.success) {
+      return { success: false, error: sendRes.error || 'Failed to dispatch invoice email' };
+    }
+
+    // 5. Audit Log
+    await logAudit({
+      category: 'Payment',
+      action: 'Send Invoice',
+      severity: 'Info',
+      outcome: 'Success',
+      summary: `${adminData.profile.full_name} sent invoice ${invoiceNumber} (${formatPesos(requestedInvoiceCentavos)}) for ${booking.booking_reference} to ${targetEmail}`,
+      entityType: 'booking',
+      entityId: booking.id,
+      entityRef: booking.booking_reference,
+      metadata: {
+        invoiceNumber,
+        requestedInvoiceCentavos,
+        balanceCentavos,
+        targetEmail,
+      },
+    });
+
+    return { success: true, invoiceNumber };
+  } catch (err) {
+    console.error('[sendPaymentInvoiceAction Exception]:', err);
+    return { success: false, error: 'Failed to dispatch payment invoice.' };
+  }
+}
+
+/**
  * Generates a short-lived (1-hour) signed URL for private proof attachments.
  */
 export async function getProofSignedUrlAction(storagePath: string): Promise<{
@@ -952,8 +1211,7 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
         )
       `
       )
-      .order('paid_at', { ascending: false })
-      .limit(2000);
+      .order('paid_at', { ascending: false });
 
     if (filters.status && filters.status !== 'all') {
       if (filters.status === 'refunded') {
@@ -974,8 +1232,98 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
       query = query.lte('paid_at', `${filters.endDate}T23:59:59.999Z`);
     }
 
+    if (filters.search && filters.search.trim().length > 0) {
+      const q = filters.search.trim();
+      query = query.or(
+        `payment_number.ilike.%${q}%,receipt_number.ilike.%${q}%,booking_reference.ilike.%${q}%`
+      );
+    }
+
     const { data, error } = await query;
     if (error) throw error;
+
+    // Also include pending bookings if filter matches
+    const pendingBookingRows: Array<{
+      payment_number: string;
+      receipt_number: string | null;
+      booking_reference: string;
+      client_full_name: string;
+      client_email: string;
+      service_title: string;
+      event_date: string;
+      payment_method: string;
+      amount_pesos: string;
+      status: string;
+      paid_at: string;
+      is_refunded: boolean;
+      refund_amount_pesos: string;
+      refund_reason: string;
+      notes: string;
+    }> = [];
+
+    const shouldIncludePending =
+      (!filters.status || filters.status === 'all' || filters.status === 'pending') &&
+      (!filters.method || filters.method === 'all') &&
+      !filters.startDate &&
+      !filters.endDate;
+
+    if (shouldIncludePending) {
+      let bQuery = supabase
+        .from('bookings')
+        .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, payment_status, status, created_at')
+        .eq('is_archived', false)
+        .not('status', 'in', '("cancelled","completed")')
+        .in('payment_status', ['unpaid', 'downpayment_pending', 'partially_paid']);
+
+      if (filters.search && filters.search.trim().length > 0) {
+        const q = filters.search.trim();
+        bQuery = bQuery.or(
+          `booking_reference.ilike.%${q}%,client_full_name.ilike.%${q}%,client_email.ilike.%${q}%,service_title.ilike.%${q}%`
+        );
+      }
+
+      const { data: pBookings } = await bQuery;
+      if (pBookings && pBookings.length > 0) {
+        const pIds = pBookings.map((b) => b.id);
+        const { data: pPayments } = await supabase
+          .from('payments')
+          .select('booking_id, amount_centavos, refund_amount_centavos')
+          .in('booking_id', pIds)
+          .eq('status', 'paid');
+
+        const pMap = new Map<string, number>();
+        for (const p of pPayments || []) {
+          const cur = pMap.get(p.booking_id) || 0;
+          const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
+          pMap.set(p.booking_id, cur + (net > 0 ? net : 0));
+        }
+
+        for (const b of pBookings) {
+          const paid = pMap.get(b.id) || 0;
+          const agreed = b.agreed_total_centavos;
+          const rem = agreed !== null && agreed !== undefined ? Math.max(0, agreed - paid) : null;
+          if (agreed !== null && agreed !== undefined && rem === 0) continue;
+
+          pendingBookingRows.push({
+            payment_number: `PENDING-${b.booking_reference}`,
+            receipt_number: null,
+            booking_reference: b.booking_reference,
+            client_full_name: b.client_full_name,
+            client_email: b.client_email,
+            service_title: b.service_title,
+            event_date: b.event_date,
+            payment_method: 'pending',
+            amount_pesos: rem !== null ? (rem / 100).toFixed(2) : '0.00',
+            status: 'pending',
+            paid_at: b.created_at,
+            is_refunded: false,
+            refund_amount_pesos: '0.00',
+            refund_reason: '',
+            notes: agreed === null ? 'Agreed total not declared yet' : 'Pending payment collection',
+          });
+        }
+      }
+    }
 
     // Build RFC 4180 CSV
     const headers = [
@@ -1002,7 +1350,7 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
       return `"${str}"`;
     };
 
-    const rows = (data || []).map((p) => {
+    const paymentRows = (data || []).map((p) => {
       const b = (Array.isArray(p.booking) ? p.booking[0] : p.booking) as {
         service_title?: string;
         client_full_name?: string;
@@ -1029,7 +1377,28 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
       ].join(',');
     });
 
-    const csvContent = [headers.join(','), ...rows].join('\r\n');
+    const pendingRows = pendingBookingRows.map((pb) => {
+      return [
+        escapeCsv(pb.payment_number),
+        escapeCsv('N/A'),
+        escapeCsv(pb.booking_reference),
+        escapeCsv(pb.client_full_name),
+        escapeCsv(pb.client_email),
+        escapeCsv(pb.service_title),
+        escapeCsv(pb.event_date),
+        escapeCsv(pb.payment_method),
+        escapeCsv(pb.amount_pesos),
+        escapeCsv(pb.status),
+        escapeCsv(new Date(pb.paid_at).toISOString()),
+        escapeCsv('No'),
+        escapeCsv('0.00'),
+        escapeCsv(''),
+        escapeCsv(pb.notes),
+      ].join(',');
+    });
+
+    const allRows = [...paymentRows, ...pendingRows];
+    const csvContent = [headers.join(','), ...allRows].join('\r\n');
     const today = new Date().toISOString().split('T')[0];
     const filename = `casamento_payments_${today}.csv`;
 

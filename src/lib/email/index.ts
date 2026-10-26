@@ -34,6 +34,9 @@ export type { TaskAssignmentItem, TaskAssignmentEmailParams } from './templates/
 export { buildPaymentClientReceiptEmail } from './templates/payment-client-receipt';
 export type { PaymentClientReceiptPayload } from './templates/payment-client-receipt';
 
+export { buildPaymentClientInvoiceEmail } from './templates/payment-client-invoice';
+export type { PaymentClientInvoicePayload } from './templates/payment-client-invoice';
+
 export { buildBookingClientAgreedTotalEmail } from './templates/booking-client-agreed-total';
 export type { BookingClientAgreedTotalPayload } from './templates/booking-client-agreed-total';
 

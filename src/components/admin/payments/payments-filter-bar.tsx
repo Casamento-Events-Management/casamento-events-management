@@ -127,11 +127,10 @@ export function PaymentsFilterBar({
           <button
             type="button"
             onClick={() => setActiveDropdown(activeDropdown === 'status' ? null : 'status')}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition cursor-pointer ${
-              statusFilter !== 'all'
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition cursor-pointer ${statusFilter !== 'all'
                 ? 'bg-[#3A4F1C]/10 border-[#3A4F1C]/30 text-[#2B3817]'
                 : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
-            }`}
+              }`}
           >
             <Filter className="h-3.5 w-3.5 text-[#3A4F1C]" />
             <span>{getStatusLabel(statusFilter)}</span>
@@ -152,9 +151,8 @@ export function PaymentsFilterBar({
                     onStatusChange(opt.id);
                     setActiveDropdown(null);
                   }}
-                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-stone-50 transition cursor-pointer ${
-                    statusFilter === opt.id ? 'font-semibold text-[#2B3817] bg-[#3A4F1C]/5' : 'text-stone-700'
-                  }`}
+                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-stone-50 transition cursor-pointer ${statusFilter === opt.id ? 'font-semibold text-[#2B3817] bg-[#3A4F1C]/5' : 'text-stone-700'
+                    }`}
                 >
                   <span>{opt.label}</span>
                   {statusFilter === opt.id && <span className="h-1.5 w-1.5 rounded-full bg-[#3A4F1C]" />}
@@ -169,11 +167,10 @@ export function PaymentsFilterBar({
           <button
             type="button"
             onClick={() => setActiveDropdown(activeDropdown === 'method' ? null : 'method')}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition cursor-pointer ${
-              methodFilter !== 'all'
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition cursor-pointer ${methodFilter !== 'all'
                 ? 'bg-[#3A4F1C]/10 border-[#3A4F1C]/30 text-[#2B3817]'
                 : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
-            }`}
+              }`}
           >
             <CreditCard className="h-3.5 w-3.5 text-[#3A4F1C]" />
             <span>{getMethodLabel(methodFilter)}</span>
@@ -187,9 +184,8 @@ export function PaymentsFilterBar({
                   onMethodChange('all');
                   setActiveDropdown(null);
                 }}
-                className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-stone-50 transition cursor-pointer ${
-                  methodFilter === 'all' ? 'font-semibold text-[#2B3817] bg-[#3A4F1C]/5' : 'text-stone-700'
-                }`}
+                className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-stone-50 transition cursor-pointer ${methodFilter === 'all' ? 'font-semibold text-[#2B3817] bg-[#3A4F1C]/5' : 'text-stone-700'
+                  }`}
               >
                 <span>All</span>
                 {methodFilter === 'all' && <span className="h-1.5 w-1.5 rounded-full bg-[#3A4F1C]" />}
@@ -201,9 +197,8 @@ export function PaymentsFilterBar({
                     onMethodChange(method);
                     setActiveDropdown(null);
                   }}
-                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-stone-50 transition cursor-pointer ${
-                    methodFilter === method ? 'font-semibold text-[#2B3817] bg-[#3A4F1C]/5' : 'text-stone-700'
-                  }`}
+                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-stone-50 transition cursor-pointer ${methodFilter === method ? 'font-semibold text-[#2B3817] bg-[#3A4F1C]/5' : 'text-stone-700'
+                    }`}
                 >
                   <span className="capitalize">{method.replace('_', ' ')}</span>
                   {methodFilter === method && <span className="h-1.5 w-1.5 rounded-full bg-[#3A4F1C]" />}
@@ -218,11 +213,10 @@ export function PaymentsFilterBar({
           <button
             type="button"
             onClick={() => setActiveDropdown(activeDropdown === 'date' ? null : 'date')}
-            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition cursor-pointer ${
-              dateFilter !== 'all'
+            className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition cursor-pointer ${dateFilter !== 'all'
                 ? 'bg-[#3A4F1C]/10 border-[#3A4F1C]/30 text-[#2B3817]'
                 : 'bg-white border-stone-200 text-stone-700 hover:bg-stone-50'
-            }`}
+              }`}
           >
             <Calendar className="h-3.5 w-3.5 text-[#3A4F1C]" />
             <span>{getDateLabel(dateFilter)}</span>
@@ -243,9 +237,8 @@ export function PaymentsFilterBar({
                     onDateFilterChange(opt.id);
                     setActiveDropdown(null);
                   }}
-                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-stone-50 transition cursor-pointer ${
-                    dateFilter === opt.id ? 'font-semibold text-[#2B3817] bg-[#3A4F1C]/5' : 'text-stone-700'
-                  }`}
+                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-stone-50 transition cursor-pointer ${dateFilter === opt.id ? 'font-semibold text-[#2B3817] bg-[#3A4F1C]/5' : 'text-stone-700'
+                    }`}
                 >
                   <span>{opt.label}</span>
                   {dateFilter === opt.id && <span className="h-1.5 w-1.5 rounded-full bg-[#3A4F1C]" />}
@@ -268,7 +261,7 @@ export function PaymentsFilterBar({
         )}
       </div>
 
-      {/* Right: Export CSV Button */}
+      {/* Right: CSV Button */}
       <div className="flex items-center">
         <button
           onClick={onExportCsv}
@@ -276,7 +269,7 @@ export function PaymentsFilterBar({
           className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-stone-100 hover:bg-stone-200 text-stone-800 transition cursor-pointer disabled:opacity-50"
         >
           <Download className="h-3.5 w-3.5 text-stone-600" />
-          <span>{isExporting ? 'Exporting...' : 'Export CSV'}</span>
+          <span>{isExporting ? 'Exporting...' : 'CSV'}</span>
         </button>
       </div>
     </div>

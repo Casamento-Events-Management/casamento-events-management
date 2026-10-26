@@ -5,6 +5,7 @@
 // =============================================================================
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   MapPin,
   Mail,
@@ -22,6 +23,7 @@ import {
   X,
   Sparkles,
   Loader2,
+  ExternalLink,
 } from 'lucide-react';
 import type { BookingRecord, AdminUpdateBookingPayload } from '@/types/booking';
 import { BookingPaymentPlaceholder } from './booking-payment-placeholder';
@@ -44,6 +46,7 @@ interface BookingDetailInspectorProps {
   onNoteAppended?: (updatedNotes: string) => void;
   onComplete?: (booking: BookingRecord) => void;
   onReopen?: (booking: BookingRecord) => Promise<void>;
+  bookingsRedirectUrl?: string;
 }
 
 export function BookingDetailInspector({
@@ -56,6 +59,7 @@ export function BookingDetailInspector({
   onNoteAppended,
   onComplete,
   onReopen,
+  bookingsRedirectUrl,
 }: BookingDetailInspectorProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isAcceptModalOpen, setIsAcceptModalOpen] = useState(false);
@@ -121,10 +125,20 @@ export function BookingDetailInspector({
           </div>
 
           {/* Event code in the status badge's current position (NO badge) */}
-          <div className="ml-auto flex items-center gap-1.5">
-            <span className="font-mono text-[11px] sm:text-xs font-bold text-stone-800" title="Event Code">
-              {booking.booking_reference}
-            </span>
+          <div className="ml-auto flex items-center gap-1.5 flex-wrap justify-end">
+            {bookingsRedirectUrl ? (
+              <Link
+                href={bookingsRedirectUrl}
+                className="font-mono text-[11px] sm:text-xs font-bold text-[#3A4F1C] hover:underline"
+                title={`Open in Bookings Tab (${booking.event_date})`}
+              >
+                {booking.booking_reference}
+              </Link>
+            ) : (
+              <span className="font-mono text-[11px] sm:text-xs font-bold text-stone-800" title="Event Code">
+                {booking.booking_reference}
+              </span>
+            )}
             <button
               type="button"
               onClick={() => copyToClipboard(booking.booking_reference, 'ref')}
@@ -137,6 +151,16 @@ export function BookingDetailInspector({
                 <Copy className="h-3.5 w-3.5" />
               )}
             </button>
+            {bookingsRedirectUrl && (
+              <Link
+                href={bookingsRedirectUrl}
+                title="Open in Bookings Tab"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#3A4F1C] hover:bg-[#2B3817] text-[#F7F3E8] text-[11px] font-semibold transition shadow-xs"
+              >
+                <span>Open in Bookings</span>
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            )}
             {onClose && (
               <button
                 type="button"
