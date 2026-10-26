@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Plus, FileText, RefreshCw } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
 import { syncUrlParams } from '@/lib/utils/urlParamUtils';
 import { PaymentsStatsGrid } from './payments-stats-grid';
 import { PaymentsFilterBar } from './payments-filter-bar';
@@ -45,12 +45,20 @@ export function PaymentsShell() {
   const [payments, setPayments] = useState<ExtendedPaymentRecord[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [isPaymentsLoading, setIsPaymentsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('search') || '');
-  const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') || 'all');
-  const [methodFilter, setMethodFilter] = useState(() => searchParams.get('method') || 'all');
-  const [dateFilter, setDateFilter] = useState(() => searchParams.get('date') || 'all');
+  const [statusFilter, setStatusFilter] = useState(() => {
+    const s = searchParams.get('status');
+    return !s || s === 'all status' ? 'all' : s;
+  });
+  const [methodFilter, setMethodFilter] = useState(() => {
+    const m = searchParams.get('method');
+    return !m || m === 'all payment' ? 'all' : m;
+  });
+  const [dateFilter, setDateFilter] = useState(() => {
+    const d = searchParams.get('date');
+    return !d || d === 'all date' ? 'all' : d;
+  });
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(() => {
@@ -194,11 +202,7 @@ export function PaymentsShell() {
     return () => clearTimeout(timer);
   }, [loadPayments]);
 
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await Promise.all([loadStats(), loadPayments()]);
-    setIsRefreshing(false);
-  };
+
 
   const handleExportCsv = async () => {
     setIsExporting(true);
@@ -234,19 +238,9 @@ export function PaymentsShell() {
       {/* 1. Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-serif font-bold text-[#2B3817]">
-              Billing & Payments
-            </h1>
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="p-1 text-stone-400 hover:text-stone-700 transition cursor-pointer"
-              title="Refresh ledger"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            </button>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-serif font-bold text-[#2B3817]">
+            Billing & Payments
+          </h1>
         </div>
 
         {/* Primary Actions */}
@@ -278,83 +272,87 @@ export function PaymentsShell() {
       {/* 2. Top Statistics Cards */}
       <PaymentsStatsGrid stats={stats} isLoading={isStatsLoading} />
 
-      {/* 3. Controls & Filter Bar */}
-      <PaymentsFilterBar
-        searchQuery={searchQuery}
-        onSearchChange={(q) => {
-          setSearchQuery(q);
-          setCurrentPage(1);
-          updateUrlParams({ search: q || null, page: '1' });
-        }}
-        statusFilter={statusFilter}
-        onStatusChange={(s) => {
-          setStatusFilter(s);
-          setCurrentPage(1);
-          updateUrlParams({ status: s === 'all' ? null : s, page: '1' });
-        }}
-        methodFilter={methodFilter}
-        onMethodChange={(m) => {
-          setMethodFilter(m);
-          setCurrentPage(1);
-          updateUrlParams({ method: m === 'all' ? null : m, page: '1' });
-        }}
-        dateFilter={dateFilter}
-        onDateFilterChange={(d) => {
-          setDateFilter(d);
-          setCurrentPage(1);
-          updateUrlParams({ date: d === 'all' ? null : d, page: '1' });
-        }}
-        onExportCsv={handleExportCsv}
-        isExporting={isExporting}
-      />
+      {/* 3. Unified Card: Filters & Table Container (Audit Trail Layout) */}
+      <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white shadow-sm overflow-hidden">
+        <PaymentsFilterBar
+          searchQuery={searchQuery}
+          onSearchChange={(q) => {
+            setSearchQuery(q);
+            setCurrentPage(1);
+            updateUrlParams({ search: q || null, page: '1' });
+          }}
+          statusFilter={statusFilter}
+          onStatusChange={(s) => {
+            const val = !s || s === 'all status' ? 'all' : s;
+            setStatusFilter(val);
+            setCurrentPage(1);
+            updateUrlParams({ status: val === 'all' ? null : val, page: '1' });
+          }}
+          methodFilter={methodFilter}
+          onMethodChange={(m) => {
+            const val = !m || m === 'all payment' ? 'all' : m;
+            setMethodFilter(val);
+            setCurrentPage(1);
+            updateUrlParams({ method: val === 'all' ? null : val, page: '1' });
+          }}
+          dateFilter={dateFilter}
+          onDateFilterChange={(d) => {
+            const val = !d || d === 'all date' ? 'all' : d;
+            setDateFilter(val);
+            setCurrentPage(1);
+            updateUrlParams({ date: val === 'all' ? null : val, page: '1' });
+          }}
+          onExportCsv={handleExportCsv}
+          isExporting={isExporting}
+        />
 
-      {/* 4. Payment Ledger Table */}
-      <PaymentsTable
-        payments={payments}
-        totalCount={totalCount}
-        currentPage={currentPage}
-        pageSize={pageSize}
-        onPageChange={(p) => {
-          setCurrentPage(p);
-          updateUrlParams({ page: p > 1 ? String(p) : null });
-        }}
-        onPageSizeChange={(sz) => {
-          setPageSize(sz);
-          setCurrentPage(1);
-          updateUrlParams({ pageSize: sz !== 10 ? String(sz) : null, page: '1' });
-        }}
-        onInspectPayment={(p) => {
-          setInspectPayment(p);
-          updateUrlParams({ modal: 'inspect', paymentId: p.id });
-        }}
-        onViewProof={(p) => {
-          setProofPayment(p);
-          updateUrlParams({ modal: 'proof', paymentId: p.id });
-        }}
-        onRefundPayment={(p) => {
-          setRefundPayment(p);
-          updateUrlParams({ modal: 'refund', paymentId: p.id });
-        }}
-        onSendInvoice={(b) => {
-          setInvoiceTarget(b);
-          updateUrlParams({ modal: 'invoice', bookingId: b.bookingId });
-        }}
-        onViewBookingDetails={async (bookingRef) => {
-          const res = await getBookingByReferenceAction(bookingRef);
-          if (res.success && res.booking) {
-            setInspectingBooking(res.booking);
-            updateUrlParams({ modal: 'booking-detail', bookingRef });
-          } else {
-            alert(res.error || 'Failed to load booking details');
-          }
-        }}
-        onRecordPaymentForBooking={(bookingId) => {
-          setActiveBookingIdForModal(bookingId);
-          setIsRecordModalOpen(true);
-          updateUrlParams({ modal: 'record', bookingId });
-        }}
-        isLoading={isPaymentsLoading}
-      />
+        <PaymentsTable
+          payments={payments}
+          totalCount={totalCount}
+          currentPage={currentPage}
+          pageSize={pageSize}
+          onPageChange={(p) => {
+            setCurrentPage(p);
+            updateUrlParams({ page: p > 1 ? String(p) : null });
+          }}
+          onPageSizeChange={(sz) => {
+            setPageSize(sz);
+            setCurrentPage(1);
+            updateUrlParams({ pageSize: sz !== 10 ? String(sz) : null, page: '1' });
+          }}
+          onInspectPayment={(p) => {
+            setInspectPayment(p);
+            updateUrlParams({ modal: 'inspect', paymentId: p.id });
+          }}
+          onViewProof={(p) => {
+            setProofPayment(p);
+            updateUrlParams({ modal: 'proof', paymentId: p.id });
+          }}
+          onRefundPayment={(p) => {
+            setRefundPayment(p);
+            updateUrlParams({ modal: 'refund', paymentId: p.id });
+          }}
+          onSendInvoice={(b) => {
+            setInvoiceTarget(b);
+            updateUrlParams({ modal: 'invoice', bookingId: b.bookingId });
+          }}
+          onViewBookingDetails={async (bookingRef) => {
+            const res = await getBookingByReferenceAction(bookingRef);
+            if (res.success && res.booking) {
+              setInspectingBooking(res.booking);
+              updateUrlParams({ modal: 'booking-detail', bookingRef });
+            } else {
+              alert(res.error || 'Failed to load booking details');
+            }
+          }}
+          onRecordPaymentForBooking={(bookingId) => {
+            setActiveBookingIdForModal(bookingId);
+            setIsRecordModalOpen(true);
+            updateUrlParams({ modal: 'record', bookingId });
+          }}
+          isLoading={isPaymentsLoading}
+        />
+      </div>
 
       {/* 5. Modals */}
       <RecordPaymentModal

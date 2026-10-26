@@ -181,44 +181,41 @@ export function PaymentsTable({
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white p-8 text-center space-y-3">
-        <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-[#3A4F1C] border-t-transparent" />
-        <p className="text-xs text-stone-500 font-medium">Loading payments ledger...</p>
-      </div>
-    );
-  }
-
-  if (payments.length === 0) {
-    return (
-      <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white p-12 text-center space-y-2">
-        <p className="text-sm font-semibold text-[#2B3817]">No payment records found</p>
-        <p className="text-xs text-stone-500">Try adjusting your search criteria or filters.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white shadow-xs overflow-hidden">
-      {/* 1. Desktop & Tablet Collapsible Accordion Table */}
-      <div className="hidden md:block overflow-x-auto">
-        <table className="w-full text-left text-xs text-stone-700 border-collapse">
+    <div>
+      {/* 1. Collapsible Accordion Table with Scroll-X (Audit Trail Table Layout) */}
+      <div className="overflow-x-auto">
+        <table className="min-w-[1050px] w-full text-left text-xs text-stone-700 border-collapse">
           <thead>
-            <tr className="border-b border-stone-200/80 bg-stone-50/70 text-[11px] font-bold uppercase tracking-wider text-stone-500">
-              <th className="py-3.5 px-3 w-10 text-center font-semibold"></th>
-              <th className="py-3.5 px-3 font-semibold">Payment #</th>
-              <th className="py-3.5 px-3 font-semibold">Client</th>
-              <th className="py-3.5 px-3 font-semibold">Booking Ref</th>
-              <th className="py-3.5 px-3 font-semibold">Date Agreed</th>
-              <th className="py-3.5 px-4 font-semibold text-right">Total Amount</th>
-              <th className="py-3.5 px-4 font-semibold text-right">Balance</th>
-              <th className="py-3.5 px-3 font-semibold text-center">Status</th>
-              <th className="py-3.5 px-4 font-semibold text-center">Actions</th>
+            <tr className="border-b border-[#3A4F1C]/15 bg-[#F7F3E8] text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-[#2B3817]/70">
+              <th className="py-3 px-3 w-10 text-center font-semibold"></th>
+              <th className="py-3 px-3 font-semibold">Payment #</th>
+              <th className="py-3 px-3 font-semibold">Client</th>
+              <th className="py-3 px-3 font-semibold">Booking Ref</th>
+              <th className="py-3 px-3 font-semibold">Date Agreed</th>
+              <th className="py-3 px-4 font-semibold text-right">Total Amount</th>
+              <th className="py-3 px-4 font-semibold text-right">Balance</th>
+              <th className="py-3 px-3 font-semibold text-center">Status</th>
+              <th className="py-3 px-4 font-semibold text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100">
-            {groupedBookings.map((group) => {
+          <tbody className="divide-y divide-[#3A4F1C]/10 font-sans">
+            {isLoading ? (
+              <tr>
+                <td colSpan={9} className="py-16 text-center text-[#2B3817]/60">
+                  <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-[#3A4F1C] border-t-transparent mb-2" />
+                  <p className="text-xs text-stone-500 font-medium">Loading payments ledger...</p>
+                </td>
+              </tr>
+            ) : payments.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="py-16 text-center text-[#2B3817]/60">
+                  <p className="font-semibold text-xs text-[#2B3817]">No payment records match the current filters.</p>
+                  <p className="text-[11px] text-[#2B3817]/60 mt-0.5">Adjust filter presets or search terms above.</p>
+                </td>
+              </tr>
+            ) : (
+              groupedBookings.map((group) => {
               const isExpanded = expandedBookingIds.has(group.bookingId);
 
               // Sort group payments ascending to compute balance snapshots for each payment
@@ -513,138 +510,13 @@ export function PaymentsTable({
                   )}
                 </React.Fragment>
               );
-            })}
+            }))}
           </tbody>
         </table>
       </div>
 
-      {/* 2. Mobile Card Ledger View (< 768px) with reduced typography */}
-      <div className="block md:hidden divide-y divide-stone-100">
-        {groupedBookings.map((group) => {
-          const isExpanded = expandedBookingIds.has(group.bookingId);
-          return (
-            <div key={group.bookingId} className="p-3 space-y-2 text-stone-700">
-              <div className="flex items-center justify-between">
-                <span className="font-mono font-bold text-xs text-[#2B3817] truncate max-w-[180px]">
-                  {group.latestPaymentNumber}
-                </span>
-                {renderBookingStatusBadge(group)}
-              </div>
-
-              <div className="text-[11px] text-stone-800 font-medium">
-                <p className="truncate">{group.clientFullName}</p>
-                <p className="text-[10px] text-stone-500 font-normal">
-                  {group.serviceTitle} ·{' '}
-                  <button
-                    type="button"
-                    onClick={() => onViewBookingDetails(group.bookingReference)}
-                    className="text-[#3A4F1C] underline font-mono cursor-pointer"
-                    title="Inspect Booking Details"
-                  >
-                    {group.bookingReference}
-                  </button>
-                  <Link
-                    href={`/admin/bookings?date=${group.eventDate}&bookingId=${group.bookingId}&modal=inspect`}
-                    className="inline-flex text-stone-400 hover:text-[#3A4F1C] ml-1 align-middle"
-                    title={`Open in Bookings Tab (${group.eventDate})`}
-                  >
-                    <ExternalLink className="h-2.5 w-2.5 inline" />
-                  </Link>
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[11px] py-1 border-y border-stone-100">
-                <div>
-                  <span className="text-[9px] uppercase font-bold text-stone-400 block">Total Amount</span>
-                  <span className="font-bold text-stone-800">{formatPesos(group.agreedTotalCentavos)}</span>
-                </div>
-                <div>
-                  <span className="text-[9px] uppercase font-bold text-stone-400 block">Balance</span>
-                  <span className="font-bold text-amber-800">{formatPesos(group.remainingBalanceCentavos)}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-[10px] text-stone-500 pt-0.5">
-                <button
-                  type="button"
-                  onClick={() => toggleExpand(group.bookingId)}
-                  className="inline-flex items-center gap-1 font-semibold text-[#3A4F1C] cursor-pointer"
-                >
-                  {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                  <span>Timeline ({group.payments.length})</span>
-                </button>
-
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onSendInvoice({
-                        bookingId: group.bookingId,
-                        bookingReference: group.bookingReference,
-                        clientFullName: group.clientFullName,
-                        clientEmail: group.clientEmail,
-                        serviceTitle: group.serviceTitle,
-                        agreedTotalCentavos: group.agreedTotalCentavos,
-                        remainingBalanceCentavos: group.remainingBalanceCentavos,
-                      })
-                    }
-                    disabled={(group.remainingBalanceCentavos || 0) <= 0}
-                    className="px-2 py-0.5 bg-stone-100 rounded-md text-stone-700 font-semibold hover:bg-stone-200 cursor-pointer text-[10px] disabled:opacity-40"
-                  >
-                    Send Invoice
-                  </button>
-                </div>
-              </div>
-
-              {/* Mobile Timeline Accordion */}
-              {isExpanded && (
-                <div className="mt-2 p-2.5 bg-stone-50 rounded-xl space-y-2 border border-stone-200/80">
-                  {group.payments.length === 0 ? (
-                    <div
-                      onClick={() => onRecordPaymentForBooking(group.bookingId)}
-                      className="p-3 bg-white rounded-lg border border-dashed border-stone-300 text-center cursor-pointer"
-                    >
-                      <p className="text-[10px] font-semibold text-[#2B3817]">No payments recorded yet</p>
-                      <p className="text-[9px] text-stone-400 mt-0.5">+ Tap to Record Payment</p>
-                    </div>
-                  ) : (
-                    group.payments.map((p) => (
-                      <div key={p.id} className="p-2 bg-white rounded-lg border border-stone-100 space-y-1">
-                        <div className="flex items-center justify-between text-[10px]">
-                          <button
-                            type="button"
-                            onClick={() => onInspectPayment(p)}
-                            className="font-mono font-bold text-[#2B3817] hover:underline cursor-pointer"
-                            title="Inspect payment details"
-                          >
-                            {p.payment_number}
-                          </button>
-                          <span className="font-bold text-emerald-800">{formatPesos(p.amount_centavos)}</span>
-                        </div>
-                        <div className="flex items-center justify-between text-[9px] text-stone-400">
-                          <span>{formatMethodName(p.payment_method)} · {new Date(p.paid_at).toLocaleDateString()}</span>
-                          {!p.is_refunded && p.status === 'paid' && (
-                            <button
-                              type="button"
-                              onClick={() => onRefundPayment(p)}
-                              className="text-rose-600 font-semibold cursor-pointer underline"
-                            >
-                              Refund
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 3. Pagination Footer */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-stone-50/70 border-t border-stone-200/80 text-xs text-stone-600">
+      {/* 2. Pagination Footer */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 bg-[#F7F3E8]/60 border-t border-[#3A4F1C]/15 text-xs text-stone-600">
         <div>
           Showing <span className="font-semibold text-stone-800">{startItem}</span> to{' '}
           <span className="font-semibold text-stone-800">{endItem}</span> of{' '}
