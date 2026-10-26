@@ -112,3 +112,50 @@ export const sendPaymentInvoiceSchema = z.object({
 });
 
 export type SendPaymentInvoiceInput = z.input<typeof sendPaymentInvoiceSchema>;
+
+/**
+ * Validates updating an existing manual payment record.
+ */
+export const updatePaymentSchema = z.object({
+  paymentId: z.string().uuid('Invalid payment identifier'),
+  amountPesos: z.number().positive('Payment amount must be greater than zero'),
+  paymentMethod: z.string().min(1, 'Payment method is required'),
+  paidAt: z.string().regex(/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2})?)?/, 'Date must be ISO format or YYYY-MM-DD'),
+  channelDetails: z.object({
+    bankName: z.string().optional(),
+    referenceNumber: z.string().optional(),
+    senderName: z.string().optional(),
+    accountNumberLast4: z.string().optional(),
+    notes: z.string().optional(),
+  }).default({}),
+  notes: z.string().max(500, 'Notes cannot exceed 500 characters').optional().nullable(),
+  proofAttachment: z.object({
+    path: z.string().min(1, 'Proof file path is required'),
+    name: z.string().min(1, 'Proof file name is required'),
+    sizeBytes: z.number().positive().optional(),
+    mimeType: z.string().optional(),
+  }).optional().nullable(),
+});
+
+export type UpdatePaymentInput = z.input<typeof updatePaymentSchema>;
+
+/**
+ * Validates archiving/cancelling a payment.
+ */
+export const archivePaymentSchema = z.object({
+  paymentId: z.string().uuid('Invalid payment identifier'),
+  reason: z.string().min(3, 'Archive reason is required (minimum 3 characters)').max(300, 'Reason cannot exceed 300 characters'),
+});
+
+export type ArchivePaymentInput = z.infer<typeof archivePaymentSchema>;
+
+/**
+ * Validates archiving a booking from payments ledger.
+ */
+export const archiveBookingSchema = z.object({
+  bookingId: z.string().uuid('Invalid booking identifier'),
+  reason: z.string().min(3, 'Archive reason is required (minimum 3 characters)').max(300, 'Reason cannot exceed 300 characters'),
+});
+
+export type ArchiveBookingInput = z.infer<typeof archiveBookingSchema>;
+

@@ -17,6 +17,9 @@ import {
   ChevronLeft,
   FileText,
   Eye,
+  Pencil,
+  Edit3,
+  Archive,
 } from 'lucide-react';
 import { formatPesos } from '@/lib/utils/currencyUtils';
 import type { ExtendedPaymentRecord } from '@/lib/services/admin-payment-actions';
@@ -46,6 +49,10 @@ interface PaymentsTableProps {
   onInspectPayment: (payment: ExtendedPaymentRecord) => void;
   onViewProof: (payment: ExtendedPaymentRecord) => void;
   onRefundPayment: (payment: ExtendedPaymentRecord) => void;
+  onUpdatePayment: (payment: ExtendedPaymentRecord) => void;
+  onArchivePayment: (payment: ExtendedPaymentRecord) => void;
+  onArchiveBooking: (booking: GroupedBookingPayment) => void;
+  onSetAgreedTotal: (bookingId: string) => void;
   onSendInvoice: (booking: {
     bookingId: string;
     bookingReference: string;
@@ -70,6 +77,10 @@ export function PaymentsTable({
   onInspectPayment,
   onViewProof,
   onRefundPayment,
+  onUpdatePayment,
+  onArchivePayment,
+  onArchiveBooking,
+  onSetAgreedTotal,
   onSendInvoice,
   onViewBookingDetails,
   onRecordPaymentForBooking,
@@ -78,6 +89,7 @@ export function PaymentsTable({
   // Set of booking IDs whose subrows are expanded
   const [expandedBookingIds, setExpandedBookingIds] = useState<Set<string>>(new Set());
   const [openKebabId, setOpenKebabId] = useState<string | null>(null);
+  const [openPaymentKebabId, setOpenPaymentKebabId] = useState<string | null>(null);
 
   const toggleExpand = (bookingId: string) => {
     setExpandedBookingIds((prev) => {
@@ -96,6 +108,10 @@ export function PaymentsTable({
     const map = new Map<string, GroupedBookingPayment>();
 
     for (const p of payments) {
+      if (p.status === 'cancelled') continue;
+      const b = p.booking as { is_archived?: boolean; status?: string } | undefined;
+      if (b?.is_archived || b?.status === 'cancelled') continue;
+
       const bId = p.booking_id;
       if (!map.has(bId)) {
         map.set(bId, {
@@ -225,9 +241,11 @@ export function PaymentsTable({
               const isExpanded = expandedBookingIds.has(group.bookingId);
 
               // Sort group payments ascending to compute balance snapshots for each payment
-              const sortedAsc = [...group.payments].sort(
-                (a, b) => new Date(a.paid_at).getTime() - new Date(b.paid_at).getTime()
-              );
+              const sortedAsc = [...group.payments]
+                .filter((p) => p.status !== 'cancelled' && !p.id.startsWith('pending-'))
+                .sort(
+                  (a, b) => new Date(a.paid_at).getTime() - new Date(b.paid_at).getTime()
+                );
 
               const agreed = group.agreedTotalCentavos || 0;
               let accumulatedPaid = 0;
@@ -378,6 +396,17 @@ export function PaymentsTable({
 
                             <button
                               onClick={() => {
+                                onSetAgreedTotal(group.bookingId);
+                                setOpenKebabId(null);
+                              }}
+                              className="w-full px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2 cursor-pointer"
+                            >
+                              <Edit3 className="h-3.5 w-3.5 text-[#3A4F1C]" />
+                              <span>Update Agreed Total</span>
+                            </button>
+
+                            <button
+                              onClick={() => {
                                 onSendInvoice({
                                   bookingId: group.bookingId,
                                   bookingReference: group.bookingReference,
@@ -415,6 +444,19 @@ export function PaymentsTable({
                               <ExternalLink className="h-3.5 w-3.5 text-[#3A4F1C]" />
                               <span>Open in Bookings Tab</span>
                             </Link>
+
+                            <div className="my-1 border-t border-stone-100" />
+
+                            <button
+                              onClick={() => {
+                                onArchiveBooking(group);
+                                setOpenKebabId(null);
+                              }}
+                              className="w-full px-3 py-1.5 text-xs text-rose-700 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
+                            >
+                              <Archive className="h-3.5 w-3.5 text-rose-600" />
+                              <span>Archive Booking</span>
+                            </button>
                           </div>
                         )}
                       </div>
@@ -433,19 +475,39 @@ export function PaymentsTable({
                           </div>
 
                           {group.payments.length === 0 ? (
-                            <div
-                              onClick={() => onRecordPaymentForBooking(group.bookingId)}
-                              className="p-4 rounded-xl border border-dashed border-stone-300 hover:border-[#3A4F1C] bg-white/70 hover:bg-white text-center cursor-pointer transition"
-                            >
-                              <p className="text-xs font-semibold text-[#2B3817]">
-                                No payments recorded yet for this booking.
-                              </p>
-                              <p className="text-[11px] text-stone-500 mt-0.5">
-                                Click to record a payment for {group.clientFullName} [{group.bookingReference}].
-                              </p>
-                            </div>
+                            (() => {
+                              const hasAgreedTotal = Boolean(
+                                group.agreedTotalCentavos && group.agreedTotalCentavos > 0
+                              );
+
+                              return hasAgreedTotal ? (
+                                <div
+                                  onClick={() => onRecordPaymentForBooking(group.bookingId)}
+                                  className="p-4 rounded-xl border border-dashed border-stone-300 hover:border-[#3A4F1C] bg-white/70 hover:bg-white text-center cursor-pointer transition"
+                                >
+                                  <p className="text-xs font-semibold text-[#2B3817]">
+                                    No payments recorded yet for this booking.
+                                  </p>
+                                  <p className="text-[11px] text-stone-500 mt-0.5">
+                                    Click to record a payment for {group.clientFullName} [{group.bookingReference}].
+                                  </p>
+                                </div>
+                              ) : (
+                                <div
+                                  onClick={() => onSetAgreedTotal(group.bookingId)}
+                                  className="p-4 rounded-xl border border-dashed border-amber-300 hover:border-[#BC6F07] bg-amber-50/60 hover:bg-amber-50 text-center cursor-pointer transition"
+                                >
+                                  <p className="text-xs font-semibold text-[#BC6F07]">
+                                    No agreed contract total declared yet.
+                                  </p>
+                                  <p className="text-[11px] text-stone-600 mt-0.5">
+                                    Click to declare the agreed contract total before recording payments for {group.clientFullName} [{group.bookingReference}].
+                                  </p>
+                                </div>
+                              );
+                            })()
                           ) : (
-                            <div className="rounded-xl border border-stone-200 bg-white overflow-hidden shadow-xs">
+                            <div className="rounded-xl border border-stone-200 bg-white overflow-visible shadow-xs">
                               <table className="w-full text-left text-xs text-stone-700 border-collapse">
                                 <thead className="bg-stone-50/80 border-b border-stone-100 text-[10px] font-bold uppercase tracking-wider text-stone-400">
                                   <tr>
@@ -505,20 +567,76 @@ export function PaymentsTable({
                                           </div>
                                         </td>
                                         <td className="py-2 px-3 text-right whitespace-nowrap">
-                                          {!p.is_refunded && p.status === 'paid' ? (
+                                          <div className="relative inline-flex items-center justify-end">
                                             <button
                                               type="button"
-                                              onClick={() => onRefundPayment(p)}
-                                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 font-semibold text-[10px] cursor-pointer"
+                                              onClick={() =>
+                                                setOpenPaymentKebabId(openPaymentKebabId === p.id ? null : p.id)
+                                              }
+                                              className="p-1 text-stone-500 hover:text-[#2B3817] hover:bg-stone-100 rounded-lg transition cursor-pointer"
+                                              title="Payment Actions"
                                             >
-                                              <RotateCcw className="h-3 w-3 text-rose-600" />
-                                              <span>Refund</span>
+                                              <MoreVertical className="h-4 w-4" />
                                             </button>
-                                          ) : p.is_refunded ? (
-                                            <span className="text-[10px] text-rose-600 font-semibold">Refunded</span>
-                                          ) : (
-                                            <span className="text-stone-300 text-[10px]">—</span>
-                                          )}
+
+                                            {openPaymentKebabId === p.id && (
+                                              <div
+                                                className="absolute right-0 top-full mt-1 w-44 rounded-xl border border-stone-200 bg-white py-1 shadow-xl z-40 animate-in fade-in zoom-in-95 duration-100 text-left"
+                                                onMouseLeave={() => setOpenPaymentKebabId(null)}
+                                              >
+                                                {p.status !== 'cancelled' && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      onUpdatePayment(p);
+                                                      setOpenPaymentKebabId(null);
+                                                    }}
+                                                    className="w-full px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2 cursor-pointer"
+                                                  >
+                                                    <Pencil className="h-3.5 w-3.5 text-stone-500" />
+                                                    <span>Edit Payment</span>
+                                                  </button>
+                                                )}
+
+                                                {!p.is_refunded && p.status === 'paid' ? (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      onRefundPayment(p);
+                                                      setOpenPaymentKebabId(null);
+                                                    }}
+                                                    className="w-full px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2 cursor-pointer"
+                                                  >
+                                                    <RotateCcw className="h-3.5 w-3.5 text-rose-600" />
+                                                    <span>Refund</span>
+                                                  </button>
+                                                ) : p.is_refunded ? (
+                                                  <div className="px-3 py-1.5 text-xs text-rose-600 flex items-center gap-2 font-medium bg-rose-50/50">
+                                                    <RotateCcw className="h-3.5 w-3.5 text-rose-600" />
+                                                    <span>Refunded</span>
+                                                  </div>
+                                                ) : null}
+
+                                                {p.status !== 'cancelled' ? (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                      onArchivePayment(p);
+                                                      setOpenPaymentKebabId(null);
+                                                    }}
+                                                    className="w-full px-3 py-1.5 text-xs text-rose-700 hover:bg-rose-50 flex items-center gap-2 cursor-pointer border-t border-stone-100"
+                                                  >
+                                                    <Archive className="h-3.5 w-3.5 text-rose-600" />
+                                                    <span>Archive Payment</span>
+                                                  </button>
+                                                ) : (
+                                                  <div className="px-3 py-1.5 text-xs text-stone-400 italic">
+                                                    Payment Archived
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
+                                          </div>
                                         </td>
                                       </tr>
                                     );

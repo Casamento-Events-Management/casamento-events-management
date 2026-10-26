@@ -14,11 +14,17 @@ import {
   refundPaymentSchema,
   resendReceiptSchema,
   sendPaymentInvoiceSchema,
+  updatePaymentSchema,
+  archivePaymentSchema,
+  archiveBookingSchema,
   type SetAgreedTotalInput,
   type ManualPaymentInput,
   type RefundPaymentInput,
   type ResendReceiptInput,
   type SendPaymentInvoiceInput,
+  type UpdatePaymentInput,
+  type ArchivePaymentInput,
+  type ArchiveBookingInput,
 } from '@/lib/schemas/payment';
 import {
   buildPaymentClientReceiptEmail,
@@ -237,6 +243,8 @@ export interface ExtendedPaymentRecord extends PaymentRecord {
     event_date: string;
     agreed_total_centavos: number | null;
     remaining_balance_centavos: number | null;
+    is_archived?: boolean;
+    status?: string;
   };
 }
 
@@ -271,10 +279,13 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
           client_full_name,
           client_email,
           event_date,
-          agreed_total_centavos
+          agreed_total_centavos,
+          is_archived,
+          status
         )
       `
       )
+      .neq('status', 'cancelled')
       .order('paid_at', { ascending: false });
 
     // Status filter
@@ -310,8 +321,19 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
     const { data: rawPayments, error } = await query;
     if (error) throw error;
 
+    // Filter out payments belonging to archived or cancelled bookings, or cancelled payments
+    const activePayments = (rawPayments || []).filter((row) => {
+      if (row.status === 'cancelled') return false;
+      const b = (Array.isArray(row.booking) ? row.booking[0] : row.booking) as {
+        is_archived?: boolean;
+        status?: string;
+      } | null;
+      if (b?.is_archived || b?.status === 'cancelled') return false;
+      return true;
+    });
+
     // Fetch balances for the returned payments' bookings to provide context
-    const bookingIds = Array.from(new Set((rawPayments || []).map((p) => p.booking_id)));
+    const bookingIds = Array.from(new Set(activePayments.map((p) => p.booking_id)));
     const balanceMap = new Map<string, number | null>();
 
     if (bookingIds.length > 0) {
@@ -328,7 +350,7 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
         paidMap.set(p.booking_id, cur + (net > 0 ? net : 0));
       }
 
-      for (const row of rawPayments || []) {
+      for (const row of activePayments) {
         const agreed = row.booking?.agreed_total_centavos;
         if (agreed !== null && agreed !== undefined) {
           const totalPaid = paidMap.get(row.booking_id) || 0;
@@ -339,7 +361,7 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
       }
     }
 
-    const extendedPayments: ExtendedPaymentRecord[] = (rawPayments || []).map((row) => ({
+    const extendedPayments: ExtendedPaymentRecord[] = activePayments.map((row) => ({
       ...row,
       booking: row.booking
         ? {
@@ -512,6 +534,7 @@ export async function searchBookingsForPaymentAction(searchQuery?: string): Prom
     total_paid_centavos: number;
     remaining_balance_centavos: number | null;
     payment_status: string;
+    status: string;
   }>;
   error?: string;
 }> {
@@ -525,7 +548,7 @@ export async function searchBookingsForPaymentAction(searchQuery?: string): Prom
   try {
     let query = supabase
       .from('bookings')
-      .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, payment_status')
+      .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, payment_status, status')
       .eq('is_archived', false)
       .not('status', 'in', '("cancelled","completed")')
       .order('event_date', { ascending: false })
@@ -574,6 +597,7 @@ export async function searchBookingsForPaymentAction(searchQuery?: string): Prom
         total_paid_centavos: totalPaid,
         remaining_balance_centavos: remaining,
         payment_status: b.payment_status,
+        status: b.status,
       };
     });
 
@@ -747,6 +771,34 @@ export async function recordManualPaymentAction(rawInput: ManualPaymentInput): P
       await dispatchClientEmail(booking.client_email, subject, html, paymentNumber);
     }
 
+    // Record audit trail
+    await logAudit({
+      actorUserId: adminData.user.id,
+      actorCode: adminData.profile.user_code,
+      actorName: adminData.profile.full_name,
+      actorEmail: adminData.profile.email,
+      actorType: 'admin',
+      category: 'Payment',
+      action: 'Record Payment',
+      severity: 'Info',
+      outcome: 'Success',
+      summary: `${adminData.profile.full_name} (${adminData.profile.user_code}) recorded payment ${paymentNumber} (${formatPesos(amountCentavos)}) for booking ${booking.booking_reference}.`,
+      entityType: 'payment',
+      entityId: paymentRecord.id,
+      entityRef: paymentNumber,
+      changes: {
+        amount_centavos: { old: null, new: amountCentavos },
+        payment_method: { old: null, new: input.paymentMethod },
+      },
+      metadata: {
+        booking_reference: booking.booking_reference,
+        client_name: booking.client_full_name,
+        payment_method: input.paymentMethod,
+        channel_details: input.channelDetails,
+        receipt_number: receiptNumber,
+      },
+    });
+
     revalidatePath('/admin/payments');
     revalidatePath('/admin/bookings');
 
@@ -854,11 +906,16 @@ export async function setAgreedTotalAction(rawInput: SetAgreedTotalInput): Promi
 
     // 5. Audit Log
     await logAudit({
+      actorUserId: adminData.user.id,
+      actorCode: adminData.profile.user_code,
+      actorName: adminData.profile.full_name,
+      actorEmail: adminData.profile.email,
+      actorType: 'admin',
       category: 'Payment',
       action: 'Set Agreed Total',
       severity: 'Info',
       outcome: 'Success',
-      summary: `${adminData.profile.full_name} set agreed total for ${booking.booking_reference} to ${formatPesos(newAgreedCentavos)}`,
+      summary: `${adminData.profile.full_name} (${adminData.profile.user_code}) set agreed total for ${booking.booking_reference} to ${formatPesos(newAgreedCentavos)}`,
       entityType: 'booking',
       entityId: booking.id,
       entityRef: booking.booking_reference,
@@ -949,6 +1006,31 @@ export async function refundPaymentAction(rawInput: RefundPaymentInput): Promise
       .eq('id', payment.id);
 
     if (updateErr) throw updateErr;
+
+    // Record audit trail
+    await logAudit({
+      actorUserId: adminData.user.id,
+      actorCode: adminData.profile.user_code,
+      actorName: adminData.profile.full_name,
+      actorEmail: adminData.profile.email,
+      actorType: 'admin',
+      category: 'Payment',
+      action: 'Refund Payment',
+      severity: 'Warning',
+      outcome: 'Success',
+      summary: `${adminData.profile.full_name} (${adminData.profile.user_code}) recorded refund of ${formatPesos(refundCentavos)} for payment ${payment.payment_number}. Reason: ${input.refundReason.trim()}`,
+      entityType: 'payment',
+      entityId: payment.id,
+      entityRef: payment.payment_number,
+      changes: {
+        is_refunded: { old: false, new: true },
+        refund_amount_centavos: { old: null, new: refundCentavos },
+      },
+      metadata: {
+        booking_reference: payment.booking_reference,
+        refund_reason: input.refundReason.trim(),
+      },
+    });
 
     revalidatePath('/admin/payments');
     revalidatePath('/admin/bookings');
@@ -1274,10 +1356,13 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
           service_title,
           client_full_name,
           client_email,
-          event_date
+          event_date,
+          is_archived,
+          status
         )
       `
       )
+      .neq('status', 'cancelled')
       .order('paid_at', { ascending: false });
 
     if (filters.status && filters.status !== 'all') {
@@ -1308,6 +1393,17 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
 
     const { data, error } = await query;
     if (error) throw error;
+
+    // Filter out payments belonging to archived or cancelled bookings, or cancelled payments
+    const activeData = (data || []).filter((p) => {
+      if (p.status === 'cancelled') return false;
+      const b = (Array.isArray(p.booking) ? p.booking[0] : p.booking) as {
+        is_archived?: boolean;
+        status?: string;
+      } | null;
+      if (b?.is_archived || b?.status === 'cancelled') return false;
+      return true;
+    });
 
     // Also include pending bookings if filter matches
     const pendingBookingRows: Array<{
@@ -1417,7 +1513,7 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
       return `"${str}"`;
     };
 
-    const paymentRows = (data || []).map((p) => {
+    const paymentRows = activeData.map((p) => {
       const b = (Array.isArray(p.booking) ? p.booking[0] : p.booking) as {
         service_title?: string;
         client_full_name?: string;
@@ -1479,3 +1575,324 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
     return { success: false, error: 'Failed to export payment CSV records.' };
   }
 }
+
+/**
+ * Updates an existing payment record (amount, method, date, channel details, notes, proof).
+ * Restricted strictly to admins and superadmins.
+ */
+export async function updatePaymentAction(rawInput: UpdatePaymentInput): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData || (adminData.profile.role !== 'admin' && adminData.profile.role !== 'super_admin')) {
+    return { success: false, error: 'Unauthorized: Only Admins and Super Admins can update payments.' };
+  }
+
+  const parsed = updatePaymentSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input data' };
+  }
+
+  const input = parsed.data;
+  const supabase = createAdminClient();
+
+  try {
+    // 1. Fetch target payment and its booking
+    const { data: existingPayment, error: fetchErr } = await supabase
+      .from('payments')
+      .select('*, booking:bookings!booking_id(id, booking_reference, client_full_name, agreed_total_centavos, status)')
+      .eq('id', input.paymentId)
+      .single();
+
+    if (fetchErr || !existingPayment) {
+      return { success: false, error: 'Payment record not found.' };
+    }
+
+    if (existingPayment.status === 'cancelled') {
+      return { success: false, error: 'Cannot update an archived/cancelled payment.' };
+    }
+
+    const booking = (Array.isArray(existingPayment.booking) ? existingPayment.booking[0] : existingPayment.booking) as {
+      id: string;
+      booking_reference: string;
+      client_full_name: string;
+      agreed_total_centavos: number | null;
+      status: string;
+    } | null;
+
+    if (!booking) {
+      return { success: false, error: 'Associated booking reservation not found.' };
+    }
+
+    const newAmountCentavos = pesosToCentavos(input.amountPesos);
+
+    // 2. Validate arithmetic against agreed total
+    if (booking.agreed_total_centavos && booking.agreed_total_centavos > 0) {
+      // Query other paid payments for this booking
+      const { data: otherPayments } = await supabase
+        .from('payments')
+        .select('id, amount_centavos, refund_amount_centavos')
+        .eq('booking_id', booking.id)
+        .eq('status', 'paid')
+        .neq('id', existingPayment.id);
+
+      const totalPaidOtherCentavos = (otherPayments || []).reduce((acc, p) => {
+        const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
+        return acc + (net > 0 ? net : 0);
+      }, 0);
+
+      const netNewAmountCentavos = existingPayment.is_refunded
+        ? Math.max(0, newAmountCentavos - (existingPayment.refund_amount_centavos || 0))
+        : newAmountCentavos;
+
+      if (totalPaidOtherCentavos + netNewAmountCentavos > booking.agreed_total_centavos) {
+        const maxAllowed = Math.max(0, booking.agreed_total_centavos - totalPaidOtherCentavos);
+        return {
+          success: false,
+          error: `Updated amount (${formatPesos(newAmountCentavos)}) exceeds the remaining allowable contract total. Maximum allowable for this entry is ${formatPesos(maxAllowed)}.`,
+        };
+      }
+    }
+
+    // 3. Prepare updates
+    const updates: Record<string, unknown> = {
+      amount_centavos: newAmountCentavos,
+      payment_method: input.paymentMethod,
+      channel_details: input.channelDetails || {},
+      paid_at: input.paidAt ? new Date(input.paidAt).toISOString() : existingPayment.paid_at,
+      notes: input.notes?.trim() || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (input.proofAttachment !== undefined) {
+      if (input.proofAttachment) {
+        updates.proof_attachment_path = input.proofAttachment.path;
+        updates.proof_attachment_name = input.proofAttachment.name;
+        updates.proof_attachment_size_bytes = input.proofAttachment.sizeBytes || null;
+        updates.proof_attachment_mime_type = input.proofAttachment.mimeType || null;
+      } else {
+        updates.proof_attachment_path = null;
+        updates.proof_attachment_name = null;
+        updates.proof_attachment_size_bytes = null;
+        updates.proof_attachment_mime_type = null;
+      }
+    }
+
+    const { error: updateErr } = await supabase
+      .from('payments')
+      .update(updates)
+      .eq('id', existingPayment.id);
+
+    if (updateErr) throw updateErr;
+
+    // 4. Audit Log
+    await logAudit({
+      actorUserId: adminData.user.id,
+      actorCode: adminData.profile.user_code,
+      actorName: adminData.profile.full_name,
+      actorEmail: adminData.profile.email,
+      actorType: 'admin',
+      category: 'Payment',
+      action: 'Payment Updated',
+      severity: 'Info',
+      outcome: 'Success',
+      summary: `${adminData.profile.full_name} (${adminData.profile.user_code}) updated payment ${existingPayment.payment_number} (${formatPesos(existingPayment.amount_centavos)} -> ${formatPesos(newAmountCentavos)}) for booking ${existingPayment.booking_reference}.`,
+      entityType: 'payment',
+      entityId: existingPayment.id,
+      entityRef: existingPayment.payment_number,
+      changes: {
+        amount_centavos: { old: existingPayment.amount_centavos, new: newAmountCentavos },
+        payment_method: { old: existingPayment.payment_method, new: input.paymentMethod },
+        paid_at: { old: existingPayment.paid_at, new: updates.paid_at },
+        notes: { old: existingPayment.notes, new: updates.notes },
+      },
+      metadata: {
+        booking_reference: existingPayment.booking_reference,
+        payment_number: existingPayment.payment_number,
+        client_name: booking.client_full_name,
+        channel_details: input.channelDetails,
+      },
+    });
+
+    revalidatePath('/admin/payments');
+    revalidatePath('/admin/bookings');
+
+    return { success: true };
+  } catch (err) {
+    console.error('[updatePaymentAction Exception]:', err);
+    return { success: false, error: 'Database exception occurred while updating payment.' };
+  }
+}
+
+/**
+ * Archives/cancels a payment record.
+ * Restricted strictly to admins and superadmins.
+ */
+export async function archivePaymentAction(rawInput: ArchivePaymentInput): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData || (adminData.profile.role !== 'admin' && adminData.profile.role !== 'super_admin')) {
+    return { success: false, error: 'Unauthorized: Only Admins and Super Admins can archive payments.' };
+  }
+
+  const parsed = archivePaymentSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input data' };
+  }
+
+  const input = parsed.data;
+  const supabase = createAdminClient();
+
+  try {
+    const { data: payment, error: pErr } = await supabase
+      .from('payments')
+      .select('id, booking_id, booking_reference, payment_number, amount_centavos, status, notes')
+      .eq('id', input.paymentId)
+      .single();
+
+    if (pErr || !payment) {
+      return { success: false, error: 'Payment record not found.' };
+    }
+
+    if (payment.status === 'cancelled') {
+      return { success: false, error: 'Payment is already archived/cancelled.' };
+    }
+
+    const { error: updateErr } = await supabase
+      .from('payments')
+      .update({
+        status: 'cancelled',
+        notes: payment.notes
+          ? `${payment.notes} [Archived by ${adminData.profile.full_name}: ${input.reason.trim()}]`
+          : `[Archived by ${adminData.profile.full_name}: ${input.reason.trim()}]`,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', payment.id);
+
+    if (updateErr) throw updateErr;
+
+    // Audit Log
+    await logAudit({
+      actorUserId: adminData.user.id,
+      actorCode: adminData.profile.user_code,
+      actorName: adminData.profile.full_name,
+      actorEmail: adminData.profile.email,
+      actorType: 'admin',
+      category: 'Payment',
+      action: 'Payment Archived',
+      severity: 'Warning',
+      outcome: 'Success',
+      summary: `${adminData.profile.full_name} (${adminData.profile.user_code}) archived payment ${payment.payment_number} (${formatPesos(payment.amount_centavos)}) for booking ${payment.booking_reference}. Reason: ${input.reason.trim()}`,
+      entityType: 'payment',
+      entityId: payment.id,
+      entityRef: payment.payment_number,
+      changes: {
+        status: { old: payment.status, new: 'cancelled' },
+      },
+      metadata: {
+        archive_reason: input.reason.trim(),
+        previous_amount_centavos: payment.amount_centavos,
+        booking_reference: payment.booking_reference,
+      },
+    });
+
+    revalidatePath('/admin/payments');
+    revalidatePath('/admin/bookings');
+
+    return { success: true };
+  } catch (err) {
+    console.error('[archivePaymentAction Exception]:', err);
+    return { success: false, error: 'Database exception occurred while archiving payment.' };
+  }
+}
+
+/**
+ * Archives a booking reservation directly from the Payments ledger.
+ * Soft-deletes from active financial tracking by setting is_archived = true.
+ * Restricted strictly to admins and superadmins.
+ */
+export async function archiveBookingAction(rawInput: ArchiveBookingInput): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData || (adminData.profile.role !== 'admin' && adminData.profile.role !== 'super_admin')) {
+    return { success: false, error: 'Unauthorized: Only Admins and Super Admins can archive bookings.' };
+  }
+
+  const parsed = archiveBookingSchema.safeParse(rawInput);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message || 'Invalid input data' };
+  }
+
+  const input = parsed.data;
+  const supabase = createAdminClient();
+
+  try {
+    const { data: booking, error: bErr } = await supabase
+      .from('bookings')
+      .select('id, booking_reference, client_full_name, status, is_archived, agreed_total_centavos')
+      .eq('id', input.bookingId)
+      .single();
+
+    if (bErr || !booking) {
+      return { success: false, error: 'Booking reservation not found.' };
+    }
+
+    if (booking.is_archived) {
+      return { success: false, error: 'This booking is already archived.' };
+    }
+
+    const now = new Date().toISOString();
+    const { error: updateErr } = await supabase
+      .from('bookings')
+      .update({
+        is_archived: true,
+        cancellation_reason: input.reason.trim(),
+        cancelled_at: now,
+        cancelled_by: adminData.user.id,
+        updated_at: now,
+      })
+      .eq('id', booking.id);
+
+    if (updateErr) throw updateErr;
+
+    // Audit Log
+    await logAudit({
+      actorUserId: adminData.user.id,
+      actorCode: adminData.profile.user_code,
+      actorName: adminData.profile.full_name,
+      actorEmail: adminData.profile.email,
+      actorType: 'admin',
+      category: 'Booking',
+      action: 'Booking Archived',
+      severity: 'Warning',
+      outcome: 'Success',
+      summary: `${adminData.profile.full_name} (${adminData.profile.user_code}) archived booking ${booking.booking_reference} (${booking.client_full_name}) from Payments. Reason: ${input.reason.trim()}`,
+      entityType: 'booking',
+      entityId: booking.id,
+      entityRef: booking.booking_reference,
+      changes: {
+        is_archived: { old: false, new: true },
+      },
+      metadata: {
+        archive_reason: input.reason.trim(),
+        client_name: booking.client_full_name,
+        booking_status: booking.status,
+        agreed_total_centavos: booking.agreed_total_centavos,
+      },
+    });
+
+    revalidatePath('/admin/payments');
+    revalidatePath('/admin/bookings');
+
+    return { success: true };
+  } catch (err) {
+    console.error('[archiveBookingAction Exception]:', err);
+    return { success: false, error: 'Database exception occurred while archiving booking.' };
+  }
+}
+

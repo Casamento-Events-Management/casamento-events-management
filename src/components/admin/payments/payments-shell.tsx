@@ -16,10 +16,13 @@ import { SetAgreedTotalModal } from './modals/set-agreed-total-modal';
 import { PaymentInspectorModal } from './modals/payment-inspector-modal';
 import { ProofViewerModal } from './modals/proof-viewer-modal';
 import { RefundPaymentModal } from './modals/refund-payment-modal';
+import { SendPaymentInvoiceModal, type InvoiceBookingTarget } from './modals/send-payment-invoice-modal';
+import { UpdatePaymentModal } from './modals/update-payment-modal';
+import { ArchivePaymentModal } from './modals/archive-payment-modal';
 import {
-  SendPaymentInvoiceModal,
-  type InvoiceBookingTarget,
-} from './modals/send-payment-invoice-modal';
+  ArchiveBookingModal,
+  type ArchiveBookingTarget,
+} from './modals/archive-booking-modal';
 import { BookingDetailInspector } from '../bookings/booking-detail-inspector';
 import {
   getBookingByReferenceAction,
@@ -84,6 +87,9 @@ export function PaymentsShell() {
   const [proofPayment, setProofPayment] = useState<ExtendedPaymentRecord | null>(null);
   const [refundPayment, setRefundPayment] = useState<ExtendedPaymentRecord | null>(null);
   const [invoiceTarget, setInvoiceTarget] = useState<InvoiceBookingTarget | null>(null);
+  const [updatePayment, setUpdatePayment] = useState<ExtendedPaymentRecord | null>(null);
+  const [archivePayment, setArchivePayment] = useState<ExtendedPaymentRecord | null>(null);
+  const [archiveBooking, setArchiveBooking] = useState<ArchiveBookingTarget | null>(null);
 
   // Booking Inspector Modal State
   const [inspectingBooking, setInspectingBooking] = useState<BookingRecord | null>(null);
@@ -332,6 +338,20 @@ export function PaymentsShell() {
             setRefundPayment(p);
             updateUrlParams({ modal: 'refund', paymentId: p.id });
           }}
+          onUpdatePayment={(p) => {
+            setUpdatePayment(p);
+          }}
+          onArchivePayment={(p) => {
+            setArchivePayment(p);
+          }}
+          onArchiveBooking={(b) => {
+            setArchiveBooking(b);
+          }}
+          onSetAgreedTotal={(bookingId) => {
+            setActiveBookingIdForModal(bookingId);
+            setIsAgreedModalOpen(true);
+            updateUrlParams({ modal: 'agreed', bookingId });
+          }}
           onSendInvoice={(b) => {
             setInvoiceTarget(b);
             updateUrlParams({ modal: 'invoice', bookingId: b.bookingId });
@@ -346,9 +366,17 @@ export function PaymentsShell() {
             }
           }}
           onRecordPaymentForBooking={(bookingId) => {
-            setActiveBookingIdForModal(bookingId);
-            setIsRecordModalOpen(true);
-            updateUrlParams({ modal: 'record', bookingId });
+            const bookingGroup = payments.find((p) => p.booking_id === bookingId);
+            const agreed = bookingGroup?.booking?.agreed_total_centavos;
+            if (agreed === null || agreed === undefined || agreed <= 0) {
+              setActiveBookingIdForModal(bookingId);
+              setIsAgreedModalOpen(true);
+              updateUrlParams({ modal: 'agreed', bookingId });
+            } else {
+              setActiveBookingIdForModal(bookingId);
+              setIsRecordModalOpen(true);
+              updateUrlParams({ modal: 'record', bookingId });
+            }
           }}
           isLoading={isPaymentsLoading}
         />
@@ -372,6 +400,15 @@ export function PaymentsShell() {
       <SetAgreedTotalModal
         isOpen={isAgreedModalOpen}
         initialBookingId={activeBookingIdForModal}
+        onViewBookingDetails={async (bookingRef) => {
+          const res = await getBookingByReferenceAction(bookingRef);
+          if (res.success && res.booking) {
+            setInspectingBooking(res.booking);
+            updateUrlParams({ modal: 'booking-detail', bookingRef });
+          } else {
+            alert(res.error || 'Failed to load booking details');
+          }
+        }}
         onClose={() => {
           setIsAgreedModalOpen(false);
           setActiveBookingIdForModal(undefined);
@@ -454,13 +491,46 @@ export function PaymentsShell() {
         }}
       />
 
+      <UpdatePaymentModal
+        key={updatePayment?.id || 'update-payment-modal'}
+        payment={updatePayment}
+        isOpen={Boolean(updatePayment)}
+        onClose={() => setUpdatePayment(null)}
+        onSuccess={() => {
+          loadStats();
+          loadPayments();
+        }}
+      />
+
+      <ArchivePaymentModal
+        key={archivePayment?.id || 'archive-payment-modal'}
+        payment={archivePayment}
+        isOpen={Boolean(archivePayment)}
+        onClose={() => setArchivePayment(null)}
+        onSuccess={() => {
+          loadStats();
+          loadPayments();
+        }}
+      />
+
+      <ArchiveBookingModal
+        key={archiveBooking?.bookingId || 'archive-booking-modal'}
+        booking={archiveBooking}
+        isOpen={Boolean(archiveBooking)}
+        onClose={() => setArchiveBooking(null)}
+        onSuccess={() => {
+          loadStats();
+          loadPayments();
+        }}
+      />
+
       {/* Booking Detail Inspector Modal (Single-Layer) */}
       {inspectingBooking && (
         <div
           role="dialog"
           aria-modal="true"
           onClick={handleInspectBackdropClick}
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150 overflow-y-auto"
         >
           <div
             ref={inspectingModalRef}

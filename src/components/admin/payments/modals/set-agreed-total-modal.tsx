@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Loader2,
   Search,
+  Eye,
 } from 'lucide-react';
 import {
   formatPesos,
@@ -33,6 +34,7 @@ interface BookingOption {
   total_paid_centavos: number;
   remaining_balance_centavos: number | null;
   payment_status: string;
+  status: string;
 }
 
 interface SetAgreedTotalModalProps {
@@ -40,6 +42,7 @@ interface SetAgreedTotalModalProps {
   onClose: () => void;
   onSuccess: () => void;
   initialBookingId?: string;
+  onViewBookingDetails?: (bookingReference: string) => void;
 }
 
 export function SetAgreedTotalModal({
@@ -47,6 +50,7 @@ export function SetAgreedTotalModal({
   onClose,
   onSuccess,
   initialBookingId,
+  onViewBookingDetails,
 }: SetAgreedTotalModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -210,28 +214,55 @@ export function SetAgreedTotalModal({
             </label>
 
             {selectedBooking ? (
-              <div className="p-3 bg-white rounded-xl border border-stone-200 flex items-center justify-between">
-                <div>
+              <div className="p-3 bg-white rounded-xl border border-stone-200 flex items-start justify-between gap-3">
+                <div className="space-y-1 min-w-0">
                   <p className="font-bold text-[#2B3817] text-xs">
                     {selectedBooking.client_full_name}{' '}
                     <span className="font-mono text-[11px] font-normal text-stone-500">
                       [{selectedBooking.booking_reference}]
                     </span>
                   </p>
-                  <p className="text-[11px] text-stone-500">
-                    {selectedBooking.service_title} · Event: {selectedBooking.event_date}
-                  </p>
-                  <p className="mt-1 text-[11px] text-stone-600">
+                  <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-stone-500">
+                    <span className="font-medium text-stone-700">{selectedBooking.service_title}</span>
+                    {selectedBooking.status && (
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize border ${
+                          selectedBooking.status === 'confirmed'
+                            ? 'bg-[#3A4F1C]/10 text-[#3A4F1C] border-[#3A4F1C]/20'
+                            : selectedBooking.status === 'pending'
+                            ? 'bg-[#BC6F07]/10 text-[#BC6F07] border-[#BC6F07]/20'
+                            : 'bg-stone-100 text-stone-700 border-stone-200'
+                        }`}
+                      >
+                        {selectedBooking.status}
+                      </span>
+                    )}
+                    <span>· Event: {selectedBooking.event_date}</span>
+                  </div>
+                  <p className="text-[11px] text-stone-600">
                     Current Paid to Date: <span className="font-bold text-emerald-800">{formatPesos(selectedBooking.total_paid_centavos)}</span>
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedBooking(null)}
-                  className="text-stone-400 hover:text-stone-700 p-1 text-xs underline cursor-pointer"
-                >
-                  Change
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  {onViewBookingDetails && (
+                    <button
+                      type="button"
+                      onClick={() => onViewBookingDetails(selectedBooking.booking_reference)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold text-[#3A4F1C] bg-[#3A4F1C]/10 hover:bg-[#3A4F1C]/20 rounded-lg border border-[#3A4F1C]/20 transition cursor-pointer"
+                      title="View Booking Details"
+                    >
+                      <Eye className="h-3 w-3" />
+                      <span>Details</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBooking(null)}
+                    className="text-stone-400 hover:text-stone-700 p-1 text-xs underline cursor-pointer"
+                  >
+                    Change
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="relative">
@@ -267,7 +298,22 @@ export function SetAgreedTotalModal({
                             {b.client_full_name}{' '}
                             <span className="font-mono text-stone-400">[{b.booking_reference}]</span>
                           </p>
-                          <p className="text-[10px] text-stone-500">{b.service_title}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[10px] text-stone-500">{b.service_title}</span>
+                            {b.status && (
+                              <span
+                                className={`inline-flex items-center rounded-sm px-1.5 py-0.2 text-[9px] font-medium capitalize ${
+                                  b.status === 'confirmed'
+                                    ? 'bg-[#3A4F1C]/10 text-[#3A4F1C]'
+                                    : b.status === 'pending'
+                                    ? 'bg-[#BC6F07]/10 text-[#BC6F07]'
+                                    : 'bg-stone-100 text-stone-600'
+                                }`}
+                              >
+                                {b.status}
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <div className="text-right space-y-0.5">
                           <span className="text-[10px] text-stone-500 block">

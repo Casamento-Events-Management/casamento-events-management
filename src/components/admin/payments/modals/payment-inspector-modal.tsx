@@ -73,7 +73,7 @@ export function PaymentInspectorModal({
   let runningPaid = 0;
   // Sort payments chronological ascending to compute running snapshot
   const sortedAsc = [...timelinePayments]
-    .filter((p) => !p.id.startsWith('pending-'))
+    .filter((p) => !p.id.startsWith('pending-') && p.status !== 'cancelled')
     .sort((a, b) => new Date(a.paid_at).getTime() - new Date(b.paid_at).getTime());
 
   const balanceSnapshots = new Map<string, number>();

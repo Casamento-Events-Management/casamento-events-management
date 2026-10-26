@@ -37,6 +37,7 @@ interface BookingOption {
   total_paid_centavos: number;
   remaining_balance_centavos: number | null;
   payment_status: string;
+  status?: string;
 }
 
 interface RecordPaymentModalProps {
