@@ -1896,3 +1896,64 @@ export async function archiveBookingAction(rawInput: ArchiveBookingInput): Promi
   }
 }
 
+/**
+ * Fetches the current payment balance snapshot for a specific booking.
+ */
+export async function getBookingBalanceAction(bookingId: string): Promise<{
+  success: boolean;
+  agreedTotalCentavos?: number | null;
+  totalPaidCentavos?: number;
+  remainingBalanceCentavos?: number | null;
+  paymentStatus?: string;
+  error?: string;
+}> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData) {
+    return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+
+  const supabase = createAdminClient();
+
+  try {
+    const { data: booking, error: bookingErr } = await supabase
+      .from('bookings')
+      .select('id, agreed_total_centavos, payment_status')
+      .eq('id', bookingId)
+      .single();
+
+    if (bookingErr || !booking) {
+      return { success: false, error: 'Booking not found.' };
+    }
+
+    const { data: payments, error: paymentsErr } = await supabase
+      .from('payments')
+      .select('amount_centavos, refund_amount_centavos')
+      .eq('booking_id', bookingId)
+      .eq('status', 'paid');
+
+    if (paymentsErr) throw paymentsErr;
+
+    const totalPaidCentavos = (payments || []).reduce((acc, p) => {
+      const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
+      return acc + (net > 0 ? net : 0);
+    }, 0);
+
+    const agreed = booking.agreed_total_centavos;
+    const remainingBalanceCentavos =
+      agreed !== null && agreed !== undefined
+        ? Math.max(0, agreed - totalPaidCentavos)
+        : null;
+
+    return {
+      success: true,
+      agreedTotalCentavos: agreed,
+      totalPaidCentavos,
+      remainingBalanceCentavos,
+      paymentStatus: booking.payment_status,
+    };
+  } catch (err) {
+    console.error('[getBookingBalanceAction Exception]:', err);
+    return { success: false, error: 'Failed to retrieve booking financial balance.' };
+  }
+}
+

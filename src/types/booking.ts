@@ -174,6 +174,9 @@ export interface AdminCreateBookingInput {
   special_notes?: string | null;
   admin_notes?: string | null;
   status?: BookingStatus;
+  agreed_total_pesos?: number | null;
+  agreed_total_notes?: string | null;
+  send_agreed_total_email?: boolean;
 }
 
 /**
