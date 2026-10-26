@@ -194,7 +194,7 @@ export function PaymentsShell() {
             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white hover:bg-stone-50 text-stone-800 border border-stone-200 shadow-xs transition cursor-pointer"
           >
             <FileText className="h-3.5 w-3.5 text-[#3A4F1C]" />
-            <span>Declare Agreed Total</span>
+            <span>Agreed Total</span>
           </button>
 
           <button

@@ -69,7 +69,7 @@ export function PaymentsStatsGrid({ stats, isLoading = false }: PaymentsStatsGri
             {formatPesos(stats.totalOutstandingAcrossBookingsCentavos)}
           </p>
           <p className="mt-1 text-xs text-amber-700 font-medium">
-            Across {stats.partiallyPaidBookingsCount + stats.unpaidBookingsCount} bookings with pending balance
+            {stats.partiallyPaidBookingsCount + stats.unpaidBookingsCount} bookings with pending balance
           </p>
         </div>
       </div>
