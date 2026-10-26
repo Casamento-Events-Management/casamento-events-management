@@ -247,9 +247,6 @@ export function PaymentsShell() {
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
-          <p className="mt-0.5 text-xs text-stone-500 font-light">
-            Record manual payments, monitor booking balances, issue receipts, and track revenue.
-          </p>
         </div>
 
         {/* Primary Actions */}
