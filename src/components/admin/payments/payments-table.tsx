@@ -128,8 +128,8 @@ export function PaymentsTable({
   }, [payments]);
 
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
-  const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const endItem = Math.min(totalCount, currentPage * pageSize);
+  const startItem = totalCount === 0 || groupedBookings.length === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = totalCount === 0 ? 0 : Math.min(totalCount, (currentPage - 1) * pageSize + groupedBookings.length);
 
   const formatMethodName = (method: string) => {
     switch (method) {
@@ -244,13 +244,13 @@ export function PaymentsTable({
 
               return (
                 <React.Fragment key={group.bookingId}>
-                  {/* Primary Row */}
-                  <tr className="hover:bg-stone-50/60 transition group cursor-pointer">
+                  {/* Primary Row: Clicking any part of the row opens/closes collapsible */}
+                  <tr
+                    onClick={() => toggleExpand(group.bookingId)}
+                    className="hover:bg-stone-50/60 transition group cursor-pointer select-none"
+                  >
                     {/* Expand/Collapse Dropdown Toggle (⌄) */}
-                    <td
-                      onClick={() => toggleExpand(group.bookingId)}
-                      className="py-3 px-3 text-center text-stone-400 hover:text-stone-700 cursor-pointer"
-                    >
+                    <td className="py-3 px-3 text-center text-stone-400 group-hover:text-stone-700">
                       {isExpanded ? (
                         <ChevronDown className="h-4 w-4 text-[#3A4F1C] inline-block" />
                       ) : (
@@ -260,26 +260,11 @@ export function PaymentsTable({
 
                     {/* Payment # */}
                     <td className="py-3 px-3 font-mono font-bold text-[#2B3817]">
-                      {group.latestPayment ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onInspectPayment(group.latestPayment!);
-                          }}
-                          className="font-mono font-bold text-[#2B3817] hover:text-[#3A4F1C] hover:underline cursor-pointer"
-                          title="Inspect Payment Details"
-                        >
-                          {group.latestPaymentNumber}
-                        </button>
-                      ) : (
-                        <span className="font-mono font-medium text-stone-400">{group.latestPaymentNumber}</span>
-                      )}
+                      {group.latestPaymentNumber}
                     </td>
 
                     {/* Client Name */}
                     <td
-                      onClick={() => toggleExpand(group.bookingId)}
                       className="py-3 px-3 font-medium text-stone-900 max-w-[160px] truncate"
                       title={group.clientFullName}
                     >
@@ -291,7 +276,10 @@ export function PaymentsTable({
                       <div className="inline-flex items-center gap-1.5">
                         <button
                           type="button"
-                          onClick={() => onViewBookingDetails(group.bookingReference)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onViewBookingDetails(group.bookingReference);
+                          }}
                           className="font-mono text-xs font-semibold text-[#3A4F1C] hover:underline cursor-pointer"
                           title="Inspect Booking Details"
                         >
@@ -299,6 +287,7 @@ export function PaymentsTable({
                         </button>
                         <Link
                           href={`/admin/bookings?date=${group.eventDate}&bookingId=${group.bookingId}&modal=inspect`}
+                          onClick={(e) => e.stopPropagation()}
                           title={`Open in Bookings Tab (${group.eventDate})`}
                           className="text-stone-400 hover:text-[#3A4F1C] transition cursor-pointer p-0.5 rounded hover:bg-stone-100"
                         >
@@ -308,10 +297,7 @@ export function PaymentsTable({
                     </td>
 
                     {/* Date Agreed */}
-                    <td
-                      onClick={() => toggleExpand(group.bookingId)}
-                      className="py-3 px-3 text-stone-600 whitespace-nowrap"
-                    >
+                    <td className="py-3 px-3 text-stone-600 whitespace-nowrap">
                       {group.declaredDate
                         ? new Date(group.declaredDate).toLocaleDateString('en-PH', {
                           year: 'numeric',
@@ -322,40 +308,31 @@ export function PaymentsTable({
                     </td>
 
                     {/* Total Amount */}
-                    <td
-                      onClick={() => toggleExpand(group.bookingId)}
-                      className="py-3 px-4 text-right font-bold text-stone-800 whitespace-nowrap"
-                    >
+                    <td className="py-3 px-4 text-right font-bold text-stone-800 whitespace-nowrap">
                       {formatPesos(group.agreedTotalCentavos)}
                     </td>
 
                     {/* Balance */}
-                    <td
-                      onClick={() => toggleExpand(group.bookingId)}
-                      className="py-3 px-4 text-right whitespace-nowrap text-amber-800 font-bold"
-                    >
+                    <td className="py-3 px-4 text-right whitespace-nowrap text-amber-800 font-bold">
                       {formatPesos(group.remainingBalanceCentavos)}
                     </td>
 
                     {/* Status */}
-                    <td
-                      onClick={() => toggleExpand(group.bookingId)}
-                      className="py-3 px-3 text-center whitespace-nowrap"
-                    >
+                    <td className="py-3 px-3 text-center whitespace-nowrap">
                       {renderBookingStatusBadge(group)}
                     </td>
 
                     {/* Header Actions (Inspect Payment, Send Payment Invoice, View Booking) */}
-                    <td className="py-3 px-4 text-center whitespace-nowrap">
+                    <td
+                      onClick={(e) => e.stopPropagation()}
+                      className="py-3 px-4 text-center whitespace-nowrap"
+                    >
                       <div className="relative inline-flex items-center gap-1">
                         {/* Eye icon: Inspect Payment Details */}
                         {group.latestPayment ? (
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onInspectPayment(group.latestPayment!);
-                            }}
+                            onClick={() => onInspectPayment(group.latestPayment!)}
                             className="p-1.5 text-stone-500 hover:text-[#3A4F1C] hover:bg-stone-100 rounded-lg transition cursor-pointer"
                             title="Inspect Payment Details"
                           >
@@ -371,6 +348,7 @@ export function PaymentsTable({
                         )}
 
                         <button
+                          type="button"
                           onClick={() =>
                             setOpenKebabId(openKebabId === group.bookingId ? null : group.bookingId)
                           }

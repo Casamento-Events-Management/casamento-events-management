@@ -273,8 +273,7 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
           event_date,
           agreed_total_centavos
         )
-      `,
-        { count: 'exact' }
+      `
       )
       .order('paid_at', { ascending: false });
 
@@ -308,7 +307,7 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
       );
     }
 
-    const { data: rawPayments, count, error } = await query;
+    const { data: rawPayments, error } = await query;
     if (error) throw error;
 
     // Fetch balances for the returned payments' bookings to provide context
@@ -464,14 +463,32 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
       allEntries.sort((a, b) => new Date(b.paid_at || b.created_at).getTime() - new Date(a.paid_at || a.created_at).getTime());
     }
 
-    const totalCombinedCount = (count ?? 0) + pendingBookingRows.length;
-    // Slice according to pagination
-    const paginatedEntries = allEntries.slice(from, to + 1);
+    // Group entries by booking_id to form primary collapsible rows
+    const bookingGroupsMap = new Map<string, ExtendedPaymentRecord[]>();
+    for (const entry of allEntries) {
+      const bId = entry.booking_id;
+      if (!bookingGroupsMap.has(bId)) {
+        bookingGroupsMap.set(bId, []);
+      }
+      bookingGroupsMap.get(bId)!.push(entry);
+    }
+
+    const uniqueBookingIds = Array.from(bookingGroupsMap.keys());
+    const totalCollapsibleCount = uniqueBookingIds.length;
+
+    // Slice according to pagination (paginating collapsible booking rows)
+    const paginatedBookingIds = uniqueBookingIds.slice(from, to + 1);
+
+    const paginatedEntries: ExtendedPaymentRecord[] = [];
+    for (const bId of paginatedBookingIds) {
+      const bookingPayments = bookingGroupsMap.get(bId) || [];
+      paginatedEntries.push(...bookingPayments);
+    }
 
     return {
       success: true,
       payments: paginatedEntries,
-      totalCount: totalCombinedCount,
+      totalCount: totalCollapsibleCount,
     };
   } catch (err) {
     console.error('[fetchPaymentsAction Error]:', err);
