@@ -16,6 +16,7 @@ import {
   ExternalLink,
   ChevronLeft,
   FileText,
+  Eye,
 } from 'lucide-react';
 import { formatPesos } from '@/lib/utils/currencyUtils';
 import type { ExtendedPaymentRecord } from '@/lib/services/admin-payment-actions';
@@ -31,6 +32,7 @@ export interface GroupedBookingPayment {
   remainingBalanceCentavos: number | null;
   declaredDate: string | null;
   latestPaymentNumber: string;
+  latestPayment: ExtendedPaymentRecord | null;
   payments: ExtendedPaymentRecord[];
 }
 
@@ -107,6 +109,7 @@ export function PaymentsTable({
           remainingBalanceCentavos: p.booking?.remaining_balance_centavos ?? null,
           declaredDate: p.created_at || p.paid_at || null,
           latestPaymentNumber: p.payment_number,
+          latestPayment: p.id.startsWith('pending-') ? null : p,
           payments: [],
         });
       }
@@ -115,6 +118,9 @@ export function PaymentsTable({
       // Only add actual payment records to the timeline (skip synthetic pending rows)
       if (!p.id.startsWith('pending-')) {
         entry.payments.push(p);
+        if (!entry.latestPayment) {
+          entry.latestPayment = p;
+        }
       }
     }
 
@@ -253,11 +259,22 @@ export function PaymentsTable({
                     </td>
 
                     {/* Payment # */}
-                    <td
-                      onClick={() => toggleExpand(group.bookingId)}
-                      className="py-3 px-3 font-mono font-bold text-[#2B3817]"
-                    >
-                      {group.latestPaymentNumber}
+                    <td className="py-3 px-3 font-mono font-bold text-[#2B3817]">
+                      {group.latestPayment ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onInspectPayment(group.latestPayment!);
+                          }}
+                          className="font-mono font-bold text-[#2B3817] hover:text-[#3A4F1C] hover:underline cursor-pointer"
+                          title="Inspect Payment Details"
+                        >
+                          {group.latestPaymentNumber}
+                        </button>
+                      ) : (
+                        <span className="font-mono font-medium text-stone-400">{group.latestPaymentNumber}</span>
+                      )}
                     </td>
 
                     {/* Client Name */}
@@ -328,9 +345,31 @@ export function PaymentsTable({
                       {renderBookingStatusBadge(group)}
                     </td>
 
-                    {/* Header Actions (Send Payment Invoice, View Booking) */}
+                    {/* Header Actions (Inspect Payment, Send Payment Invoice, View Booking) */}
                     <td className="py-3 px-4 text-center whitespace-nowrap">
                       <div className="relative inline-flex items-center gap-1">
+                        {/* Eye icon: Inspect Payment Details */}
+                        {group.latestPayment ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onInspectPayment(group.latestPayment!);
+                            }}
+                            className="p-1.5 text-stone-500 hover:text-[#3A4F1C] hover:bg-stone-100 rounded-lg transition cursor-pointer"
+                            title="Inspect Payment Details"
+                          >
+                            <Eye className="h-4 w-4 text-[#3A4F1C]" />
+                          </button>
+                        ) : (
+                          <span
+                            className="p-1.5 text-stone-300 cursor-not-allowed"
+                            title="No payments recorded yet"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </span>
+                        )}
+
                         <button
                           onClick={() =>
                             setOpenKebabId(openKebabId === group.bookingId ? null : group.bookingId)
@@ -346,6 +385,19 @@ export function PaymentsTable({
                             className="absolute right-0 mt-1 w-52 rounded-xl border border-stone-200 bg-white py-1 shadow-xl z-30 animate-in fade-in zoom-in-95 duration-100 text-left"
                             onMouseLeave={() => setOpenKebabId(null)}
                           >
+                            {group.latestPayment && (
+                              <button
+                                onClick={() => {
+                                  onInspectPayment(group.latestPayment!);
+                                  setOpenKebabId(null);
+                                }}
+                                className="w-full px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2 cursor-pointer"
+                              >
+                                <Eye className="h-3.5 w-3.5 text-[#3A4F1C]" />
+                                <span>Inspect Payment Details</span>
+                              </button>
+                            )}
+
                             <button
                               onClick={() => {
                                 onSendInvoice({
@@ -435,14 +487,7 @@ export function PaymentsTable({
                                     return (
                                       <tr key={p.id} className="hover:bg-stone-50/60">
                                         <td className="py-2 px-3 font-mono font-medium text-[#2B3817] text-[11px]">
-                                          <button
-                                            type="button"
-                                            onClick={() => onInspectPayment(p)}
-                                            className="hover:underline hover:text-[#3A4F1C] cursor-pointer text-left font-mono font-medium"
-                                            title="Inspect payment details"
-                                          >
-                                            {p.payment_number}
-                                          </button>
+                                          {p.payment_number}
                                         </td>
                                         <td className="py-2 px-3 capitalize text-[11px]">
                                           {formatMethodName(p.payment_method)}

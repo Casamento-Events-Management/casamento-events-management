@@ -609,10 +609,53 @@ export async function recordManualPaymentAction(rawInput: ManualPaymentInput): P
       };
     }
 
+    if (!booking.agreed_total_centavos || booking.agreed_total_centavos <= 0) {
+      return {
+        success: false,
+        error: 'Cannot record payment: No agreed total has been declared for this booking yet.',
+      };
+    }
+
+    const amountCentavos = pesosToCentavos(input.amountPesos);
+
+    if (amountCentavos > booking.agreed_total_centavos) {
+      return {
+        success: false,
+        error: `Payment amount (${formatPesos(amountCentavos)}) cannot exceed the declared contract total (${formatPesos(booking.agreed_total_centavos)}).`,
+      };
+    }
+
+    // Query existing paid payments to compute remaining balance
+    const { data: existingPayments } = await supabase
+      .from('payments')
+      .select('amount_centavos, refund_amount_centavos')
+      .eq('booking_id', booking.id)
+      .eq('status', 'paid');
+
+    const totalPaidBeforeCentavos = (existingPayments || []).reduce((acc, p) => {
+      const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
+      return acc + (net > 0 ? net : 0);
+    }, 0);
+
+    const remainingBeforeCentavos = Math.max(0, booking.agreed_total_centavos - totalPaidBeforeCentavos);
+
+    if (remainingBeforeCentavos <= 0) {
+      return {
+        success: false,
+        error: 'Cannot record payment: This booking is already fully paid.',
+      };
+    }
+
+    if (amountCentavos > remainingBeforeCentavos) {
+      return {
+        success: false,
+        error: `Payment amount (${formatPesos(amountCentavos)}) cannot exceed the remaining balance (${formatPesos(remainingBeforeCentavos)}).`,
+      };
+    }
+
     // 2. Generate identifiers
     const paymentNumber = await generatePaymentNumber();
     const receiptNumber = await generateReceiptNumber();
-    const amountCentavos = pesosToCentavos(input.amountPesos);
 
     // 3. Insert payment record
     const insertPayload = {
@@ -743,7 +786,26 @@ export async function setAgreedTotalAction(rawInput: SetAgreedTotalInput): Promi
 
     const newAgreedCentavos = pesosToCentavos(input.agreedTotalPesos);
 
-    // 2. Update booking
+    // 2. Query total paid to ensure new agreed total is not less than already paid
+    const { data: payments } = await supabase
+      .from('payments')
+      .select('amount_centavos, refund_amount_centavos')
+      .eq('booking_id', booking.id)
+      .eq('status', 'paid');
+
+    const totalPaidCentavos = (payments || []).reduce((acc, p) => {
+      const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
+      return acc + (net > 0 ? net : 0);
+    }, 0);
+
+    if (totalPaidCentavos > 0 && newAgreedCentavos < totalPaidCentavos) {
+      return {
+        success: false,
+        error: `Agreed total (${formatPesos(newAgreedCentavos)}) cannot be less than total amount already paid (${formatPesos(totalPaidCentavos)}).`,
+      };
+    }
+
+    // 3. Update booking
     const { error: updateErr } = await supabase
       .from('bookings')
       .update({
@@ -757,18 +819,6 @@ export async function setAgreedTotalAction(rawInput: SetAgreedTotalInput): Promi
       .eq('id', booking.id);
 
     if (updateErr) throw updateErr;
-
-    // 3. Query total paid to compute balance
-    const { data: payments } = await supabase
-      .from('payments')
-      .select('amount_centavos, refund_amount_centavos')
-      .eq('booking_id', booking.id)
-      .eq('status', 'paid');
-
-    const totalPaidCentavos = (payments || []).reduce((acc, p) => {
-      const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
-      return acc + (net > 0 ? net : 0);
-    }, 0);
 
     const remainingCentavos = Math.max(0, newAgreedCentavos - totalPaidCentavos);
 

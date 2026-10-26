@@ -15,7 +15,11 @@ import {
   FileText,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
-import { formatPesos } from '@/lib/utils/currencyUtils';
+import {
+  formatPesos,
+  handleNumberInputKeyDown,
+  sanitizeNumberInput,
+} from '@/lib/utils/currencyUtils';
 import {
   recordManualPaymentAction,
   searchBookingsForPaymentAction,
@@ -150,6 +154,15 @@ export function RecordPaymentModal({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const maxAllowedPesos = selectedBooking
+    ? (selectedBooking.remaining_balance_centavos !== null
+      ? selectedBooking.remaining_balance_centavos / 100
+      : (selectedBooking.agreed_total_centavos || 0) / 100)
+    : 0;
+
+  const currentAmountNum = parseFloat(amountPesos) || 0;
+  const isAmountExceeded = selectedBooking && maxAllowedPesos > 0 && currentAmountNum > maxAllowedPesos;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -162,6 +175,13 @@ export function RecordPaymentModal({
     const numAmount = parseFloat(amountPesos);
     if (isNaN(numAmount) || numAmount <= 0) {
       setError('Please enter a valid payment amount greater than zero.');
+      return;
+    }
+
+    if (maxAllowedPesos > 0 && numAmount > maxAllowedPesos) {
+      setError(
+        `Payment amount (${formatPesos(numAmount * 100)}) cannot exceed the outstanding balance of ${formatPesos(selectedBooking.remaining_balance_centavos)}.`
+      );
       return;
     }
 
@@ -357,24 +377,43 @@ export function RecordPaymentModal({
           {/* 2. Amount & Payment Method Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-semibold text-stone-800 uppercase tracking-wider text-[10px]">
-                Amount Received (PHP) <span className="text-rose-600">*</span>
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="font-semibold text-stone-800 uppercase tracking-wider text-[10px]">
+                  Amount (PHP) <span className="text-rose-600">*</span>
+                </label>
+                {selectedBooking && maxAllowedPesos > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setAmountPesos(maxAllowedPesos.toFixed(2))}
+                    className="text-[10px] text-[#3A4F1C] hover:underline font-semibold cursor-pointer"
+                  >
+                    Set Full Balance ({formatPesos(selectedBooking.remaining_balance_centavos)})
+                  </button>
+                )}
+              </div>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-stone-500 text-xs">
                   ₱
                 </span>
                 <input
-                  type="number"
-                  step="0.01"
+                  type="text"
+                  inputMode="decimal"
                   required
-                  min="1"
                   value={amountPesos}
-                  onChange={(e) => setAmountPesos(e.target.value)}
+                  onKeyDown={handleNumberInputKeyDown}
+                  onChange={(e) => setAmountPesos(sanitizeNumberInput(e.target.value))}
                   placeholder="0.00"
-                  className="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-[#3A4F1C] focus:outline-hidden"
+                  className={`w-full pl-8 pr-3 py-2 bg-white border rounded-xl text-xs font-semibold focus:outline-hidden ${isAmountExceeded
+                      ? 'border-rose-500 focus:ring-1 focus:ring-rose-500 text-rose-700'
+                      : 'border-stone-200 focus:ring-1 focus:ring-[#3A4F1C]'
+                    }`}
                 />
               </div>
+              {isAmountExceeded && (
+                <p className="text-[10px] text-rose-600 font-semibold">
+                  Amount cannot exceed remaining balance of {formatPesos(selectedBooking?.remaining_balance_centavos)}.
+                </p>
+              )}
             </div>
 
             <div className="space-y-1">
@@ -541,7 +580,7 @@ export function RecordPaymentModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isAmountExceeded || !amountPesos || currentAmountNum <= 0}
               className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-semibold bg-[#3A4F1C] hover:bg-[#2B3817] text-white shadow-xs transition cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (

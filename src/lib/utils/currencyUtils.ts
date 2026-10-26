@@ -54,3 +54,39 @@ export function formatPesosCompact(centavos: number | null | undefined, fallback
   }
   return formatPesos(centavos);
 }
+
+/**
+ * Prevents non-numeric key presses on number input fields (blocks e, E, +, -, etc.)
+ */
+export function handleNumberInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void {
+  // Allow navigation & editing keys
+  if (
+    ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key) ||
+    e.ctrlKey ||
+    e.metaKey
+  ) {
+    return;
+  }
+  // Allow digits
+  if (/^[0-9]$/.test(e.key)) {
+    return;
+  }
+  // Allow a single decimal point
+  if (e.key === '.' && !e.currentTarget.value.includes('.')) {
+    return;
+  }
+  // Prevent any other character (e, E, +, -, letters, symbols)
+  e.preventDefault();
+}
+
+/**
+ * Sanitizes numeric input values, retaining only digits and at most one decimal point.
+ */
+export function sanitizeNumberInput(val: string): string {
+  let cleaned = val.replace(/[^0-9.]/g, '');
+  const parts = cleaned.split('.');
+  if (parts.length > 2) {
+    cleaned = parts[0] + '.' + parts.slice(1).join('');
+  }
+  return cleaned;
+}

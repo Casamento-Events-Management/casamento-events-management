@@ -12,7 +12,11 @@ import {
   Loader2,
   Search,
 } from 'lucide-react';
-import { formatPesos } from '@/lib/utils/currencyUtils';
+import {
+  formatPesos,
+  handleNumberInputKeyDown,
+  sanitizeNumberInput,
+} from '@/lib/utils/currencyUtils';
 import {
   setAgreedTotalAction,
   searchBookingsForPaymentAction,
@@ -118,6 +122,7 @@ export function SetAgreedTotalModal({
   const newAgreedAmountPesos = parseFloat(agreedTotalPesos) || 0;
   const newAgreedCentavos = Math.round(newAgreedAmountPesos * 100);
   const projectedBalanceCentavos = Math.max(0, newAgreedCentavos - currentTotalPaid);
+  const isAgreedLessThanPaid = selectedBooking && currentTotalPaid > 0 && newAgreedCentavos > 0 && newAgreedCentavos < currentTotalPaid;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,6 +135,11 @@ export function SetAgreedTotalModal({
 
     if (isNaN(newAgreedAmountPesos) || newAgreedAmountPesos <= 0) {
       setError('Please enter a valid contract amount greater than zero.');
+      return;
+    }
+
+    if (isAgreedLessThanPaid) {
+      setError(`Agreed contract total (${formatPesos(newAgreedCentavos)}) cannot be less than total amount already paid (${formatPesos(currentTotalPaid)}).`);
       return;
     }
 
@@ -285,16 +295,25 @@ export function SetAgreedTotalModal({
                 ₱
               </span>
               <input
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 required
-                min="1"
                 value={agreedTotalPesos}
-                onChange={(e) => setAgreedTotalPesos(e.target.value)}
+                onKeyDown={handleNumberInputKeyDown}
+                onChange={(e) => setAgreedTotalPesos(sanitizeNumberInput(e.target.value))}
                 placeholder="0.00"
-                className="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-[#3A4F1C] focus:outline-hidden"
+                className={`w-full pl-8 pr-3 py-2 bg-white border rounded-xl text-xs font-semibold focus:outline-hidden ${
+                  isAgreedLessThanPaid
+                    ? 'border-rose-500 focus:ring-1 focus:ring-rose-500 text-rose-700'
+                    : 'border-stone-200 focus:ring-1 focus:ring-[#3A4F1C]'
+                }`}
               />
             </div>
+            {isAgreedLessThanPaid && (
+              <p className="text-[10px] text-rose-600 font-semibold">
+                Agreed total cannot be less than amount already paid ({formatPesos(currentTotalPaid)}).
+              </p>
+            )}
           </div>
 
           {/* 3. Live Balance Preview Box */}
@@ -355,7 +374,7 @@ export function SetAgreedTotalModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isAgreedLessThanPaid || !agreedTotalPesos || newAgreedAmountPesos <= 0}
               className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-semibold bg-[#3A4F1C] hover:bg-[#2B3817] text-white shadow-xs transition cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (

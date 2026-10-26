@@ -14,7 +14,11 @@ import {
   Send,
 } from 'lucide-react';
 import { sendPaymentInvoiceAction } from '@/lib/services/admin-payment-actions';
-import { formatPesos } from '@/lib/utils/currencyUtils';
+import {
+  formatPesos,
+  handleNumberInputKeyDown,
+  sanitizeNumberInput,
+} from '@/lib/utils/currencyUtils';
 
 export interface InvoiceBookingTarget {
   bookingId: string;
@@ -198,13 +202,12 @@ export function SendPaymentInvoiceModal({
                 ₱
               </span>
               <input
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 required
-                min="1"
-                max={maxAllowedPesos}
                 value={invoiceAmountPesos}
-                onChange={(e) => setInvoiceAmountPesos(e.target.value)}
+                onKeyDown={handleNumberInputKeyDown}
+                onChange={(e) => setInvoiceAmountPesos(sanitizeNumberInput(e.target.value))}
                 placeholder="0.00"
                 className="w-full pl-8 pr-3 py-2 bg-white border border-stone-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-[#3A4F1C] focus:outline-hidden"
               />
