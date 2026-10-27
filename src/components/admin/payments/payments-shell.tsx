@@ -411,42 +411,48 @@ export function PaymentsShell() {
       </div>
 
       {/* 5. Modals */}
-      <RecordPaymentModal
-        isOpen={isRecordModalOpen}
-        initialBookingId={activeBookingIdForModal}
-        onClose={() => {
-          setIsRecordModalOpen(false);
-          setActiveBookingIdForModal(undefined);
-          updateUrlParams({ modal: null, bookingId: null });
-        }}
-        onSuccess={() => {
-          loadStats();
-          loadPayments();
-        }}
-      />
+      {isRecordModalOpen && (
+        <RecordPaymentModal
+          key={`record-payment-${activeBookingIdForModal || 'new'}`}
+          isOpen={isRecordModalOpen}
+          initialBookingId={activeBookingIdForModal}
+          onClose={() => {
+            setIsRecordModalOpen(false);
+            setActiveBookingIdForModal(undefined);
+            updateUrlParams({ modal: null, bookingId: null });
+          }}
+          onSuccess={() => {
+            loadStats();
+            loadPayments();
+          }}
+        />
+      )}
 
-      <SetAgreedTotalModal
-        isOpen={isAgreedModalOpen}
-        initialBookingId={activeBookingIdForModal}
-        onViewBookingDetails={async (bookingRef) => {
-          const res = await getBookingByReferenceAction(bookingRef);
-          if (res.success && res.booking) {
-            setInspectingBooking(res.booking);
-            updateUrlParams({ modal: 'booking-detail', bookingRef });
-          } else {
-            alert(res.error || 'Failed to load booking details');
-          }
-        }}
-        onClose={() => {
-          setIsAgreedModalOpen(false);
-          setActiveBookingIdForModal(undefined);
-          updateUrlParams({ modal: null, bookingId: null });
-        }}
-        onSuccess={() => {
-          loadStats();
-          loadPayments();
-        }}
-      />
+      {isAgreedModalOpen && (
+        <SetAgreedTotalModal
+          key={`agreed-total-${activeBookingIdForModal || 'new'}`}
+          isOpen={isAgreedModalOpen}
+          initialBookingId={activeBookingIdForModal}
+          onViewBookingDetails={async (bookingRef) => {
+            const res = await getBookingByReferenceAction(bookingRef);
+            if (res.success && res.booking) {
+              setInspectingBooking(res.booking);
+              updateUrlParams({ modal: 'booking-detail', bookingRef });
+            } else {
+              alert(res.error || 'Failed to load booking details');
+            }
+          }}
+          onClose={() => {
+            setIsAgreedModalOpen(false);
+            setActiveBookingIdForModal(undefined);
+            updateUrlParams({ modal: null, bookingId: null });
+          }}
+          onSuccess={() => {
+            loadStats();
+            loadPayments();
+          }}
+        />
+      )}
 
       <PaymentInspectorModal
         payment={inspectPayment}

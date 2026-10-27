@@ -22,6 +22,7 @@ import {
   Archive,
 } from 'lucide-react';
 import { formatPesos } from '@/lib/utils/currencyUtils';
+import { formatPaymentDateTime } from '@/lib/utils/dateUtils';
 import type { ExtendedPaymentRecord } from '@/lib/services/admin-payment-actions';
 
 export interface GroupedBookingPayment {
@@ -373,11 +374,18 @@ export function PaymentsTable({
               // 1. Add explicit refund rows from DB
               for (const ref of explicitRefundPayments) {
                 const sortTime = getSortTime(ref.paid_at, ref.refunded_at || ref.created_at);
+                const isPaidAtMidnight =
+                  ref.paid_at &&
+                  ((new Date(ref.paid_at).getUTCHours() === 0 && new Date(ref.paid_at).getUTCMinutes() === 0) ||
+                    (new Date(ref.paid_at).getHours() === 0 && new Date(ref.paid_at).getMinutes() === 0));
+
+                const eventDate = ref.refunded_at || (!isPaidAtMidnight && ref.paid_at ? ref.paid_at : ref.created_at) || ref.paid_at;
+
                 timelineEvents.push({
                   id: ref.id,
                   paymentNumber: ref.payment_number,
                   method: 'refund',
-                  date: ref.paid_at || ref.created_at,
+                  date: eventDate,
                   sortTime,
                   amountCentavos: ref.amount_centavos,
                   isRefund: true,
@@ -395,6 +403,13 @@ export function PaymentsTable({
                 const remainingRefundable = Math.max(0, p.amount_centavos - refundedCentavos);
                 const sortTime = getSortTime(p.paid_at, p.created_at);
 
+                const isPaidAtMidnight =
+                  p.paid_at &&
+                  ((new Date(p.paid_at).getUTCHours() === 0 && new Date(p.paid_at).getUTCMinutes() === 0) ||
+                    (new Date(p.paid_at).getHours() === 0 && new Date(p.paid_at).getMinutes() === 0));
+
+                const eventDate = (!isPaidAtMidnight && p.paid_at) ? p.paid_at : (p.created_at || p.paid_at);
+
                 let entryStatus: TimelineEntry['status'] = 'paid';
                 if (p.status === 'failed' || p.status === 'cancelled' || p.status === 'pending') {
                   entryStatus = p.status;
@@ -406,7 +421,7 @@ export function PaymentsTable({
                   id: p.id,
                   paymentNumber: p.payment_number,
                   method: p.payment_method,
-                  date: p.paid_at || p.created_at,
+                  date: eventDate,
                   sortTime,
                   amountCentavos: p.amount_centavos,
                   isRefund: false,
@@ -439,7 +454,7 @@ export function PaymentsTable({
                       id: `synth-ref-${p.id}`,
                       paymentNumber: `REF-${p.payment_number.replace(/^PAY-?/i, '')}`,
                       method: 'refund',
-                      date: p.refunded_at || p.updated_at || p.paid_at,
+                      date: p.refunded_at || p.updated_at || p.created_at || p.paid_at,
                       sortTime: refundTime,
                       amountCentavos: refundedCentavos,
                       isRefund: true,
@@ -543,11 +558,7 @@ export function PaymentsTable({
                     {/* Date Agreed */}
                     <td className="py-3 px-3 text-stone-600 whitespace-nowrap">
                       {group.declaredDate
-                        ? new Date(group.declaredDate).toLocaleDateString('en-PH', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })
+                        ? formatPaymentDateTime(group.declaredDate)
                         : '—'}
                     </td>
 
@@ -768,11 +779,7 @@ export function PaymentsTable({
                                           )}
                                         </td>
                                         <td className="py-2 px-3 text-stone-600 whitespace-nowrap text-[11px]">
-                                          {new Date(item.date).toLocaleDateString('en-PH', {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric',
-                                          })}
+                                          {formatPaymentDateTime(item.date)}
                                         </td>
                                         <td className="py-2 px-3 text-right font-bold whitespace-nowrap text-[11px] font-mono">
                                           {item.isRefund ? (

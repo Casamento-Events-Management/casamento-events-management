@@ -17,6 +17,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { formatPesos } from '@/lib/utils/currencyUtils';
+import { formatPaymentDateTime } from '@/lib/utils/dateUtils';
 import type { ExtendedPaymentRecord } from '@/lib/services/admin-payment-actions';
 
 interface PaymentInspectorModalProps {
@@ -205,11 +206,7 @@ export function PaymentInspectorModal({
                               {p.payment_method.replace('_', ' ')}
                             </td>
                             <td className="py-2 px-2.5 text-stone-500 text-[11px] whitespace-nowrap">
-                              {new Date(p.paid_at).toLocaleDateString('en-PH', {
-                                month: 'short',
-                                day: 'numeric',
-                                year: 'numeric',
-                              })}
+                              {formatPaymentDateTime(p.paid_at || p.created_at)}
                             </td>
                             <td className="py-2 px-3 text-right font-bold text-emerald-800 whitespace-nowrap text-[11px]">
                               {formatPesos(p.amount_centavos)}

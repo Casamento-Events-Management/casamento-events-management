@@ -19,3 +19,28 @@ export function calculateDaysRemaining(eventDateStr: string): number {
   const diffMs = target.getTime() - today.getTime();
   return Math.round(diffMs / (1000 * 60 * 60 * 24));
 }
+
+/**
+ * Formats a date or timestamp into "MMM d, yyyy, h:mm a" (e.g. "Oct 27, 2026, 12:00 PM").
+ * Time is strictly in 12-hour format with AM/PM.
+ */
+export function formatPaymentDateTime(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '—';
+    const dateFormatted = d.toLocaleDateString('en-PH', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+    const timeFormatted = d.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return `${dateFormatted}, ${timeFormatted}`;
+  } catch {
+    return dateStr || '—';
+  }
+}

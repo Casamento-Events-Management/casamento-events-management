@@ -79,12 +79,43 @@ export function RecordPaymentModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Esc Key & Scroll Lock
+  // Full form state reset (ensures zero state bleeding between sessions)
+  const resetForm = () => {
+    setBookingSearch('');
+    setSelectedBooking(null);
+    setAmountPesos('');
+    setPaymentMethod('bank_transfer');
+    setPaidAt(new Date().toISOString().slice(0, 10));
+    setBankName('BDO');
+    setReferenceNumber('');
+    setSenderName('');
+    setNotes('');
+    setSendReceiptEmail(true);
+    setProofFile(null);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
+
+  // 1. Reset state on modal open
+  useEffect(() => {
+    if (isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
+
+  // 2. Esc Key & Scroll Lock
   useEffect(() => {
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') handleClose();
     };
 
     document.body.style.overflow = 'hidden';
@@ -94,9 +125,9 @@ export function RecordPaymentModal({
       document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
-  // 2. Initial Booking Fetch
+  // 3. Initial Booking Fetch
   useEffect(() => {
     if (!isOpen) return;
 
@@ -132,7 +163,7 @@ export function RecordPaymentModal({
   // Outside click to close
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-      onClose();
+      handleClose();
     }
   };
 
@@ -242,6 +273,7 @@ export function RecordPaymentModal({
         throw new Error(res.error || 'Failed to record payment');
       }
 
+      resetForm();
       onSuccess();
       onClose();
     } catch (err) {
@@ -272,7 +304,7 @@ export function RecordPaymentModal({
             <h3 className="font-serif font-semibold text-xs sm:text-sm">Record Payment</h3>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-1 rounded-lg text-[#F7F3E8]/70 hover:text-white hover:bg-white/10 transition cursor-pointer"
           >
             <X className="h-4 w-4" />
@@ -573,7 +605,7 @@ export function RecordPaymentModal({
           <div className="pt-3 border-t border-stone-200 flex items-center justify-end gap-2.5">
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               disabled={isSubmitting}
               className="px-4 py-2 rounded-xl text-xs font-semibold text-stone-700 hover:bg-stone-200/60 transition cursor-pointer"
             >
