@@ -155,7 +155,7 @@ export function PendingFeedbackList({
           <span>No feedback items currently awaiting approval.</span>
         </div>
       ) : (
-        <div className="divide-y divide-stone-100 max-h-[380px] sm:max-h-[420px] overflow-y-auto overflow-x-hidden">
+        <div className="divide-y divide-stone-100 max-h-[380px] sm:max-h-[420px] overflow-y-auto overflow-x-hidden px-3.5">
           {visibleFeedbacks.map((item) => {
             const isBusy = processingIds.has(item.id);
 
