@@ -25,7 +25,7 @@ export interface BookingHeroContent {
 }
 
 export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
-export type PaymentStatus = 'unpaid' | 'downpayment_pending' | 'paid' | 'waived';
+export type PaymentStatus = 'undeclared' | 'unpaid' | 'downpayment_pending' | 'partially_paid' | 'paid' | 'refunded' | 'waived';
 export type PaymentProvider = 'dragonpay' | 'paypal';
 
 /**
@@ -56,6 +56,11 @@ export interface BookingRecord {
   payment_provider: PaymentProvider | null;
   payment_status: PaymentStatus;
   status: BookingStatus;
+  agreed_total_centavos?: number | null;
+  agreed_total_currency?: string;
+  agreed_total_set_at?: string | null;
+  agreed_total_set_by?: string | null;
+  agreed_total_notes?: string | null;
   rejection_reason?: string | null;
   admin_notes?: string | null;
   decision_by?: string | null;
@@ -169,6 +174,9 @@ export interface AdminCreateBookingInput {
   special_notes?: string | null;
   admin_notes?: string | null;
   status?: BookingStatus;
+  agreed_total_pesos?: number | null;
+  agreed_total_notes?: string | null;
+  send_agreed_total_email?: boolean;
 }
 
 /**

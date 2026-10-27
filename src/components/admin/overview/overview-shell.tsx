@@ -17,7 +17,9 @@ import { PersonalTasksList } from './personal-tasks-list';
 import { RecentActivityList } from './recent-activity-list';
 import { MonthlyStatsBar } from './monthly-stats-bar';
 import { PendingFeedbackList } from './pending-feedback-list';
+import { PaymentsStatsGrid } from '@/components/admin/payments/payments-stats-grid';
 import { getPendingFeedbacksAction } from '@/lib/services/admin-feedback-service';
+import { fetchPaymentStatsAction } from '@/lib/services/admin-payment-actions';
 
 interface OverviewShellProps {
   initialData: OverviewPayload;
@@ -30,7 +32,7 @@ export function OverviewShell({ initialData, profile }: OverviewShellProps) {
   const lastFetchedRef = useRef<number>(0);
   const isStaff = profile.role === 'staff';
 
-  // Client-side refresh using browser Supabase instance + Server Action for pending feedbacks
+  // Client-side refresh using browser Supabase instance + Server Action for pending feedbacks & payment stats
   const refreshData = useCallback(async () => {
     setIsRefreshing(true);
     try {
@@ -38,10 +40,16 @@ export function OverviewShell({ initialData, profile }: OverviewShellProps) {
       const fresh = await fetchOverviewData(browserClient, profile);
 
       if (!isStaff) {
-        const fbRes = await getPendingFeedbacksAction();
+        const [fbRes, payRes] = await Promise.all([
+          getPendingFeedbacksAction(),
+          fetchPaymentStatsAction(),
+        ]);
         if (fbRes.success && fbRes.feedbacks) {
           fresh.pendingFeedbacks = fbRes.feedbacks;
           fresh.needsAttention.pendingFeedbacksCount = fbRes.feedbacks.length;
+        }
+        if (payRes.success && payRes.stats) {
+          fresh.paymentStats = payRes.stats;
         }
       }
 
@@ -120,6 +128,11 @@ export function OverviewShell({ initialData, profile }: OverviewShellProps) {
 
       {/* Action Required / Calm State */}
       <NeedsAttentionBar data={data.needsAttention} isStaff={isStaff} />
+
+      {/* Payment Stats Grid (Rendered immediately after Action Required card) */}
+      {!isStaff && (
+        <PaymentsStatsGrid stats={data.paymentStats || null} />
+      )}
 
       {!isStaff && (
         <MonthlyStatsBar stats={data.monthlyStats} />

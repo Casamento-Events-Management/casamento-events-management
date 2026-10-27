@@ -129,7 +129,7 @@ export function NeedsAttentionBar({ data, isStaff }: NeedsAttentionBarProps) {
   }
 
   return (
-    <div className="rounded-2xl border border-stone-200/90 bg-white p-4 shadow-2xs space-y-2.5">
+    <div className="rounded-2xl border border-stone-200/90 bg-white p-3.5 sm:p-4 shadow-2xs space-y-2.5">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
         <h2 className="text-xs font-semibold text-stone-900 uppercase tracking-wider">
@@ -138,34 +138,34 @@ export function NeedsAttentionBar({ data, isStaff }: NeedsAttentionBarProps) {
       </div>
 
       {/* Action Pills Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
         {items.map((item) => {
           const Icon = item.icon;
           return (
             <Link
               key={item.id}
               href={item.href}
-              className={`group flex items-center gap-3 rounded-xl border p-3 transition shadow-2xs cursor-pointer ${item.accentClass}`}
+              className={`group flex items-center gap-2 sm:gap-3 rounded-xl border p-2.5 sm:p-3 transition shadow-2xs cursor-pointer ${item.accentClass}`}
             >
-              <div className="h-8 w-8 rounded-lg bg-white/80 inline-flex items-center justify-center shrink-0 shadow-2xs">
-                <Icon className="h-4 w-4" />
+              <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-lg bg-white/80 inline-flex items-center justify-center shrink-0 shadow-2xs">
+                <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-sm font-bold">{item.count}</span>
+                <div className="flex items-center gap-1 sm:gap-1.5">
+                  <span className="text-xs sm:text-sm font-bold">{item.count}</span>
                   {item.badge && (
-                    <span className="rounded-md bg-white/70 px-1.5 py-0.2 text-[9px] font-semibold uppercase tracking-tight">
+                    <span className="rounded-md bg-white/70 px-1 sm:px-1.5 py-0.2 text-[8px] sm:text-[9px] font-semibold uppercase tracking-tight truncate">
                       {item.badge}
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] font-medium truncate opacity-90">
+                <p className="text-[10px] sm:text-[11px] font-medium truncate opacity-90">
                   {item.title}
                 </p>
               </div>
 
-              <div className="shrink-0 ml-auto">
+              <div className="shrink-0 ml-auto hidden sm:block">
                 <ChevronRight className="h-3.5 w-3.5 opacity-60 group-hover:translate-x-0.5 transition" />
               </div>
             </Link>

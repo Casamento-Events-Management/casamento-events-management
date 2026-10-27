@@ -16,7 +16,7 @@ interface RecentActivityListProps {
   activities: OverviewRecentActivity[];
 }
 
-export function RecentActivityList({ activities }: RecentActivityListProps) {
+export function RecentActivityList({ activities = [] }: RecentActivityListProps) {
   const formatRelativeTime = (isoString: string) => {
     try {
       const date = new Date(isoString);

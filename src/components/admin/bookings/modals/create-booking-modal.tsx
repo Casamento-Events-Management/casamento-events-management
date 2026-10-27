@@ -5,9 +5,10 @@
 // =============================================================================
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { PlusCircle, AlertCircle, Loader2, X, Calendar, MapPin, User, Mail, Phone, Building, Sparkles, FileText, Globe } from 'lucide-react';
+import { PlusCircle, AlertCircle, Loader2, X, Calendar, MapPin, User, Mail, Phone, Building, Sparkles, FileText, Globe, CreditCard } from 'lucide-react';
 import type { BookingRecord, AdminCreateBookingInput } from '@/types/booking';
 import { getCountriesList, checkCountryHoliday } from '@/lib/utils/holidayUtils';
+import { handleNumberInputKeyDown, sanitizeNumberInput } from '@/lib/utils/currencyUtils';
 
 interface CreateBookingModalProps {
   isOpen: boolean;
@@ -38,6 +39,10 @@ export function CreateBookingModal({
     admin_notes: '',
     status: 'pending',
   });
+
+  const [agreedTotalPesos, setAgreedTotalPesos] = useState<string>('');
+  const [agreedTotalNotes, setAgreedTotalNotes] = useState<string>('');
+  const [sendAgreedTotalEmail, setSendAgreedTotalEmail] = useState<boolean>(true);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,11 +110,22 @@ export function CreateBookingModal({
       return;
     }
 
+    const agreedNum = agreedTotalPesos ? parseFloat(agreedTotalPesos) : null;
+    if (agreedNum !== null && (isNaN(agreedNum) || agreedNum <= 0)) {
+      setError('Please enter a valid contract total greater than zero, or leave it empty.');
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
     try {
-      await onCreate(formData);
+      await onCreate({
+        ...formData,
+        agreed_total_pesos: agreedNum,
+        agreed_total_notes: agreedTotalNotes.trim() || null,
+        send_agreed_total_email: sendAgreedTotalEmail,
+      });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create event.');
@@ -358,6 +374,63 @@ export function CreateBookingModal({
                 onChange={(e) => setFormData({ ...formData, add_ons_text: e.target.value })}
                 className="w-full rounded-lg border border-stone-300 px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden"
               />
+            </div>
+          </div>
+
+          {/* Pricing & Agreed Contract Total Section */}
+          <div className="pt-2 border-t border-stone-200">
+            <h4 className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-[#3A4F1C]/70 mb-2 sm:mb-2.5">
+              Pricing & Contract Agreement
+            </h4>
+            <div className="space-y-2.5 sm:space-y-3 bg-[#F7F3E8]/50 p-3 rounded-xl border border-[#3A4F1C]/15">
+              <div>
+                <label className="flex items-center gap-1.5 text-[11px] sm:text-xs font-semibold text-stone-700 mb-1" title="Agreed Contract Total">
+                  <CreditCard className="h-3.5 w-3.5 text-[#3A4F1C]" />
+                  <span>Agreed Contract Total (PHP)</span>
+                  <span className="text-[10px] font-normal text-stone-500">(Optional)</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-stone-500 text-xs">
+                    ₱
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0.00 (Leave empty if not yet declared)"
+                    value={agreedTotalPesos}
+                    onKeyDown={handleNumberInputKeyDown}
+                    onChange={(e) => setAgreedTotalPesos(sanitizeNumberInput(e.target.value))}
+                    className="w-full rounded-lg border border-stone-300 bg-white pl-8 pr-3 py-1.5 text-[11px] sm:text-xs text-stone-900 font-semibold focus:border-[#3A4F1C] focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              {Boolean(parseFloat(agreedTotalPesos) > 0) && (
+                <div className="space-y-2.5 pt-2 border-t border-[#3A4F1C]/10 animate-in fade-in duration-150">
+                  <div>
+                    <label className="block text-[11px] sm:text-xs font-semibold text-stone-700 mb-1">
+                      Contract Scope / Terms <span className="text-[10px] font-normal text-stone-500">(Optional)</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Package inclusions, milestone payment terms"
+                      value={agreedTotalNotes}
+                      onChange={(e) => setAgreedTotalNotes(e.target.value)}
+                      className="w-full rounded-lg border border-stone-300 bg-white px-2.5 py-1.5 text-[11px] sm:text-xs text-stone-900 focus:border-[#3A4F1C] focus:outline-hidden"
+                    />
+                  </div>
+
+                  <label className="flex items-center gap-2 cursor-pointer text-[11px] sm:text-xs text-stone-700">
+                    <input
+                      type="checkbox"
+                      checked={sendAgreedTotalEmail}
+                      onChange={(e) => setSendAgreedTotalEmail(e.target.checked)}
+                      className="rounded text-[#3A4F1C] focus:ring-[#3A4F1C]"
+                    />
+                    <span>Send contract agreed total notification email to client</span>
+                  </label>
+                </div>
+              )}
             </div>
           </div>
 

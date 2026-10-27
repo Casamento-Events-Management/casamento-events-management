@@ -14,7 +14,9 @@ import {
   buildBookingClientAcceptedEmail,
   buildBookingClientRejectedEmail,
   buildBookingClientUpdatedEmail,
+  buildBookingClientAgreedTotalEmail,
 } from '@/lib/email';
+import { formatPesos } from '@/lib/utils/currencyUtils';
 import { parseContactEmailRecipients, parseContactEmailCC } from '@/lib/utils/envUtils';
 import { generateBookingReference } from '@/lib/services/bookingDbService';
 import { checkCountryHoliday } from '@/lib/utils/holidayUtils';
@@ -51,6 +53,9 @@ const createBookingSchema = z.object({
   special_notes: z.string().nullable().optional(),
   admin_notes: z.string().nullable().optional(),
   status: z.enum(['pending', 'confirmed', 'completed', 'cancelled']).default('pending'),
+  agreed_total_pesos: z.number().positive().nullable().optional(),
+  agreed_total_notes: z.string().nullable().optional(),
+  send_agreed_total_email: z.boolean().default(true).optional(),
 });
 
 /**
@@ -513,6 +518,11 @@ export async function createBookingAction(
   const now = new Date().toISOString();
   const holidayCheck = checkCountryHoliday(data.event_date, data.event_country || 'PH');
 
+  const agreedTotalCentavos =
+    data.agreed_total_pesos && data.agreed_total_pesos > 0
+      ? Math.round(data.agreed_total_pesos * 100)
+      : null;
+
   const insertPayload = {
     booking_reference: bookingReference,
     service_id: `custom-${slugify(data.service_title) || 'event'}`,
@@ -535,8 +545,13 @@ export async function createBookingAction(
     special_notes: data.special_notes ? data.special_notes.trim() : null,
     admin_notes: data.admin_notes ? data.admin_notes.trim() : null,
     status: data.status || 'pending',
-    payment_status: 'unpaid',
+    payment_status: agreedTotalCentavos ? 'unpaid' : 'undeclared',
     payment_enabled: false,
+    agreed_total_centavos: agreedTotalCentavos,
+    agreed_total_currency: 'PHP',
+    agreed_total_set_at: agreedTotalCentavos ? now : null,
+    agreed_total_set_by: agreedTotalCentavos ? adminData.user.id : null,
+    agreed_total_notes: data.agreed_total_notes ? data.agreed_total_notes.trim() : null,
     email_verified_at: now,
     created_at: now,
     updated_at: now,
@@ -563,7 +578,7 @@ export async function createBookingAction(
     action: 'Create',
     severity: 'Info',
     outcome: 'Success',
-    summary: `${adminData.profile.full_name} created new event booking ${bookingReference} for ${data.client_full_name}`,
+    summary: `${adminData.profile.full_name} created new event booking ${bookingReference} for ${data.client_full_name}${agreedTotalCentavos ? ` with agreed total ${formatPesos(agreedTotalCentavos)}` : ''}`,
     entityType: 'booking',
     entityId: createdBooking.id,
     entityRef: bookingReference,
@@ -571,10 +586,34 @@ export async function createBookingAction(
       service: data.service_title,
       eventDate: data.event_date,
       status: data.status,
+      agreedTotal: agreedTotalCentavos ? formatPesos(agreedTotalCentavos) : null,
     },
   });
 
+  // 1 Email Dispatch: If agreed total is declared and notification requested
+  if (data.send_agreed_total_email && agreedTotalCentavos && agreedTotalCentavos > 0) {
+    const { subject, html } = buildBookingClientAgreedTotalEmail({
+      clientFullName: createdBooking.client_full_name,
+      clientEmail: createdBooking.client_email,
+      bookingReference: createdBooking.booking_reference,
+      serviceTitle: createdBooking.service_title,
+      eventDate: createdBooking.event_date,
+      agreedTotalFormatted: formatPesos(agreedTotalCentavos),
+      totalPaidFormatted: formatPesos(0),
+      remainingBalanceFormatted: formatPesos(agreedTotalCentavos),
+      notes: data.agreed_total_notes,
+    });
+
+    await dispatchClientEmail(
+      createdBooking.client_email,
+      subject,
+      html,
+      createdBooking.booking_reference
+    );
+  }
+
   revalidatePath('/admin/bookings');
+  revalidatePath('/admin/payments');
   return { success: true, booking: createdBooking as BookingRecord };
 }
 
@@ -596,6 +635,33 @@ export async function getBookingByIdAction(bookingId: string): Promise<{
     .from('bookings')
     .select('*')
     .eq('id', bookingId)
+    .single();
+
+  if (error || !data) {
+    return { success: false, error: 'Target booking not found.' };
+  }
+
+  return { success: true, booking: data as BookingRecord };
+}
+
+/**
+ * Fetches a booking by its reference code (e.g. CSM-2026-XXXXX).
+ */
+export async function getBookingByReferenceAction(bookingReference: string): Promise<{
+  success: boolean;
+  error?: string;
+  booking?: BookingRecord;
+}> {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData) {
+    return { success: false, error: 'Unauthorized: Active admin session required.' };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('bookings')
+    .select('*')
+    .eq('booking_reference', bookingReference)
     .single();
 
   if (error || !data) {

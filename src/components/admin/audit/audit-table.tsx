@@ -186,8 +186,8 @@ export function AuditTable() {
                 const acks = Array.isArray(item.audit_log_acknowledgments)
                   ? item.audit_log_acknowledgments
                   : item.audit_log_acknowledgments
-                  ? [item.audit_log_acknowledgments]
-                  : [];
+                    ? [item.audit_log_acknowledgments]
+                    : [];
                 return acks.length === 0;
               });
             }
@@ -463,7 +463,7 @@ export function AuditTable() {
                       className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs text-left text-[#2B3817] hover:bg-[#FAF8F2] transition cursor-pointer"
                     >
                       <Download className="h-3.5 w-3.5 text-[#3A4F1C]" />
-                      <span>Export CSV</span>
+                      <span>CSV</span>
                     </button>
                     <button
                       type="button"
@@ -512,11 +512,10 @@ export function AuditTable() {
                   onClick={() =>
                     setOpenDropdown(openDropdown === 'preset' ? null : 'preset')
                   }
-                  className={`flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-medium transition cursor-pointer shadow-2xs ${
-                    activeTab !== 'all'
+                  className={`flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-medium transition cursor-pointer shadow-2xs ${activeTab !== 'all'
                       ? 'border-[#3A4F1C] bg-[#3A4F1C] text-white'
                       : 'border-[#3A4F1C]/20 bg-white text-[#2B3817] hover:bg-[#3A4F1C]/5'
-                  }`}
+                    }`}
                   title="Activity View Preset"
                 >
                   <SlidersHorizontal className="h-3.5 w-3.5 shrink-0" />
@@ -524,10 +523,10 @@ export function AuditTable() {
                     {activeTab === 'all'
                       ? 'View'
                       : activeTab === 'needs_attention'
-                      ? 'Attention'
-                      : activeTab === 'bookings'
-                      ? 'Bookings'
-                      : 'Team'}
+                        ? 'Attention'
+                        : activeTab === 'bookings'
+                          ? 'Bookings'
+                          : 'Team'}
                   </span>
                   <ChevronDown className="h-3 w-3 opacity-70 shrink-0" />
                 </button>
@@ -551,11 +550,10 @@ export function AuditTable() {
                           setPage(1);
                           setOpenDropdown(null);
                         }}
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition cursor-pointer ${
-                          activeTab === tab.key
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition cursor-pointer ${activeTab === tab.key
                             ? 'bg-[#3A4F1C]/10 font-semibold text-[#3A4F1C]'
                             : 'text-[#2B3817] hover:bg-[#FAF8F2]'
-                        }`}
+                          }`}
                       >
                         <span className="flex items-center gap-1.5">
                           {tab.isAlert && <AlertTriangle className="h-3 w-3 text-amber-600" />}
@@ -577,11 +575,10 @@ export function AuditTable() {
                   onClick={() =>
                     setOpenDropdown(openDropdown === 'category' ? null : 'category')
                   }
-                  className={`flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-medium transition cursor-pointer shadow-2xs ${
-                    categoryFilter !== 'all'
+                  className={`flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-medium transition cursor-pointer shadow-2xs ${categoryFilter !== 'all'
                       ? 'border-[#3A4F1C] bg-[#3A4F1C] text-white'
                       : 'border-[#3A4F1C]/20 bg-white text-[#2B3817] hover:bg-[#3A4F1C]/5'
-                  }`}
+                    }`}
                   title="Filter by Category"
                 >
                   <Layers className="h-3.5 w-3.5 shrink-0" />
@@ -615,11 +612,10 @@ export function AuditTable() {
                           setPage(1);
                           setOpenDropdown(null);
                         }}
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition cursor-pointer ${
-                          categoryFilter === cat
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition cursor-pointer ${categoryFilter === cat
                             ? 'bg-[#3A4F1C]/10 font-semibold text-[#3A4F1C]'
                             : 'text-[#2B3817] hover:bg-[#FAF8F2]'
-                        }`}
+                          }`}
                       >
                         <span>{cat === 'all' ? 'All Categories' : cat}</span>
                         {categoryFilter === cat && <Check className="h-3.5 w-3.5 text-[#3A4F1C]" />}
@@ -636,11 +632,10 @@ export function AuditTable() {
                   onClick={() =>
                     setOpenDropdown(openDropdown === 'severity' ? null : 'severity')
                   }
-                  className={`flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-medium transition cursor-pointer shadow-2xs ${
-                    severityFilter !== 'all'
+                  className={`flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-medium transition cursor-pointer shadow-2xs ${severityFilter !== 'all'
                       ? 'border-[#3A4F1C] bg-[#3A4F1C] text-white'
                       : 'border-[#3A4F1C]/20 bg-white text-[#2B3817] hover:bg-[#3A4F1C]/5'
-                  }`}
+                    }`}
                   title="Filter by Severity"
                 >
                   <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
@@ -664,11 +659,10 @@ export function AuditTable() {
                           setPage(1);
                           setOpenDropdown(null);
                         }}
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition cursor-pointer ${
-                          severityFilter === sev
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition cursor-pointer ${severityFilter === sev
                             ? 'bg-[#3A4F1C]/10 font-semibold text-[#3A4F1C]'
                             : 'text-[#2B3817] hover:bg-[#FAF8F2]'
-                        }`}
+                          }`}
                       >
                         <span>{sev === 'all' ? 'All Severities' : sev}</span>
                         {severityFilter === sev && <Check className="h-3.5 w-3.5 text-[#3A4F1C]" />}
@@ -685,11 +679,10 @@ export function AuditTable() {
                   onClick={() =>
                     setOpenDropdown(openDropdown === 'outcome' ? null : 'outcome')
                   }
-                  className={`flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-medium transition cursor-pointer shadow-2xs ${
-                    outcomeFilter !== 'all'
+                  className={`flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-medium transition cursor-pointer shadow-2xs ${outcomeFilter !== 'all'
                       ? 'border-[#3A4F1C] bg-[#3A4F1C] text-white'
                       : 'border-[#3A4F1C]/20 bg-white text-[#2B3817] hover:bg-[#3A4F1C]/5'
-                  }`}
+                    }`}
                   title="Filter by Outcome"
                 >
                   <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
@@ -713,11 +706,10 @@ export function AuditTable() {
                           setPage(1);
                           setOpenDropdown(null);
                         }}
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition cursor-pointer ${
-                          outcomeFilter === out
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition cursor-pointer ${outcomeFilter === out
                             ? 'bg-[#3A4F1C]/10 font-semibold text-[#3A4F1C]'
                             : 'text-[#2B3817] hover:bg-[#FAF8F2]'
-                        }`}
+                          }`}
                       >
                         <span>{out === 'all' ? 'All Outcomes' : out}</span>
                         {outcomeFilter === out && <Check className="h-3.5 w-3.5 text-[#3A4F1C]" />}
@@ -734,11 +726,10 @@ export function AuditTable() {
                   onClick={() =>
                     setOpenDropdown(openDropdown === 'date' ? null : 'date')
                   }
-                  className={`flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-medium transition cursor-pointer shadow-2xs ${
-                    dateRangeFilter !== 'all'
+                  className={`flex items-center gap-1 sm:gap-1.5 rounded-lg border px-2 sm:px-2.5 py-1.5 text-[11px] sm:text-xs font-medium transition cursor-pointer shadow-2xs ${dateRangeFilter !== 'all'
                       ? 'border-[#3A4F1C] bg-[#3A4F1C] text-white'
                       : 'border-[#3A4F1C]/20 bg-white text-[#2B3817] hover:bg-[#3A4F1C]/5'
-                  }`}
+                    }`}
                   title="Filter by Date Range"
                 >
                   <Calendar className="h-3.5 w-3.5 shrink-0" />
@@ -746,10 +737,10 @@ export function AuditTable() {
                     {dateRangeFilter === 'all'
                       ? 'Date'
                       : dateRangeFilter === 'today'
-                      ? 'Today'
-                      : dateRangeFilter === '7d'
-                      ? 'Last 7d'
-                      : 'Last 30d'}
+                        ? 'Today'
+                        : dateRangeFilter === '7d'
+                          ? 'Last 7d'
+                          : 'Last 30d'}
                   </span>
                   <ChevronDown className="h-3 w-3 opacity-70 shrink-0" />
                 </button>
@@ -773,11 +764,10 @@ export function AuditTable() {
                           setPage(1);
                           setOpenDropdown(null);
                         }}
-                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition cursor-pointer ${
-                          dateRangeFilter === d.key
+                        className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-xs text-left transition cursor-pointer ${dateRangeFilter === d.key
                             ? 'bg-[#3A4F1C]/10 font-semibold text-[#3A4F1C]'
                             : 'text-[#2B3817] hover:bg-[#FAF8F2]'
-                        }`}
+                          }`}
                       >
                         <span>{d.label}</span>
                         {dateRangeFilter === d.key && (
@@ -891,13 +881,12 @@ export function AuditTable() {
                         {/* Severity */}
                         <td className="px-2.5 sm:px-3 py-2.5 sm:py-3.5 whitespace-nowrap">
                           <span
-                            className={`inline-flex items-center gap-1 rounded-full px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider ${
-                              log.severity === 'Critical'
+                            className={`inline-flex items-center gap-1 rounded-full px-1.5 sm:px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider ${log.severity === 'Critical'
                                 ? 'bg-red-100 text-red-800 border border-red-200'
                                 : log.severity === 'Warning'
-                                ? 'bg-amber-100 text-amber-800 border border-amber-200'
-                                : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                            }`}
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                                  : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                              }`}
                           >
                             {log.severity === 'Critical' && <AlertTriangle className="h-3 w-3" />}
                             {log.severity === 'Warning' && <AlertTriangle className="h-3 w-3" />}
@@ -908,13 +897,12 @@ export function AuditTable() {
                         {/* Outcome */}
                         <td className="px-2.5 sm:px-3 py-2.5 sm:py-3.5 whitespace-nowrap">
                           <span
-                            className={`font-semibold text-[10px] sm:text-[11px] ${
-                              log.outcome === 'Success'
+                            className={`font-semibold text-[10px] sm:text-[11px] ${log.outcome === 'Success'
                                 ? 'text-emerald-700'
                                 : log.outcome === 'Failure'
-                                ? 'text-red-700'
-                                : 'text-slate-600'
-                            }`}
+                                  ? 'text-red-700'
+                                  : 'text-slate-600'
+                              }`}
                           >
                             {log.outcome}
                           </span>

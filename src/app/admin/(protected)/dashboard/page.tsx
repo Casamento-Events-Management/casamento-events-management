@@ -28,11 +28,18 @@ export default async function AdminDashboardPage() {
   const supabase = await createClient();
   const initialData = await fetchOverviewData(supabase, adminData.profile);
 
-  // If Admin or Superadmin, query pending client feedbacks directly from Sanity CMS
+  // If Admin or Superadmin, query pending client feedbacks and payment stats
   if (adminData.profile.role !== 'staff') {
-    const pendingFeedbacks = await fetchPendingFeedbacks();
+    const { fetchPaymentStatsAction } = await import('@/lib/services/admin-payment-actions');
+    const [pendingFeedbacks, payRes] = await Promise.all([
+      fetchPendingFeedbacks(),
+      fetchPaymentStatsAction(),
+    ]);
     initialData.pendingFeedbacks = pendingFeedbacks;
     initialData.needsAttention.pendingFeedbacksCount = pendingFeedbacks.length;
+    if (payRes.success && payRes.stats) {
+      initialData.paymentStats = payRes.stats;
+    }
   }
 
   return <OverviewShell initialData={initialData} profile={adminData.profile} />;
