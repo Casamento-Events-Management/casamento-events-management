@@ -269,248 +269,244 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
   const to = from + pageSize - 1;
 
   try {
-    let query = supabase
+    // 1. Fetch active bookings (non-cancelled, non-archived)
+    const bookingsQuery = supabase
+      .from('bookings')
+      .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, agreed_total_currency, agreed_total_set_at, payment_status, status, created_at, is_archived')
+      .eq('is_archived', false)
+      .neq('status', 'cancelled')
+      .order('created_at', { ascending: false });
+
+    // 2. Fetch non-cancelled payments
+    const paymentsQuery = supabase
       .from('payments')
-      .select(
-        `
-        *,
-        booking:bookings!booking_id (
-          service_title,
-          client_full_name,
-          client_email,
-          event_date,
-          agreed_total_centavos,
-          is_archived,
-          status
-        )
-      `
-      )
+      .select('*')
       .neq('status', 'cancelled')
       .order('paid_at', { ascending: false });
 
-    // Status filter
-    if (filters.status && filters.status !== 'all') {
-      if (filters.status === 'refunded') {
-        query = query.eq('is_refunded', true);
-      } else {
-        query = query.eq('status', filters.status);
+    const [{ data: rawBookings, error: bErr }, { data: rawPayments, error: pErr }] = await Promise.all([
+      bookingsQuery,
+      paymentsQuery,
+    ]);
+
+    if (bErr) throw bErr;
+    if (pErr) throw pErr;
+
+    const bookings = rawBookings || [];
+    const payments = rawPayments || [];
+
+    // Map payments by booking_id
+    const paymentsByBooking = new Map<string, PaymentRecord[]>();
+    for (const p of payments) {
+      if (!paymentsByBooking.has(p.booking_id)) {
+        paymentsByBooking.set(p.booking_id, []);
       }
+      paymentsByBooking.get(p.booking_id)!.push(p);
     }
 
-    // Payment method filter
-    if (filters.method && filters.method !== 'all') {
-      query = query.eq('payment_method', filters.method);
+    interface EvaluatedBooking {
+      booking: (typeof bookings)[0];
+      status: 'paid' | 'partially_paid' | 'refunded' | 'unpaid' | 'undeclared';
+      totalPaidCentavos: number;
+      remainingBalanceCentavos: number | null;
+      matchingPayments: PaymentRecord[];
+      latestDate: string;
+      cleanReference: string;
+      syntheticPaymentNumber: string;
     }
 
-    // Date range filters
-    if (filters.startDate) {
-      query = query.gte('paid_at', `${filters.startDate}T00:00:00.000Z`);
-    }
-    if (filters.endDate) {
-      query = query.lte('paid_at', `${filters.endDate}T23:59:59.999Z`);
-    }
+    const searchLower = filters.search?.trim().toLowerCase();
+    const evaluatedList: EvaluatedBooking[] = [];
 
-    // Search query
-    if (filters.search && filters.search.trim().length > 0) {
-      const q = filters.search.trim();
-      query = query.or(
-        `payment_number.ilike.%${q}%,receipt_number.ilike.%${q}%,booking_reference.ilike.%${q}%`
-      );
-    }
+    for (const b of bookings) {
+      const bPayments = paymentsByBooking.get(b.id) || [];
+      const agreed = b.agreed_total_centavos;
 
-    const { data: rawPayments, error } = await query;
-    if (error) throw error;
-
-    // Filter out payments belonging to archived or cancelled bookings, or cancelled payments
-    const activePayments = (rawPayments || []).filter((row) => {
-      if (row.status === 'cancelled') return false;
-      const b = (Array.isArray(row.booking) ? row.booking[0] : row.booking) as {
-        is_archived?: boolean;
-        status?: string;
-      } | null;
-      if (b?.is_archived || b?.status === 'cancelled') return false;
-      return true;
-    });
-
-    // Fetch balances for the returned payments' bookings to provide context
-    const bookingIds = Array.from(new Set(activePayments.map((p) => p.booking_id)));
-    const balanceMap = new Map<string, number | null>();
-
-    if (bookingIds.length > 0) {
-      const { data: allBookingsPayments } = await supabase
-        .from('payments')
-        .select('booking_id, amount_centavos, refund_amount_centavos')
-        .in('booking_id', bookingIds)
-        .eq('status', 'paid');
-
-      const paidMap = new Map<string, number>();
-      for (const p of allBookingsPayments || []) {
-        const cur = paidMap.get(p.booking_id) || 0;
+      // Net paid from successful payments
+      const totalPaidCentavos = bPayments.reduce((acc, p) => {
+        if (p.status !== 'paid') return acc;
         const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
-        paidMap.set(p.booking_id, cur + (net > 0 ? net : 0));
+        return acc + (net > 0 ? net : 0);
+      }, 0);
+
+      const hasRefundedPayment = bPayments.some((p) => p.is_refunded);
+      const remainingBalanceCentavos = agreed !== null && agreed !== undefined && agreed > 0 ? Math.max(0, agreed - totalPaidCentavos) : null;
+
+      // Determine booking payment status:
+      // 'paid' | 'partially_paid' | 'refunded' | 'unpaid' | 'undeclared'
+      let derivedStatus: 'paid' | 'partially_paid' | 'refunded' | 'unpaid' | 'undeclared';
+      if (b.payment_status === 'refunded' || (hasRefundedPayment && totalPaidCentavos === 0)) {
+        derivedStatus = 'refunded';
+      } else if (agreed === null || agreed === undefined || agreed <= 0) {
+        derivedStatus = 'undeclared';
+      } else if (totalPaidCentavos === 0) {
+        derivedStatus = 'unpaid';
+      } else if (totalPaidCentavos >= agreed) {
+        derivedStatus = 'paid';
+      } else {
+        derivedStatus = 'partially_paid';
       }
 
-      for (const row of activePayments) {
-        const agreed = row.booking?.agreed_total_centavos;
-        if (agreed !== null && agreed !== undefined) {
-          const totalPaid = paidMap.get(row.booking_id) || 0;
-          balanceMap.set(row.booking_id, Math.max(0, agreed - totalPaid));
+      // Check status filter
+      if (filters.status && filters.status !== 'all') {
+        if (derivedStatus !== filters.status) {
+          continue;
+        }
+      }
+
+      // Filter payments by method if method filter active
+      let filteredPayments = bPayments;
+      if (filters.method && filters.method !== 'all') {
+        filteredPayments = bPayments.filter((p) => p.payment_method === filters.method);
+        // If method is specified and booking has no payments matching this method, skip
+        if (filteredPayments.length === 0) {
+          continue;
+        }
+      }
+
+      // Check date range filter (start / end)
+      if (filters.startDate || filters.endDate) {
+        const startTs = filters.startDate ? new Date(`${filters.startDate}T00:00:00.000Z`).getTime() : -Infinity;
+        const endTs = filters.endDate ? new Date(`${filters.endDate}T23:59:59.999Z`).getTime() : Infinity;
+
+        // If booking has payments, filter payments within range
+        if (bPayments.length > 0) {
+          filteredPayments = filteredPayments.filter((p) => {
+            const pTs = new Date(p.paid_at).getTime();
+            return pTs >= startTs && pTs <= endTs;
+          });
+          // If no payments fall in date range, check if booking created_at falls in range
+          if (filteredPayments.length === 0) {
+            const bTs = new Date(b.created_at).getTime();
+            if (bTs < startTs || bTs > endTs) {
+              continue;
+            }
+          }
         } else {
-          balanceMap.set(row.booking_id, null);
-        }
-      }
-    }
-
-    const extendedPayments: ExtendedPaymentRecord[] = activePayments.map((row) => ({
-      ...row,
-      booking: row.booking
-        ? {
-          ...row.booking,
-          remaining_balance_centavos: balanceMap.get(row.booking_id) ?? null,
-        }
-        : undefined,
-    }));
-
-    // If filter includes pending payments or all payments (and no incompatible method filter),
-    // include active bookings with pending payments (unpaid, partially_paid, downpayment_pending)
-    // even if they do not yet have a payment record
-    const pendingBookingRows: ExtendedPaymentRecord[] = [];
-    const shouldIncludePendingBookings =
-      (!filters.status || filters.status === 'all' || filters.status === 'pending') &&
-      (!filters.method || filters.method === 'all') &&
-      !filters.startDate &&
-      !filters.endDate;
-
-    if (shouldIncludePendingBookings) {
-      let bookingsQuery = supabase
-        .from('bookings')
-        .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, payment_status, status, created_at')
-        .eq('is_archived', false)
-        .not('status', 'in', '("cancelled","completed")')
-        .in('payment_status', ['unpaid', 'downpayment_pending', 'partially_paid']);
-
-      if (filters.search && filters.search.trim().length > 0) {
-        const q = filters.search.trim();
-        bookingsQuery = bookingsQuery.or(
-          `booking_reference.ilike.%${q}%,client_full_name.ilike.%${q}%,client_email.ilike.%${q}%,service_title.ilike.%${q}%`
-        );
-      }
-
-      const { data: pendingBookings } = await bookingsQuery;
-
-      if (pendingBookings && pendingBookings.length > 0) {
-        // Query payments for these bookings to get current paid and remaining balance
-        const pBookingIds = pendingBookings.map((b) => b.id);
-        const { data: pPayments } = await supabase
-          .from('payments')
-          .select('booking_id, amount_centavos, refund_amount_centavos')
-          .in('booking_id', pBookingIds)
-          .eq('status', 'paid');
-
-        const pPaidMap = new Map<string, number>();
-        for (const p of pPayments || []) {
-          const cur = pPaidMap.get(p.booking_id) || 0;
-          const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
-          pPaidMap.set(p.booking_id, cur + (net > 0 ? net : 0));
-        }
-
-        // Only include bookings that haven't been fully paid
-        for (const b of pendingBookings) {
-          const totalPaid = pPaidMap.get(b.id) || 0;
-          const agreed = b.agreed_total_centavos;
-          const remaining = agreed !== null && agreed !== undefined ? Math.max(0, agreed - totalPaid) : null;
-
-          // If agreed total is set and balance is 0, skip
-          if (agreed !== null && agreed !== undefined && remaining === 0) {
+          // Booking with no payments: check created_at or agreed_total_set_at
+          const bTs = new Date(b.agreed_total_set_at || b.created_at).getTime();
+          if (bTs < startTs || bTs > endTs) {
             continue;
           }
-
-          // Create synthetic pending ledger entry
-          pendingBookingRows.push({
-            id: `pending-${b.id}`,
-            booking_id: b.id,
-            booking_reference: b.booking_reference,
-            payment_number: `PENDING-${b.booking_reference}`,
-            receipt_number: null,
-            payment_type: 'manual',
-            payment_method: 'pending',
-            channel_details: {},
-            amount_centavos: remaining ?? 0,
-            currency: 'PHP',
-            status: 'pending',
-            paid_at: b.created_at,
-            recorded_by: null,
-            notes: agreed === null ? 'Agreed total not declared yet' : 'Pending payment collection',
-            proof_attachment_path: null,
-            proof_attachment_name: null,
-            proof_attachment_size_bytes: null,
-            proof_attachment_mime_type: null,
-            receipt_pdf_path: null,
-            receipt_sent_at: null,
-            receipt_sent_to: null,
-            is_refunded: false,
-            refund_amount_centavos: null,
-            refund_reason: null,
-            refunded_at: null,
-            refunded_by: null,
-            online_provider: null,
-            provider_txn_id: null,
-            provider_ref: null,
-            provider_payer_email: null,
-            created_at: b.created_at,
-            updated_at: b.created_at,
-            booking: {
-              service_title: b.service_title,
-              client_full_name: b.client_full_name,
-              client_email: b.client_email,
-              event_date: b.event_date,
-              agreed_total_centavos: agreed,
-              remaining_balance_centavos: remaining,
-            },
-          });
         }
       }
-    }
 
-    // Combine payments and pending bookings
-    let allEntries: ExtendedPaymentRecord[] = [];
-    if (filters.status === 'pending') {
-      // Show pending records (both actual pending payments and pending bookings)
-      const actualPending = extendedPayments.filter((p) => p.status === 'pending');
-      allEntries = [...actualPending, ...pendingBookingRows];
-    } else {
-      // Prepend or merge pending bookings into the list
-      allEntries = [...extendedPayments, ...pendingBookingRows];
-      // Sort by paid_at / created_at descending
-      allEntries.sort((a, b) => new Date(b.paid_at || b.created_at).getTime() - new Date(a.paid_at || a.created_at).getTime());
-    }
+      // Clean reference without 'CAS'
+      const cleanRef = b.booking_reference.replace(/^CAS-?/i, '');
+      const statusPrefix = derivedStatus.toUpperCase();
+      const syntheticNumber = `${statusPrefix}-${cleanRef}`;
 
-    // Group entries by booking_id to form primary collapsible rows
-    const bookingGroupsMap = new Map<string, ExtendedPaymentRecord[]>();
-    for (const entry of allEntries) {
-      const bId = entry.booking_id;
-      if (!bookingGroupsMap.has(bId)) {
-        bookingGroupsMap.set(bId, []);
+      // Check search query filter
+      if (searchLower) {
+        const matchesBooking =
+          b.booking_reference.toLowerCase().includes(searchLower) ||
+          cleanRef.toLowerCase().includes(searchLower) ||
+          syntheticNumber.toLowerCase().includes(searchLower) ||
+          b.client_full_name.toLowerCase().includes(searchLower) ||
+          b.client_email.toLowerCase().includes(searchLower) ||
+          b.service_title.toLowerCase().includes(searchLower);
+
+        const matchesAnyPayment = bPayments.some(
+          (p) =>
+            p.payment_number.toLowerCase().includes(searchLower) ||
+            (p.receipt_number && p.receipt_number.toLowerCase().includes(searchLower))
+        );
+
+        if (!matchesBooking && !matchesAnyPayment) {
+          continue;
+        }
       }
-      bookingGroupsMap.get(bId)!.push(entry);
+
+      // Latest date for sorting
+      const latestPaymentDate = bPayments[0]?.paid_at;
+      const latestDate = latestPaymentDate || b.agreed_total_set_at || b.created_at;
+
+      evaluatedList.push({
+        booking: b,
+        status: derivedStatus,
+        totalPaidCentavos,
+        remainingBalanceCentavos,
+        matchingPayments: filteredPayments,
+        latestDate,
+        cleanReference: cleanRef,
+        syntheticPaymentNumber: syntheticNumber,
+      });
     }
 
-    const uniqueBookingIds = Array.from(bookingGroupsMap.keys());
-    const totalCollapsibleCount = uniqueBookingIds.length;
+    // Sort evaluated bookings by latestDate descending
+    evaluatedList.sort((a, b) => new Date(b.latestDate).getTime() - new Date(a.latestDate).getTime());
 
-    // Slice according to pagination (paginating collapsible booking rows)
-    const paginatedBookingIds = uniqueBookingIds.slice(from, to + 1);
+    const totalCount = evaluatedList.length;
+    const paginatedBookings = evaluatedList.slice(from, to + 1);
 
+    // Build the extended payment records to return
     const paginatedEntries: ExtendedPaymentRecord[] = [];
-    for (const bId of paginatedBookingIds) {
-      const bookingPayments = bookingGroupsMap.get(bId) || [];
-      paginatedEntries.push(...bookingPayments);
+
+    for (const item of paginatedBookings) {
+      const b = item.booking;
+      const bookingInfo = {
+        service_title: b.service_title,
+        client_full_name: b.client_full_name,
+        client_email: b.client_email,
+        event_date: b.event_date,
+        agreed_total_centavos: b.agreed_total_centavos,
+        remaining_balance_centavos: item.remainingBalanceCentavos,
+        is_archived: b.is_archived,
+        status: b.status,
+      };
+
+      if (item.matchingPayments.length > 0) {
+        // Has actual payments
+        for (const p of item.matchingPayments) {
+          paginatedEntries.push({
+            ...p,
+            booking: bookingInfo,
+          });
+        }
+      } else {
+        // Synthetic row representing the booking contract in the ledger
+        paginatedEntries.push({
+          id: `pending-${b.id}`,
+          booking_id: b.id,
+          booking_reference: b.booking_reference,
+          payment_number: item.syntheticPaymentNumber,
+          receipt_number: null,
+          payment_type: 'manual',
+          payment_method: 'pending',
+          channel_details: {},
+          amount_centavos: item.remainingBalanceCentavos ?? 0,
+          currency: b.agreed_total_currency || 'PHP',
+          status: 'pending',
+          paid_at: b.agreed_total_set_at || b.created_at,
+          recorded_by: null,
+          notes: b.agreed_total_centavos === null ? 'Agreed total not declared yet' : `${item.status.replace('_', ' ')} booking`,
+          proof_attachment_path: null,
+          proof_attachment_name: null,
+          proof_attachment_size_bytes: null,
+          proof_attachment_mime_type: null,
+          receipt_pdf_path: null,
+          receipt_sent_at: null,
+          receipt_sent_to: null,
+          is_refunded: item.status === 'refunded',
+          refund_amount_centavos: null,
+          refund_reason: null,
+          refunded_at: null,
+          refunded_by: null,
+          online_provider: null,
+          provider_txn_id: null,
+          provider_ref: null,
+          provider_payer_email: null,
+          created_at: b.created_at,
+          updated_at: b.created_at,
+          booking: bookingInfo,
+        });
+      }
     }
 
     return {
       success: true,
       payments: paginatedEntries,
-      totalCount: totalCollapsibleCount,
+      totalCount,
     };
   } catch (err) {
     console.error('[fetchPaymentsAction Error]:', err);
@@ -893,11 +889,13 @@ export async function setAgreedTotalAction(rawInput: SetAgreedTotalInput): Promi
 
     // 4. Update payment_status on booking automatically
     const newPaymentStatus =
-      totalPaidCentavos >= newAgreedCentavos
-        ? 'paid'
-        : totalPaidCentavos > 0
-          ? 'partially_paid'
-          : 'unpaid';
+      !newAgreedCentavos || newAgreedCentavos <= 0
+        ? 'undeclared'
+        : totalPaidCentavos >= newAgreedCentavos
+          ? 'paid'
+          : totalPaidCentavos > 0
+            ? 'partially_paid'
+            : 'unpaid';
 
     await supabase
       .from('bookings')
@@ -1336,155 +1334,178 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
   const supabase = createAdminClient();
 
   try {
-    let query = supabase
+    // 1. Fetch active bookings (non-cancelled, non-archived)
+    const bookingsQuery = supabase
+      .from('bookings')
+      .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, agreed_total_currency, agreed_total_set_at, payment_status, status, created_at, is_archived')
+      .eq('is_archived', false)
+      .neq('status', 'cancelled')
+      .order('created_at', { ascending: false });
+
+    // 2. Fetch non-cancelled payments
+    const paymentsQuery = supabase
       .from('payments')
-      .select(
-        `
-        payment_number,
-        receipt_number,
-        booking_reference,
-        payment_method,
-        amount_centavos,
-        currency,
-        status,
-        paid_at,
-        is_refunded,
-        refund_amount_centavos,
-        refund_reason,
-        notes,
-        booking:bookings!booking_id (
-          service_title,
-          client_full_name,
-          client_email,
-          event_date,
-          is_archived,
-          status
-        )
-      `
-      )
+      .select('*')
       .neq('status', 'cancelled')
       .order('paid_at', { ascending: false });
 
-    if (filters.status && filters.status !== 'all') {
-      if (filters.status === 'refunded') {
-        query = query.eq('is_refunded', true);
+    const [{ data: rawBookings, error: bErr }, { data: rawPayments, error: pErr }] = await Promise.all([
+      bookingsQuery,
+      paymentsQuery,
+    ]);
+
+    if (bErr) throw bErr;
+    if (pErr) throw pErr;
+
+    const bookings = rawBookings || [];
+    const payments = rawPayments || [];
+
+    const paymentsByBooking = new Map<string, typeof payments>();
+    for (const p of payments) {
+      if (!paymentsByBooking.has(p.booking_id)) {
+        paymentsByBooking.set(p.booking_id, []);
+      }
+      paymentsByBooking.get(p.booking_id)!.push(p);
+    }
+
+    const searchLower = filters.search?.trim().toLowerCase();
+    const csvExportRows: string[] = [];
+
+    const escapeCsv = (val: unknown): string => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+
+    for (const b of bookings) {
+      const bPayments = paymentsByBooking.get(b.id) || [];
+      const agreed = b.agreed_total_centavos;
+
+      const totalPaidCentavos = bPayments.reduce((acc, p) => {
+        if (p.status !== 'paid') return acc;
+        const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
+        return acc + (net > 0 ? net : 0);
+      }, 0);
+
+      const hasRefundedPayment = bPayments.some((p) => p.is_refunded);
+      const remainingBalanceCentavos = agreed !== null && agreed !== undefined && agreed > 0 ? Math.max(0, agreed - totalPaidCentavos) : null;
+
+      let derivedStatus: 'paid' | 'partially_paid' | 'refunded' | 'unpaid' | 'undeclared';
+      if (b.payment_status === 'refunded' || (hasRefundedPayment && totalPaidCentavos === 0)) {
+        derivedStatus = 'refunded';
+      } else if (agreed === null || agreed === undefined || agreed <= 0) {
+        derivedStatus = 'undeclared';
+      } else if (totalPaidCentavos === 0) {
+        derivedStatus = 'unpaid';
+      } else if (totalPaidCentavos >= agreed) {
+        derivedStatus = 'paid';
       } else {
-        query = query.eq('status', filters.status);
-      }
-    }
-
-    if (filters.method && filters.method !== 'all') {
-      query = query.eq('payment_method', filters.method);
-    }
-
-    if (filters.startDate) {
-      query = query.gte('paid_at', `${filters.startDate}T00:00:00.000Z`);
-    }
-    if (filters.endDate) {
-      query = query.lte('paid_at', `${filters.endDate}T23:59:59.999Z`);
-    }
-
-    if (filters.search && filters.search.trim().length > 0) {
-      const q = filters.search.trim();
-      query = query.or(
-        `payment_number.ilike.%${q}%,receipt_number.ilike.%${q}%,booking_reference.ilike.%${q}%`
-      );
-    }
-
-    const { data, error } = await query;
-    if (error) throw error;
-
-    // Filter out payments belonging to archived or cancelled bookings, or cancelled payments
-    const activeData = (data || []).filter((p) => {
-      if (p.status === 'cancelled') return false;
-      const b = (Array.isArray(p.booking) ? p.booking[0] : p.booking) as {
-        is_archived?: boolean;
-        status?: string;
-      } | null;
-      if (b?.is_archived || b?.status === 'cancelled') return false;
-      return true;
-    });
-
-    // Also include pending bookings if filter matches
-    const pendingBookingRows: Array<{
-      payment_number: string;
-      receipt_number: string | null;
-      booking_reference: string;
-      client_full_name: string;
-      client_email: string;
-      service_title: string;
-      event_date: string;
-      payment_method: string;
-      amount_pesos: string;
-      status: string;
-      paid_at: string;
-      is_refunded: boolean;
-      refund_amount_pesos: string;
-      refund_reason: string;
-      notes: string;
-    }> = [];
-
-    const shouldIncludePending =
-      (!filters.status || filters.status === 'all' || filters.status === 'pending') &&
-      (!filters.method || filters.method === 'all') &&
-      !filters.startDate &&
-      !filters.endDate;
-
-    if (shouldIncludePending) {
-      let bQuery = supabase
-        .from('bookings')
-        .select('id, booking_reference, client_full_name, client_email, service_title, event_date, agreed_total_centavos, payment_status, status, created_at')
-        .eq('is_archived', false)
-        .not('status', 'in', '("cancelled","completed")')
-        .in('payment_status', ['unpaid', 'downpayment_pending', 'partially_paid']);
-
-      if (filters.search && filters.search.trim().length > 0) {
-        const q = filters.search.trim();
-        bQuery = bQuery.or(
-          `booking_reference.ilike.%${q}%,client_full_name.ilike.%${q}%,client_email.ilike.%${q}%,service_title.ilike.%${q}%`
-        );
+        derivedStatus = 'partially_paid';
       }
 
-      const { data: pBookings } = await bQuery;
-      if (pBookings && pBookings.length > 0) {
-        const pIds = pBookings.map((b) => b.id);
-        const { data: pPayments } = await supabase
-          .from('payments')
-          .select('booking_id, amount_centavos, refund_amount_centavos')
-          .in('booking_id', pIds)
-          .eq('status', 'paid');
-
-        const pMap = new Map<string, number>();
-        for (const p of pPayments || []) {
-          const cur = pMap.get(p.booking_id) || 0;
-          const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
-          pMap.set(p.booking_id, cur + (net > 0 ? net : 0));
+      if (filters.status && filters.status !== 'all') {
+        if (derivedStatus !== filters.status) {
+          continue;
         }
+      }
 
-        for (const b of pBookings) {
-          const paid = pMap.get(b.id) || 0;
-          const agreed = b.agreed_total_centavos;
-          const rem = agreed !== null && agreed !== undefined ? Math.max(0, agreed - paid) : null;
-          if (agreed !== null && agreed !== undefined && rem === 0) continue;
+      let filteredPayments = bPayments;
+      if (filters.method && filters.method !== 'all') {
+        filteredPayments = bPayments.filter((p) => p.payment_method === filters.method);
+        if (filteredPayments.length === 0) {
+          continue;
+        }
+      }
 
-          pendingBookingRows.push({
-            payment_number: `PENDING-${b.booking_reference}`,
-            receipt_number: null,
-            booking_reference: b.booking_reference,
-            client_full_name: b.client_full_name,
-            client_email: b.client_email,
-            service_title: b.service_title,
-            event_date: b.event_date,
-            payment_method: 'pending',
-            amount_pesos: rem !== null ? (rem / 100).toFixed(2) : '0.00',
-            status: 'pending',
-            paid_at: b.created_at,
-            is_refunded: false,
-            refund_amount_pesos: '0.00',
-            refund_reason: '',
-            notes: agreed === null ? 'Agreed total not declared yet' : 'Pending payment collection',
+      if (filters.startDate || filters.endDate) {
+        const startTs = filters.startDate ? new Date(`${filters.startDate}T00:00:00.000Z`).getTime() : -Infinity;
+        const endTs = filters.endDate ? new Date(`${filters.endDate}T23:59:59.999Z`).getTime() : Infinity;
+
+        if (bPayments.length > 0) {
+          filteredPayments = filteredPayments.filter((p) => {
+            const pTs = new Date(p.paid_at).getTime();
+            return pTs >= startTs && pTs <= endTs;
           });
+          if (filteredPayments.length === 0) {
+            const bTs = new Date(b.created_at).getTime();
+            if (bTs < startTs || bTs > endTs) {
+              continue;
+            }
+          }
+        } else {
+          const bTs = new Date(b.agreed_total_set_at || b.created_at).getTime();
+          if (bTs < startTs || bTs > endTs) {
+            continue;
+          }
         }
+      }
+
+      const cleanRef = b.booking_reference.replace(/^CAS-?/i, '');
+      const statusPrefix = derivedStatus.toUpperCase();
+      const syntheticNumber = `${statusPrefix}-${cleanRef}`;
+
+      if (searchLower) {
+        const matchesBooking =
+          b.booking_reference.toLowerCase().includes(searchLower) ||
+          cleanRef.toLowerCase().includes(searchLower) ||
+          syntheticNumber.toLowerCase().includes(searchLower) ||
+          b.client_full_name.toLowerCase().includes(searchLower) ||
+          b.client_email.toLowerCase().includes(searchLower) ||
+          b.service_title.toLowerCase().includes(searchLower);
+
+        const matchesAnyPayment = bPayments.some(
+          (p) =>
+            p.payment_number.toLowerCase().includes(searchLower) ||
+            (p.receipt_number && p.receipt_number.toLowerCase().includes(searchLower))
+        );
+
+        if (!matchesBooking && !matchesAnyPayment) {
+          continue;
+        }
+      }
+
+      if (filteredPayments.length > 0) {
+        for (const p of filteredPayments) {
+          csvExportRows.push(
+            [
+              escapeCsv(p.payment_number),
+              escapeCsv(p.receipt_number || 'N/A'),
+              escapeCsv(b.booking_reference),
+              escapeCsv(b.client_full_name),
+              escapeCsv(b.client_email),
+              escapeCsv(b.service_title),
+              escapeCsv(b.event_date),
+              escapeCsv(p.payment_method),
+              escapeCsv((p.amount_centavos / 100).toFixed(2)),
+              escapeCsv(p.status),
+              escapeCsv(new Date(p.paid_at).toISOString()),
+              escapeCsv(p.is_refunded ? 'Yes' : 'No'),
+              escapeCsv(p.refund_amount_centavos ? (p.refund_amount_centavos / 100).toFixed(2) : '0.00'),
+              escapeCsv(p.refund_reason || ''),
+              escapeCsv(p.notes || ''),
+            ].join(',')
+          );
+        }
+      } else {
+        csvExportRows.push(
+          [
+            escapeCsv(syntheticNumber),
+            escapeCsv('N/A'),
+            escapeCsv(b.booking_reference),
+            escapeCsv(b.client_full_name),
+            escapeCsv(b.client_email),
+            escapeCsv(b.service_title),
+            escapeCsv(b.event_date),
+            escapeCsv('pending'),
+            escapeCsv(remainingBalanceCentavos !== null ? (remainingBalanceCentavos / 100).toFixed(2) : '0.00'),
+            escapeCsv(derivedStatus),
+            escapeCsv(new Date(b.agreed_total_set_at || b.created_at).toISOString()),
+            escapeCsv(derivedStatus === 'refunded' ? 'Yes' : 'No'),
+            escapeCsv('0.00'),
+            escapeCsv(''),
+            escapeCsv(agreed === null ? 'Agreed total not declared yet' : `${derivedStatus.replace('_', ' ')} booking`),
+          ].join(',')
+        );
       }
     }
 
@@ -1507,61 +1528,7 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
       'Notes',
     ];
 
-    const escapeCsv = (val: unknown): string => {
-      if (val === null || val === undefined) return '""';
-      const str = String(val).replace(/"/g, '""');
-      return `"${str}"`;
-    };
-
-    const paymentRows = activeData.map((p) => {
-      const b = (Array.isArray(p.booking) ? p.booking[0] : p.booking) as {
-        service_title?: string;
-        client_full_name?: string;
-        client_email?: string;
-        event_date?: string;
-      } | null;
-
-      return [
-        escapeCsv(p.payment_number),
-        escapeCsv(p.receipt_number || 'N/A'),
-        escapeCsv(p.booking_reference),
-        escapeCsv(b?.client_full_name || 'N/A'),
-        escapeCsv(b?.client_email || 'N/A'),
-        escapeCsv(b?.service_title || 'N/A'),
-        escapeCsv(b?.event_date || 'N/A'),
-        escapeCsv(p.payment_method),
-        escapeCsv((p.amount_centavos / 100).toFixed(2)),
-        escapeCsv(p.status),
-        escapeCsv(new Date(p.paid_at).toISOString()),
-        escapeCsv(p.is_refunded ? 'Yes' : 'No'),
-        escapeCsv(p.refund_amount_centavos ? (p.refund_amount_centavos / 100).toFixed(2) : '0.00'),
-        escapeCsv(p.refund_reason || ''),
-        escapeCsv(p.notes || ''),
-      ].join(',');
-    });
-
-    const pendingRows = pendingBookingRows.map((pb) => {
-      return [
-        escapeCsv(pb.payment_number),
-        escapeCsv('N/A'),
-        escapeCsv(pb.booking_reference),
-        escapeCsv(pb.client_full_name),
-        escapeCsv(pb.client_email),
-        escapeCsv(pb.service_title),
-        escapeCsv(pb.event_date),
-        escapeCsv(pb.payment_method),
-        escapeCsv(pb.amount_pesos),
-        escapeCsv(pb.status),
-        escapeCsv(new Date(pb.paid_at).toISOString()),
-        escapeCsv('No'),
-        escapeCsv('0.00'),
-        escapeCsv(''),
-        escapeCsv(pb.notes),
-      ].join(',');
-    });
-
-    const allRows = [...paymentRows, ...pendingRows];
-    const csvContent = [headers.join(','), ...allRows].join('\r\n');
+    const csvContent = [headers.join(','), ...csvExportRows].join('\r\n');
     const today = new Date().toISOString().split('T')[0];
     const filename = `casamento_payments_${today}.csv`;
 

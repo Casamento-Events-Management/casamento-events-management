@@ -25,7 +25,7 @@ export interface BookingHeroContent {
 }
 
 export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
-export type PaymentStatus = 'unpaid' | 'downpayment_pending' | 'partially_paid' | 'paid' | 'refunded' | 'waived';
+export type PaymentStatus = 'undeclared' | 'unpaid' | 'downpayment_pending' | 'partially_paid' | 'paid' | 'refunded' | 'waived';
 export type PaymentProvider = 'dragonpay' | 'paypal';
 
 /**

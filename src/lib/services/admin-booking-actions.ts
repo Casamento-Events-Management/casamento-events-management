@@ -545,7 +545,7 @@ export async function createBookingAction(
     special_notes: data.special_notes ? data.special_notes.trim() : null,
     admin_notes: data.admin_notes ? data.admin_notes.trim() : null,
     status: data.status || 'pending',
-    payment_status: 'unpaid',
+    payment_status: agreedTotalCentavos ? 'unpaid' : 'undeclared',
     payment_enabled: false,
     agreed_total_centavos: agreedTotalCentavos,
     agreed_total_currency: 'PHP',

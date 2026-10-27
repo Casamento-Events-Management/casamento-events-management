@@ -3,6 +3,7 @@
 // =============================================================================
 
 import type { EventTask } from './booking';
+import type { FinancialTotalsSummary } from './payment';
 
 export interface OverviewNeedsAttention {
   pendingBookingsCount: number;
@@ -76,4 +77,5 @@ export interface OverviewPayload {
   recentActivity: OverviewRecentActivity[];
   monthlyStats: OverviewMonthlyStats;
   pendingFeedbacks: OverviewPendingFeedback[];
+  paymentStats?: FinancialTotalsSummary | null;
 }

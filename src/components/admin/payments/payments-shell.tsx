@@ -62,6 +62,8 @@ export function PaymentsShell() {
     const d = searchParams.get('date');
     return !d || d === 'all date' ? 'all' : d;
   });
+  const [customStartDate, setCustomStartDate] = useState(() => searchParams.get('startDate') || '');
+  const [customEndDate, setCustomEndDate] = useState(() => searchParams.get('endDate') || '');
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(() => {
@@ -133,8 +135,11 @@ export function PaymentsShell() {
     }
   };
 
-  // Date range calculation from preset
+  // Date range calculation from preset or custom range
   const getDateRangeBounds = useCallback(() => {
+    if (customStartDate && customEndDate) {
+      return { startDate: customStartDate, endDate: customEndDate };
+    }
     const now = new Date();
     if (dateFilter === 'this_month') {
       const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
@@ -152,7 +157,7 @@ export function PaymentsShell() {
       return { startDate: d.toISOString().split('T')[0], endDate: now.toISOString().split('T')[0] };
     }
     return { startDate: undefined, endDate: undefined };
-  }, [dateFilter]);
+  }, [dateFilter, customStartDate, customEndDate]);
 
   // Load stats
   const loadStats = useCallback(async () => {
@@ -279,7 +284,7 @@ export function PaymentsShell() {
       <PaymentsStatsGrid stats={stats} isLoading={isStatsLoading} />
 
       {/* 3. Unified Card: Filters & Table Container (Audit Trail Layout) */}
-      <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white shadow-sm overflow-hidden">
+      <div className="rounded-2xl border border-[#3A4F1C]/15 bg-white shadow-sm relative">
         <PaymentsFilterBar
           searchQuery={searchQuery}
           onSearchChange={(q) => {
@@ -305,8 +310,31 @@ export function PaymentsShell() {
           onDateFilterChange={(d) => {
             const val = !d || d === 'all date' ? 'all' : d;
             setDateFilter(val);
+            if (val !== 'custom') {
+              setCustomStartDate('');
+              setCustomEndDate('');
+            }
             setCurrentPage(1);
-            updateUrlParams({ date: val === 'all' ? null : val, page: '1' });
+            updateUrlParams({
+              date: val === 'all' ? null : val,
+              startDate: null,
+              endDate: null,
+              page: '1',
+            });
+          }}
+          startDate={customStartDate}
+          endDate={customEndDate}
+          onCustomDateChange={(start, end) => {
+            setCustomStartDate(start);
+            setCustomEndDate(end);
+            setDateFilter(start && end ? 'custom' : 'all');
+            setCurrentPage(1);
+            updateUrlParams({
+              date: start && end ? 'custom' : null,
+              startDate: start || null,
+              endDate: end || null,
+              page: '1',
+            });
           }}
           onExportCsv={handleExportCsv}
           isExporting={isExporting}

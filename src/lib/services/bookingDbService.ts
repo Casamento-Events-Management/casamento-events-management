@@ -160,7 +160,7 @@ export async function confirmAndSaveBooking(
     special_notes: formData.specialNotes ? formData.specialNotes.trim() : null,
     payment_enabled: paymentActive,
     payment_provider: paymentActive ? formData.paymentProvider : null,
-    payment_status: 'unpaid',
+    payment_status: 'undeclared',
     status: 'pending',
     email_verified_at: new Date().toISOString(),
   };

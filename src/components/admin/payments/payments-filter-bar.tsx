@@ -11,6 +11,7 @@ import {
   X,
   ChevronDown,
   RotateCcw,
+  Calendar,
 } from 'lucide-react';
 import { PAYMENT_METHODS } from '@/types/payment';
 
@@ -23,6 +24,9 @@ interface PaymentsFilterBarProps {
   onMethodChange: (val: string) => void;
   dateFilter: string;
   onDateFilterChange: (val: string) => void;
+  startDate?: string;
+  endDate?: string;
+  onCustomDateChange: (start: string, end: string) => void;
   onExportCsv: () => void;
   isExporting?: boolean;
 }
@@ -36,11 +40,25 @@ export function PaymentsFilterBar({
   onMethodChange,
   dateFilter,
   onDateFilterChange,
+  startDate = '',
+  endDate = '',
+  onCustomDateChange,
   onExportCsv,
   isExporting = false,
 }: PaymentsFilterBarProps) {
   const [activeDropdown, setActiveDropdown] = useState<'status' | 'method' | 'date' | null>(null);
   const filterGroupRef = useRef<HTMLDivElement>(null);
+
+  // Local state for custom date range picker inputs
+  const [customStart, setCustomStart] = useState(startDate);
+  const [customEnd, setCustomEnd] = useState(endDate);
+  const [prevProps, setPrevProps] = useState({ startDate, endDate });
+
+  if (prevProps.startDate !== startDate || prevProps.endDate !== endDate) {
+    setPrevProps({ startDate, endDate });
+    setCustomStart(startDate);
+    setCustomEnd(endDate);
+  }
 
   // Close dropdown on outside click or escape key
   useEffect(() => {
@@ -69,7 +87,7 @@ export function PaymentsFilterBar({
 
   const isAllStatus = !statusFilter || statusFilter === 'all' || statusFilter === 'all status';
   const isAllMethod = !methodFilter || methodFilter === 'all' || methodFilter === 'all payment';
-  const isAllDate = !dateFilter || dateFilter === 'all' || dateFilter === 'all date';
+  const isAllDate = (!dateFilter || dateFilter === 'all' || dateFilter === 'all date') && !startDate && !endDate;
 
   const hasActiveFilters =
     !isAllStatus || !isAllMethod || !isAllDate || searchQuery.trim().length > 0;
@@ -79,19 +97,24 @@ export function PaymentsFilterBar({
     onStatusChange('all');
     onMethodChange('all');
     onDateFilterChange('all');
+    onCustomDateChange('', '');
+    setCustomStart('');
+    setCustomEnd('');
     setActiveDropdown(null);
   };
 
   const getStatusLabel = (val: string) => {
-    if (!val || val === 'all' || val === 'all status') return 'all status';
+    if (!val || val === 'all' || val === 'all status') return 'All Status';
     if (val === 'paid') return 'Paid';
-    if (val === 'pending') return 'Pending';
+    if (val === 'partially_paid') return 'Partially Paid';
     if (val === 'refunded') return 'Refunded';
+    if (val === 'unpaid') return 'Unpaid';
+    if (val === 'undeclared') return 'Undeclared';
     return val;
   };
 
   const getMethodLabel = (val: string) => {
-    if (!val || val === 'all' || val === 'all payment') return 'all payment';
+    if (!val || val === 'all' || val === 'all payment') return 'All Payment';
     if (val === 'bank_transfer') return 'Bank Transfer';
     if (val === 'gcash') return 'GCash';
     if (val === 'maya') return 'Maya';
@@ -102,16 +125,30 @@ export function PaymentsFilterBar({
   };
 
   const getDateLabel = (val: string) => {
-    if (!val || val === 'all' || val === 'all date') return 'all date';
+    if (val === 'custom' || (startDate && endDate)) {
+      if (startDate && endDate) {
+        return `${startDate} to ${endDate}`;
+      }
+      return 'Custom Range';
+    }
+    if (!val || val === 'all' || val === 'all date') return 'All Date';
     if (val === 'this_month') return 'This Month';
     if (val === 'last_month') return 'Last Month';
     if (val === 'last_30_days') return 'Last 30 Days';
     return val;
   };
 
+  const handleApplyCustomRange = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (customStart && customEnd) {
+      onCustomDateChange(customStart, customEnd);
+      setActiveDropdown(null);
+    }
+  };
+
   return (
     <div
-      className="p-3.5 sm:p-5 border-b border-[#3A4F1C]/15 bg-white flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
+      className="p-3.5 sm:p-5 border-b border-[#3A4F1C]/15 bg-white flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 relative z-30"
     >
       {/* Left: Search input */}
       <div className="relative flex-1 min-w-[200px]">
@@ -168,12 +205,14 @@ export function PaymentsFilterBar({
           </button>
 
           {activeDropdown === 'status' && (
-            <div className="absolute left-0 mt-1.5 w-36 rounded-xl border border-stone-200 bg-white py-1 shadow-lg z-40 animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute left-0 mt-1.5 w-44 rounded-xl border border-stone-200 bg-white py-1 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
               {[
                 { id: 'all', label: 'All' },
                 { id: 'paid', label: 'Paid' },
-                { id: 'pending', label: 'Pending' },
+                { id: 'partially_paid', label: 'Partially Paid' },
                 { id: 'refunded', label: 'Refunded' },
+                { id: 'unpaid', label: 'Unpaid' },
+                { id: 'undeclared', label: 'Undeclared' },
               ].map((opt) => {
                 const isSelected = opt.id === 'all' ? isAllStatus : statusFilter === opt.id;
                 return (
@@ -218,7 +257,7 @@ export function PaymentsFilterBar({
           </button>
 
           {activeDropdown === 'method' && (
-            <div className="absolute left-0 mt-1.5 w-44 rounded-xl border border-stone-200 bg-white py-1 shadow-lg z-40 animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute left-0 mt-1.5 w-44 rounded-xl border border-stone-200 bg-white py-1 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
               <button
                 onClick={() => {
                   onMethodChange('all');
@@ -273,36 +312,93 @@ export function PaymentsFilterBar({
                 activeDropdown === 'date' ? 'rotate-180' : ''
               }`}
             />
-            <span>{getDateLabel(dateFilter)}</span>
+            <span className="max-w-[140px] sm:max-w-[180px] truncate">{getDateLabel(dateFilter)}</span>
           </button>
 
           {activeDropdown === 'date' && (
-            <div className="absolute right-0 sm:left-0 mt-1.5 w-36 rounded-xl border border-stone-200 bg-white py-1 shadow-lg z-40 animate-in fade-in zoom-in-95 duration-100">
-              {[
-                { id: 'all', label: 'All' },
-                { id: 'this_month', label: 'This Month' },
-                { id: 'last_month', label: 'Last Month' },
-                { id: 'last_30_days', label: 'Last 30 Days' },
-              ].map((opt) => {
-                const isSelected = opt.id === 'all' ? isAllDate : dateFilter === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    onClick={() => {
-                      onDateFilterChange(opt.id);
-                      setActiveDropdown(null);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-stone-50 transition cursor-pointer ${
-                      isSelected
-                        ? 'font-semibold text-[#2B3817] bg-[#3A4F1C]/5'
-                        : 'text-stone-700'
-                    }`}
-                  >
-                    <span>{opt.label}</span>
-                    {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-[#3A4F1C]" />}
-                  </button>
-                );
-              })}
+            <div className="absolute right-0 sm:left-auto sm:right-0 mt-1.5 w-64 sm:w-72 rounded-2xl border border-stone-200 bg-white p-2.5 shadow-xl z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="space-y-0.5 mb-2">
+                {[
+                  { id: 'all', label: 'All' },
+                  { id: 'this_month', label: 'This Month' },
+                  { id: 'last_month', label: 'Last Month' },
+                  { id: 'last_30_days', label: 'Last 30 Days' },
+                ].map((opt) => {
+                  const isSelected = opt.id === 'all' ? isAllDate : dateFilter === opt.id;
+                  return (
+                    <button
+                      key={opt.id}
+                      onClick={() => {
+                        onDateFilterChange(opt.id);
+                        onCustomDateChange('', '');
+                        setCustomStart('');
+                        setCustomEnd('');
+                        setActiveDropdown(null);
+                      }}
+                      className={`w-full text-left px-3 py-1.5 text-xs rounded-lg flex items-center justify-between hover:bg-stone-50 transition cursor-pointer ${
+                        isSelected
+                          ? 'font-semibold text-[#2B3817] bg-[#3A4F1C]/5'
+                          : 'text-stone-700'
+                      }`}
+                    >
+                      <span>{opt.label}</span>
+                      {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-[#3A4F1C]" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Custom Date Range Section */}
+              <div className="pt-2.5 border-t border-stone-100">
+                <div className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-400 mb-2 px-1">
+                  <Calendar className="h-3 w-3 text-stone-400" />
+                  <span>Custom Date Range</span>
+                </div>
+                <form onSubmit={handleApplyCustomRange} className="space-y-2 px-1">
+                  <div>
+                    <label className="text-[10px] text-stone-500 font-medium block mb-0.5">Start Date</label>
+                    <input
+                      type="date"
+                      value={customStart}
+                      onChange={(e) => setCustomStart(e.target.value)}
+                      className="w-full text-xs px-2.5 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-stone-800 focus:outline-hidden focus:ring-1 focus:ring-[#3A4F1C] focus:bg-white transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-stone-500 font-medium block mb-0.5">End Date</label>
+                    <input
+                      type="date"
+                      value={customEnd}
+                      onChange={(e) => setCustomEnd(e.target.value)}
+                      className="w-full text-xs px-2.5 py-1.5 bg-stone-50 border border-stone-200 rounded-lg text-stone-800 focus:outline-hidden focus:ring-1 focus:ring-[#3A4F1C] focus:bg-white transition"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="submit"
+                      disabled={!customStart || !customEnd}
+                      className="flex-1 px-3 py-1.5 bg-[#3A4F1C] hover:bg-[#2B3817] text-white text-xs font-semibold rounded-lg shadow-xs transition disabled:opacity-40 cursor-pointer"
+                    >
+                      Apply Range
+                    </button>
+                    {(startDate || endDate) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onCustomDateChange('', '');
+                          setCustomStart('');
+                          setCustomEnd('');
+                          onDateFilterChange('all');
+                          setActiveDropdown(null);
+                        }}
+                        className="px-2.5 py-1.5 text-xs text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200 rounded-lg transition cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </form>
+              </div>
             </div>
           )}
         </div>

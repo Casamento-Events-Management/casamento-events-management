@@ -137,6 +137,7 @@ export function PaymentsTable({
         if (!entry.latestPayment) {
           entry.latestPayment = p;
         }
+        entry.latestPaymentNumber = p.payment_number;
       }
     }
 
@@ -171,10 +172,19 @@ export function PaymentsTable({
   const renderBookingStatusBadge = (b: GroupedBookingPayment) => {
     const agreed = b.agreedTotalCentavos;
     const balance = b.remainingBalanceCentavos;
+    const hasRefunded = b.payments.some((p) => p.is_refunded);
+
+    if (hasRefunded && (balance === null || balance === agreed || b.payments.every((p) => p.is_refunded))) {
+      return (
+        <span className="inline-flex items-center rounded-full bg-purple-50 px-2.5 py-0.5 text-[11px] font-semibold text-purple-700 border border-purple-200">
+          Refunded
+        </span>
+      );
+    }
 
     if (agreed === null || agreed <= 0) {
       return (
-        <span className="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-600">
+        <span className="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-600 border border-stone-200">
           Undeclared
         </span>
       );

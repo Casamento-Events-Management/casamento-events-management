@@ -131,7 +131,7 @@ export interface BookingFinancialRecord {
   total_paid_centavos: number;
   payment_count: number;
   remaining_balance_centavos: number | null;
-  derived_payment_status: 'unpaid' | 'partially_paid' | 'paid';
+  derived_payment_status: 'undeclared' | 'unpaid' | 'partially_paid' | 'paid' | 'refunded';
   last_payment_at: string | null;
 }
 
