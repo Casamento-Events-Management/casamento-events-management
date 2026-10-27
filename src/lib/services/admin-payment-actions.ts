@@ -329,18 +329,18 @@ export async function fetchPaymentsAction(filters: PaymentListFilters): Promise<
         return acc + (net > 0 ? net : 0);
       }, 0);
 
-      const hasRefundedPayment = bPayments.some((p) => p.is_refunded);
+      const hasRefundedPayment = bPayments.some((p) => p.is_refunded || p.status === 'refunded');
       const remainingBalanceCentavos = agreed !== null && agreed !== undefined && agreed > 0 ? Math.max(0, agreed - totalPaidCentavos) : null;
 
       // Determine booking payment status:
       // 'paid' | 'partially_paid' | 'refunded' | 'unpaid' | 'undeclared'
       let derivedStatus: 'paid' | 'partially_paid' | 'refunded' | 'unpaid' | 'undeclared';
-      if (b.payment_status === 'refunded' || (hasRefundedPayment && totalPaidCentavos === 0)) {
+      if (agreed === null || agreed === undefined || agreed <= 0) {
+        derivedStatus = totalPaidCentavos > 0 ? 'partially_paid' : 'undeclared';
+      } else if (hasRefundedPayment && totalPaidCentavos === 0) {
         derivedStatus = 'refunded';
-      } else if (agreed === null || agreed === undefined || agreed <= 0) {
-        derivedStatus = 'undeclared';
       } else if (totalPaidCentavos === 0) {
-        derivedStatus = 'unpaid';
+        derivedStatus = b.payment_status === 'refunded' ? 'refunded' : 'unpaid';
       } else if (totalPaidCentavos >= agreed) {
         derivedStatus = 'paid';
       } else {
@@ -706,7 +706,16 @@ export async function recordManualPaymentAction(rawInput: ManualPaymentInput): P
       amount_centavos: amountCentavos,
       currency: 'PHP',
       status: 'paid',
-      paid_at: input.paidAt ? new Date(input.paidAt).toISOString() : new Date().toISOString(),
+      paid_at: (() => {
+        if (!input.paidAt) return new Date().toISOString();
+        const inputD = new Date(input.paidAt);
+        const now = new Date();
+        const isToday =
+          inputD.getFullYear() === now.getFullYear() &&
+          inputD.getMonth() === now.getMonth() &&
+          inputD.getDate() === now.getDate();
+        return isToday ? now.toISOString() : inputD.toISOString();
+      })(),
       recorded_by: adminData.user.id,
       notes: input.notes?.trim() || null,
       proof_attachment_path: input.proofAttachment?.path || null,
@@ -975,7 +984,7 @@ export async function refundPaymentAction(rawInput: RefundPaymentInput): Promise
   try {
     const { data: payment, error: pErr } = await supabase
       .from('payments')
-      .select('id, booking_id, booking_reference, amount_centavos, is_refunded, payment_number')
+      .select('id, booking_id, booking_reference, amount_centavos, is_refunded, refund_amount_centavos, payment_number, payment_method')
       .eq('id', input.paymentId)
       .single();
 
@@ -983,27 +992,118 @@ export async function refundPaymentAction(rawInput: RefundPaymentInput): Promise
       return { success: false, error: 'Payment record not found.' };
     }
 
-    const refundCentavos = pesosToCentavos(input.refundAmountPesos);
-    if (refundCentavos > payment.amount_centavos) {
+    const previousRefundCentavos = payment.refund_amount_centavos || 0;
+    const remainingCentavos = payment.amount_centavos - previousRefundCentavos;
+    const newRefundCentavos = pesosToCentavos(input.refundAmountPesos);
+
+    if (newRefundCentavos <= 0) {
+      return { success: false, error: 'Refund amount must be greater than zero.' };
+    }
+
+    if (newRefundCentavos > remainingCentavos) {
       return {
         success: false,
-        error: `Refund amount cannot exceed payment amount (${formatPesos(payment.amount_centavos)})`,
+        error: `Refund amount cannot exceed remaining refundable balance (${formatPesos(remainingCentavos)})`,
       };
     }
 
+    const totalRefundedCentavos = previousRefundCentavos + newRefundCentavos;
+    const isFullyRefunded = totalRefundedCentavos >= payment.amount_centavos;
+    const nowIso = new Date().toISOString();
+
+    // 1. Update the original payment record
     const { error: updateErr } = await supabase
       .from('payments')
       .update({
         is_refunded: true,
-        refund_amount_centavos: refundCentavos,
+        refund_amount_centavos: totalRefundedCentavos,
         refund_reason: input.refundReason.trim(),
-        refunded_at: new Date().toISOString(),
+        refunded_at: nowIso,
         refunded_by: adminData.user.id,
-        updated_at: new Date().toISOString(),
+        status: isFullyRefunded ? 'refunded' : 'paid',
+        updated_at: nowIso,
       })
       .eq('id', payment.id);
 
     if (updateErr) throw updateErr;
+
+    // 2. Generate a unique refund reference: REF-YYYY-XXXXX
+    const refundYear = new Date().getFullYear();
+    const refundSuffix = Math.floor(10000 + Math.random() * 90000);
+    const refundNumber = `REF-${refundYear}-${refundSuffix}`;
+
+    // 3. Insert an explicit refund record into public.payments
+    const { error: insertErr } = await supabase
+      .from('payments')
+      .insert({
+        booking_id: payment.booking_id,
+        booking_reference: payment.booking_reference,
+        payment_number: refundNumber,
+        payment_type: 'manual',
+        payment_method: 'refund',
+        amount_centavos: newRefundCentavos,
+        currency: 'PHP',
+        status: 'refunded',
+        paid_at: nowIso,
+        recorded_by: adminData.user.id,
+        notes: `Refund for ${payment.payment_number}: ${input.refundReason.trim()}`,
+        channel_details: {
+          original_payment_id: payment.id,
+          original_payment_number: payment.payment_number,
+          refund_reason: input.refundReason.trim(),
+        },
+        is_refunded: true,
+        refund_amount_centavos: newRefundCentavos,
+        refund_reason: input.refundReason.trim(),
+        refunded_at: nowIso,
+        refunded_by: adminData.user.id,
+      });
+
+    if (insertErr) {
+      console.warn('[refundPaymentAction Insert Warning]:', insertErr);
+    }
+
+    // 4. Synchronize booking payment_status
+    const { data: allBookingPayments } = await supabase
+      .from('payments')
+      .select('amount_centavos, refund_amount_centavos, status, is_refunded')
+      .eq('booking_id', payment.booking_id)
+      .neq('status', 'cancelled');
+
+    const { data: booking } = await supabase
+      .from('bookings')
+      .select('agreed_total_centavos')
+      .eq('id', payment.booking_id)
+      .single();
+
+    if (booking) {
+      const agreed = booking.agreed_total_centavos;
+      const netPaid = (allBookingPayments || []).reduce((acc, p) => {
+        if (p.status !== 'paid') return acc;
+        const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
+        return acc + (net > 0 ? net : 0);
+      }, 0);
+
+      const hasRefund = (allBookingPayments || []).some((p) => p.is_refunded || p.status === 'refunded');
+
+      let targetStatus: 'paid' | 'partially_paid' | 'refunded' | 'unpaid' | 'undeclared';
+      if (agreed === null || agreed === undefined || agreed <= 0) {
+        targetStatus = netPaid > 0 ? 'partially_paid' : 'undeclared';
+      } else if (netPaid === 0 && hasRefund) {
+        targetStatus = 'refunded';
+      } else if (netPaid === 0) {
+        targetStatus = 'unpaid';
+      } else if (netPaid >= agreed) {
+        targetStatus = 'paid';
+      } else {
+        targetStatus = 'partially_paid';
+      }
+
+      await supabase
+        .from('bookings')
+        .update({ payment_status: targetStatus, updated_at: nowIso })
+        .eq('id', payment.booking_id);
+    }
 
     // Record audit trail
     await logAudit({
@@ -1016,16 +1116,18 @@ export async function refundPaymentAction(rawInput: RefundPaymentInput): Promise
       action: 'Refund Payment',
       severity: 'Warning',
       outcome: 'Success',
-      summary: `${adminData.profile.full_name} (${adminData.profile.user_code}) recorded refund of ${formatPesos(refundCentavos)} for payment ${payment.payment_number}. Reason: ${input.refundReason.trim()}`,
+      summary: `${adminData.profile.full_name} (${adminData.profile.user_code}) recorded refund of ${formatPesos(newRefundCentavos)} for payment ${payment.payment_number} (Ref: ${refundNumber}). Reason: ${input.refundReason.trim()}`,
       entityType: 'payment',
       entityId: payment.id,
-      entityRef: payment.payment_number,
+      entityRef: refundNumber,
       changes: {
-        is_refunded: { old: false, new: true },
-        refund_amount_centavos: { old: null, new: refundCentavos },
+        is_refunded: { old: previousRefundCentavos > 0, new: true },
+        refund_amount_centavos: { old: previousRefundCentavos, new: totalRefundedCentavos },
       },
       metadata: {
         booking_reference: payment.booking_reference,
+        refund_transaction_number: refundNumber,
+        original_payment_number: payment.payment_number,
         refund_reason: input.refundReason.trim(),
       },
     });

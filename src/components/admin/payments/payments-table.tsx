@@ -39,6 +39,21 @@ export interface GroupedBookingPayment {
   payments: ExtendedPaymentRecord[];
 }
 
+export interface TimelineEntry {
+  id: string;
+  paymentNumber: string;
+  method: string;
+  date: string;
+  sortTime: number;
+  amountCentavos: number;
+  isRefund: boolean;
+  snapshotCentavos: number | null;
+  status: 'paid' | 'partially_refunded' | 'refunded' | 'pending' | 'failed' | 'cancelled';
+  proofAttachmentPath?: string | null;
+  rawPayment: ExtendedPaymentRecord;
+  remainingRefundableCentavos: number;
+}
+
 interface PaymentsTableProps {
   payments: ExtendedPaymentRecord[];
   totalCount: number;
@@ -150,6 +165,8 @@ export function PaymentsTable({
 
   const formatMethodName = (method: string) => {
     switch (method) {
+      case 'refund':
+        return 'Refund';
       case 'bank_transfer':
         return 'Bank Transfer';
       case 'gcash':
@@ -171,18 +188,22 @@ export function PaymentsTable({
 
   const renderBookingStatusBadge = (b: GroupedBookingPayment) => {
     const agreed = b.agreedTotalCentavos;
-    const balance = b.remainingBalanceCentavos;
-    const hasRefunded = b.payments.some((p) => p.is_refunded);
+    const hasRefunded = b.payments.some((p) => p.is_refunded || p.status === 'refunded');
 
-    if (hasRefunded && (balance === null || balance === agreed || b.payments.every((p) => p.is_refunded))) {
-      return (
-        <span className="inline-flex items-center rounded-full bg-purple-50 px-2.5 py-0.5 text-[11px] font-semibold text-purple-700 border border-purple-200">
-          Refunded
-        </span>
-      );
-    }
+    const totalNetPaid = b.payments.reduce((acc, p) => {
+      if (p.status !== 'paid') return acc;
+      const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
+      return acc + (net > 0 ? net : 0);
+    }, 0);
 
     if (agreed === null || agreed <= 0) {
+      if (totalNetPaid > 0) {
+        return (
+          <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 border border-amber-200">
+            Partially Paid
+          </span>
+        );
+      }
       return (
         <span className="inline-flex items-center rounded-full bg-stone-100 px-2.5 py-0.5 text-[11px] font-medium text-stone-600 border border-stone-200">
           Undeclared
@@ -190,7 +211,15 @@ export function PaymentsTable({
       );
     }
 
-    if (balance === 0) {
+    if (hasRefunded && totalNetPaid === 0) {
+      return (
+        <span className="inline-flex items-center rounded-full bg-purple-50 px-2.5 py-0.5 text-[11px] font-semibold text-purple-700 border border-purple-200">
+          Refunded
+        </span>
+      );
+    }
+
+    if (totalNetPaid >= agreed) {
       return (
         <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200">
           Paid
@@ -198,7 +227,7 @@ export function PaymentsTable({
       );
     }
 
-    if (balance !== null && balance < agreed) {
+    if (totalNetPaid > 0) {
       return (
         <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-700 border border-amber-200">
           Partially Paid
@@ -211,6 +240,53 @@ export function PaymentsTable({
         Unpaid
       </span>
     );
+  };
+
+  const renderTransactionStatusBadge = (status: string) => {
+    switch (status) {
+      case 'paid':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            Paid
+          </span>
+        );
+      case 'partially_refunded':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+            Partially Refunded
+          </span>
+        );
+      case 'refunded':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+            Refunded
+          </span>
+        );
+      case 'pending':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+            Pending
+          </span>
+        );
+      case 'failed':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+            Failed
+          </span>
+        );
+      case 'cancelled':
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-100 text-stone-600 border border-stone-200">
+            Cancelled
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-stone-100 text-stone-600 border border-stone-200 capitalize">
+            {status}
+          </span>
+        );
+    }
   };
 
   return (
@@ -250,25 +326,165 @@ export function PaymentsTable({
               groupedBookings.map((group) => {
               const isExpanded = expandedBookingIds.has(group.bookingId);
 
-              // Sort group payments ascending to compute balance snapshots for each payment
-              const sortedAsc = [...group.payments]
-                .filter((p) => p.status !== 'cancelled' && !p.id.startsWith('pending-'))
-                .sort(
-                  (a, b) => new Date(a.paid_at).getTime() - new Date(b.paid_at).getTime()
-                );
+              // Extract all valid payment and refund transactions for this booking
+              const rawPayments = group.payments.filter((p) => !p.id.startsWith('pending-'));
 
-              const agreed = group.agreedTotalCentavos || 0;
-              let accumulatedPaid = 0;
-              const snapshotMap = new Map<string, number>();
+              const explicitRefundPayments = rawPayments.filter(
+                (p) => p.status === 'refunded' || p.payment_method === 'refund' || p.payment_number.startsWith('REF-')
+              );
 
-              for (const p of sortedAsc) {
-                const net = (p.amount_centavos || 0) - (p.refund_amount_centavos || 0);
-                accumulatedPaid += net > 0 ? net : 0;
-                snapshotMap.set(p.id, Math.max(0, agreed - accumulatedPaid));
+              const regularPayments = rawPayments.filter(
+                (p) => !(p.status === 'refunded' || p.payment_method === 'refund' || p.payment_number.startsWith('REF-'))
+              );
+
+              // Helper: Resolve true chronological time for ordering events,
+              // prioritizing action timestamps (created_at / refunded_at) over midnight datepicker strings
+              const getSortTime = (
+                paymentDateStr?: string | null,
+                actionTimeStr?: string | null
+              ): number => {
+                const pTime = paymentDateStr ? new Date(paymentDateStr).getTime() : 0;
+                const aTime = actionTimeStr ? new Date(actionTimeStr).getTime() : 0;
+
+                if (!pTime && !aTime) return 0;
+                if (!pTime) return aTime;
+                if (!aTime) return pTime;
+
+                const pDate = new Date(paymentDateStr!);
+                const isMidnight =
+                  (pDate.getUTCHours() === 0 && pDate.getUTCMinutes() === 0 && pDate.getUTCSeconds() === 0) ||
+                  (pDate.getHours() === 0 && pDate.getMinutes() === 0 && pDate.getSeconds() === 0);
+
+                const aDate = new Date(actionTimeStr!);
+                const isSameDay =
+                  pDate.getUTCFullYear() === aDate.getUTCFullYear() &&
+                  pDate.getUTCMonth() === aDate.getUTCMonth() &&
+                  pDate.getUTCDate() === aDate.getUTCDate();
+
+                if (isMidnight || isSameDay) {
+                  return aTime;
+                }
+
+                return pTime;
+              };
+
+              const timelineEvents: TimelineEntry[] = [];
+
+              // 1. Add explicit refund rows from DB
+              for (const ref of explicitRefundPayments) {
+                const sortTime = getSortTime(ref.paid_at, ref.refunded_at || ref.created_at);
+                timelineEvents.push({
+                  id: ref.id,
+                  paymentNumber: ref.payment_number,
+                  method: 'refund',
+                  date: ref.paid_at || ref.created_at,
+                  sortTime,
+                  amountCentavos: ref.amount_centavos,
+                  isRefund: true,
+                  snapshotCentavos: null,
+                  status: 'refunded',
+                  proofAttachmentPath: ref.proof_attachment_path,
+                  rawPayment: ref,
+                  remainingRefundableCentavos: 0,
+                });
               }
 
-              // Display timeline newest first
-              const displayTimeline = sortedAsc.slice().reverse();
+              // 2. Add regular payments (and synthesize refund rows for historical records)
+              for (const p of regularPayments) {
+                const refundedCentavos = p.refund_amount_centavos || 0;
+                const remainingRefundable = Math.max(0, p.amount_centavos - refundedCentavos);
+                const sortTime = getSortTime(p.paid_at, p.created_at);
+
+                let entryStatus: TimelineEntry['status'] = 'paid';
+                if (p.status === 'failed' || p.status === 'cancelled' || p.status === 'pending') {
+                  entryStatus = p.status;
+                } else if (p.is_refunded) {
+                  entryStatus = refundedCentavos >= p.amount_centavos ? 'refunded' : 'partially_refunded';
+                }
+
+                timelineEvents.push({
+                  id: p.id,
+                  paymentNumber: p.payment_number,
+                  method: p.payment_method,
+                  date: p.paid_at || p.created_at,
+                  sortTime,
+                  amountCentavos: p.amount_centavos,
+                  isRefund: false,
+                  snapshotCentavos: null,
+                  status: entryStatus,
+                  proofAttachmentPath: p.proof_attachment_path,
+                  rawPayment: p,
+                  remainingRefundableCentavos: remainingRefundable,
+                });
+
+                // Synthesize refund row if this payment was refunded without a separate DB row
+                if (p.is_refunded && refundedCentavos > 0) {
+                  const hasMatchingExplicitRefund = explicitRefundPayments.some((r) => {
+                    const details = r.channel_details as { original_payment_id?: string; original_payment_number?: string } | undefined;
+                    return (
+                      details?.original_payment_id === p.id ||
+                      details?.original_payment_number === p.payment_number ||
+                      r.notes?.includes(p.payment_number)
+                    );
+                  });
+
+                  if (!hasMatchingExplicitRefund) {
+                    const refundTime = p.refunded_at
+                      ? new Date(p.refunded_at).getTime()
+                      : p.updated_at
+                      ? new Date(p.updated_at).getTime()
+                      : sortTime + 1;
+
+                    timelineEvents.push({
+                      id: `synth-ref-${p.id}`,
+                      paymentNumber: `REF-${p.payment_number.replace(/^PAY-?/i, '')}`,
+                      method: 'refund',
+                      date: p.refunded_at || p.updated_at || p.paid_at,
+                      sortTime: refundTime,
+                      amountCentavos: refundedCentavos,
+                      isRefund: true,
+                      snapshotCentavos: null,
+                      status: 'refunded',
+                      proofAttachmentPath: null,
+                      rawPayment: p,
+                      remainingRefundableCentavos: 0,
+                    });
+                  }
+                }
+              }
+
+              // 3. Sort ascending chronologically by sortTime to compute running balance snapshot accurately
+              timelineEvents.sort((a, b) => a.sortTime - b.sortTime);
+
+              const agreed = group.agreedTotalCentavos;
+              let runningBalance = agreed;
+
+              for (const event of timelineEvents) {
+                if (agreed === null || agreed <= 0) {
+                  event.snapshotCentavos = null;
+                  continue;
+                }
+
+                if (runningBalance === null) {
+                  runningBalance = agreed;
+                }
+
+                if (event.isRefund) {
+                  // Refund increases the outstanding balance
+                  runningBalance = Math.min(agreed, runningBalance + event.amountCentavos);
+                  event.snapshotCentavos = runningBalance;
+                } else if (event.status === 'paid' || event.status === 'partially_refunded' || event.status === 'refunded') {
+                  // Verified payment decreases the outstanding balance
+                  runningBalance = Math.max(0, runningBalance - event.amountCentavos);
+                  event.snapshotCentavos = runningBalance;
+                } else {
+                  // Pending / failed does not alter balance snapshot
+                  event.snapshotCentavos = runningBalance;
+                }
+              }
+
+              // Display newest transactions first
+              const displayTimeline = timelineEvents.slice().reverse();
 
               return (
                 <React.Fragment key={group.bookingId}>
@@ -480,7 +696,7 @@ export function PaymentsTable({
                         <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] uppercase font-bold text-stone-500 tracking-wider">
-                              Payment Timeline ({group.payments.length})
+                              Payment Timeline
                             </span>
                           </div>
 
@@ -532,40 +748,51 @@ export function PaymentsTable({
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-stone-100">
-                                  {displayTimeline.map((p) => {
-                                    const snapshot = snapshotMap.get(p.id);
+                                  {displayTimeline.map((item) => {
                                     return (
-                                      <tr key={p.id} className="hover:bg-stone-50/60">
-                                        <td className="py-2 px-3 font-mono font-medium text-[#2B3817] text-[11px]">
-                                          {p.payment_number}
+                                      <tr key={item.id} className="hover:bg-stone-50/60 transition">
+                                        <td className="py-2 px-3 font-mono font-medium text-[11px] whitespace-nowrap">
+                                          {item.isRefund ? (
+                                            <span className="inline-flex items-center gap-1.5 text-purple-700 font-semibold">
+                                              <span>{item.paymentNumber}</span>
+                                            </span>
+                                          ) : (
+                                            <span className="text-[#2B3817]">{item.paymentNumber}</span>
+                                          )}
                                         </td>
-                                        <td className="py-2 px-3 capitalize text-[11px]">
-                                          {formatMethodName(p.payment_method)}
+                                        <td className="py-2 px-3 capitalize text-[11px] whitespace-nowrap">
+                                          {item.isRefund ? (
+                                            <span className="text-purple-700 font-medium">Refund</span>
+                                          ) : (
+                                            formatMethodName(item.method)
+                                          )}
                                         </td>
                                         <td className="py-2 px-3 text-stone-600 whitespace-nowrap text-[11px]">
-                                          {new Date(p.paid_at).toLocaleDateString('en-PH', {
+                                          {new Date(item.date).toLocaleDateString('en-PH', {
                                             month: 'short',
                                             day: 'numeric',
                                             year: 'numeric',
                                           })}
                                         </td>
-                                        <td className="py-2 px-3 text-right font-bold text-emerald-800 whitespace-nowrap text-[11px]">
-                                          {formatPesos(p.amount_centavos)}
+                                        <td className="py-2 px-3 text-right font-bold whitespace-nowrap text-[11px] font-mono">
+                                          {item.isRefund ? (
+                                            <span className="text-purple-700">-{formatPesos(item.amountCentavos)}</span>
+                                          ) : (
+                                            <span className="text-emerald-800">+{formatPesos(item.amountCentavos)}</span>
+                                          )}
                                         </td>
-                                        <td className="py-2 px-3 text-right text-stone-600 whitespace-nowrap text-[11px]">
-                                          {snapshot !== undefined ? formatPesos(snapshot) : '—'}
+                                        <td className="py-2 px-3 text-right text-stone-600 whitespace-nowrap text-[11px] font-mono">
+                                          {item.snapshotCentavos !== null ? formatPesos(item.snapshotCentavos) : '—'}
                                         </td>
                                         <td className="py-2 px-3 text-center whitespace-nowrap">
-                                          <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 capitalize">
-                                            {p.status}
-                                          </span>
+                                          {renderTransactionStatusBadge(item.status)}
                                         </td>
                                         <td className="py-2 px-3 text-center whitespace-nowrap">
                                           <div className="flex items-center justify-center gap-1.5">
-                                            {p.proof_attachment_path ? (
+                                            {item.proofAttachmentPath ? (
                                               <button
                                                 type="button"
-                                                onClick={() => onViewProof(p)}
+                                                onClick={() => onViewProof(item.rawPayment)}
                                                 className="text-stone-600 hover:text-[#3A4F1C] p-1 rounded-sm hover:bg-stone-100 cursor-pointer"
                                                 title="View Proof"
                                               >
@@ -581,7 +808,7 @@ export function PaymentsTable({
                                             <button
                                               type="button"
                                               onClick={() =>
-                                                setOpenPaymentKebabId(openPaymentKebabId === p.id ? null : p.id)
+                                                setOpenPaymentKebabId(openPaymentKebabId === item.id ? null : item.id)
                                               }
                                               className="p-1 text-stone-500 hover:text-[#2B3817] hover:bg-stone-100 rounded-lg transition cursor-pointer"
                                               title="Payment Actions"
@@ -589,60 +816,71 @@ export function PaymentsTable({
                                               <MoreVertical className="h-4 w-4" />
                                             </button>
 
-                                            {openPaymentKebabId === p.id && (
+                                            {openPaymentKebabId === item.id && (
                                               <div
-                                                className="absolute right-0 top-full mt-1 w-44 rounded-xl border border-stone-200 bg-white py-1 shadow-xl z-40 animate-in fade-in zoom-in-95 duration-100 text-left"
+                                                className="absolute right-0 top-full mt-1 w-48 rounded-xl border border-stone-200 bg-white py-1 shadow-xl z-40 animate-in fade-in zoom-in-95 duration-100 text-left"
                                                 onMouseLeave={() => setOpenPaymentKebabId(null)}
                                               >
-                                                {p.status !== 'cancelled' && (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      onUpdatePayment(p);
-                                                      setOpenPaymentKebabId(null);
-                                                    }}
-                                                    className="w-full px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2 cursor-pointer"
-                                                  >
-                                                    <Pencil className="h-3.5 w-3.5 text-stone-500" />
-                                                    <span>Edit Payment</span>
-                                                  </button>
-                                                )}
-
-                                                {!p.is_refunded && p.status === 'paid' ? (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      onRefundPayment(p);
-                                                      setOpenPaymentKebabId(null);
-                                                    }}
-                                                    className="w-full px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2 cursor-pointer"
-                                                  >
-                                                    <RotateCcw className="h-3.5 w-3.5 text-rose-600" />
-                                                    <span>Refund</span>
-                                                  </button>
-                                                ) : p.is_refunded ? (
-                                                  <div className="px-3 py-1.5 text-xs text-rose-600 flex items-center gap-2 font-medium bg-rose-50/50">
-                                                    <RotateCcw className="h-3.5 w-3.5 text-rose-600" />
-                                                    <span>Refunded</span>
+                                                {item.isRefund ? (
+                                                  <div className="px-3 py-1.5 text-xs text-purple-700 flex items-center gap-2 bg-purple-50/50 font-medium">
+                                                    <RotateCcw className="h-3.5 w-3.5 text-purple-600 shrink-0" />
+                                                    <span>Refund Record</span>
                                                   </div>
-                                                ) : null}
-
-                                                {p.status !== 'cancelled' ? (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      onArchivePayment(p);
-                                                      setOpenPaymentKebabId(null);
-                                                    }}
-                                                    className="w-full px-3 py-1.5 text-xs text-rose-700 hover:bg-rose-50 flex items-center gap-2 cursor-pointer border-t border-stone-100"
-                                                  >
-                                                    <Archive className="h-3.5 w-3.5 text-rose-600" />
-                                                    <span>Archive Payment</span>
-                                                  </button>
                                                 ) : (
-                                                  <div className="px-3 py-1.5 text-xs text-stone-400 italic">
-                                                    Payment Archived
-                                                  </div>
+                                                  <>
+                                                    {item.rawPayment.status !== 'cancelled' && (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                          onUpdatePayment(item.rawPayment);
+                                                          setOpenPaymentKebabId(null);
+                                                        }}
+                                                        className="w-full px-3 py-1.5 text-xs text-stone-700 hover:bg-stone-50 flex items-center gap-2 cursor-pointer"
+                                                      >
+                                                        <Pencil className="h-3.5 w-3.5 text-stone-500 shrink-0" />
+                                                        <span>Edit Payment</span>
+                                                      </button>
+                                                    )}
+
+                                                    {item.remainingRefundableCentavos > 0 ? (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                          onRefundPayment(item.rawPayment);
+                                                          setOpenPaymentKebabId(null);
+                                                        }}
+                                                        className="w-full px-3 py-1.5 text-xs text-rose-700 hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
+                                                      >
+                                                        <RotateCcw className="h-3.5 w-3.5 text-rose-600 shrink-0" />
+                                                        <span>
+                                                          Refund ({formatPesos(item.remainingRefundableCentavos)})
+                                                        </span>
+                                                      </button>
+                                                    ) : (
+                                                      <div className="px-3 py-1.5 text-xs text-rose-600 flex items-center gap-2 font-medium bg-rose-50/50">
+                                                        <RotateCcw className="h-3.5 w-3.5 text-rose-600 shrink-0" />
+                                                        <span>Fully Refunded</span>
+                                                      </div>
+                                                    )}
+
+                                                    {item.rawPayment.status !== 'cancelled' ? (
+                                                      <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                          onArchivePayment(item.rawPayment);
+                                                          setOpenPaymentKebabId(null);
+                                                        }}
+                                                        className="w-full px-3 py-1.5 text-xs text-rose-700 hover:bg-rose-50 flex items-center gap-2 cursor-pointer border-t border-stone-100"
+                                                      >
+                                                        <Archive className="h-3.5 w-3.5 text-rose-600" />
+                                                        <span>Archive Payment</span>
+                                                      </button>
+                                                    ) : (
+                                                      <div className="px-3 py-1.5 text-xs text-stone-400 italic">
+                                                        Payment Archived
+                                                      </div>
+                                                    )}
+                                                  </>
                                                 )}
                                               </div>
                                             )}

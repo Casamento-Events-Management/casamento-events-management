@@ -35,12 +35,23 @@ export function RefundPaymentModal({
 }: RefundPaymentModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
-  const defaultAmount = payment ? (payment.amount_centavos / 100).toString() : '';
+  const previousRefundCentavos = payment?.refund_amount_centavos || 0;
+  const remainingRefundableCentavos = payment ? Math.max(0, payment.amount_centavos - previousRefundCentavos) : 0;
+  const remainingRefundablePesos = remainingRefundableCentavos / 100;
+
   const [refundType, setRefundType] = useState<'full' | 'partial'>('full');
-  const [refundAmountPesos, setRefundAmountPesos] = useState<string>(defaultAmount);
+  const [refundAmountPesos, setRefundAmountPesos] = useState<string>(remainingRefundablePesos.toString());
+  const [prevPaymentId, setPrevPaymentId] = useState<string | null>(null);
   const [refundReason, setRefundReason] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (payment && payment.id !== prevPaymentId) {
+    setPrevPaymentId(payment.id);
+    setRefundType('full');
+    setRefundAmountPesos(remainingRefundablePesos.toString());
+    setError(null);
+  }
 
   // Esc key and scroll lock
   useEffect(() => {
@@ -67,20 +78,18 @@ export function RefundPaymentModal({
 
   if (!isOpen || !payment) return null;
 
-  const originalAmountPesos = payment.amount_centavos / 100;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const amount = refundType === 'full' ? originalAmountPesos : parseFloat(refundAmountPesos);
+    const amount = refundType === 'full' ? remainingRefundablePesos : parseFloat(refundAmountPesos);
     if (isNaN(amount) || amount <= 0) {
       setError('Please specify a valid refund amount greater than zero.');
       return;
     }
 
-    if (amount > originalAmountPesos) {
-      setError(`Refund amount cannot exceed original payment of ${formatPesos(payment.amount_centavos)}.`);
+    if (amount > remainingRefundablePesos) {
+      setError(`Refund amount cannot exceed remaining refundable balance of ${formatPesos(remainingRefundableCentavos)}.`);
       return;
     }
 
@@ -160,6 +169,18 @@ export function RefundPaymentModal({
               <span className="text-stone-500">Original Amount:</span>
               <span className="font-bold text-emerald-800">{formatPesos(payment.amount_centavos)}</span>
             </div>
+            {previousRefundCentavos > 0 && (
+              <>
+                <div className="flex justify-between text-purple-700">
+                  <span>Previously Refunded:</span>
+                  <span className="font-bold">-{formatPesos(previousRefundCentavos)}</span>
+                </div>
+                <div className="flex justify-between text-stone-900 border-t border-stone-100 pt-1">
+                  <span className="font-semibold">Remaining Refundable:</span>
+                  <span className="font-bold text-rose-700">{formatPesos(remainingRefundableCentavos)}</span>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Refund Type */}
@@ -172,22 +193,26 @@ export function RefundPaymentModal({
                 type="button"
                 onClick={() => {
                   setRefundType('full');
-                  setRefundAmountPesos(originalAmountPesos.toString());
+                  setRefundAmountPesos(remainingRefundablePesos.toString());
                 }}
-                className={`py-2 px-3 rounded-xl border text-xs font-semibold text-center transition cursor-pointer ${refundType === 'full'
+                className={`py-2 px-3 rounded-xl border text-xs font-semibold text-center transition cursor-pointer ${
+                  refundType === 'full'
                     ? 'border-rose-600 bg-rose-50 text-rose-800 ring-1 ring-rose-500'
                     : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
-                  }`}
+                }`}
               >
-                Full ({formatPesos(payment.amount_centavos)})
+                {previousRefundCentavos > 0
+                  ? `Full (${formatPesos(remainingRefundableCentavos)})`
+                  : `Full (${formatPesos(payment.amount_centavos)})`}
               </button>
               <button
                 type="button"
                 onClick={() => setRefundType('partial')}
-                className={`py-2 px-3 rounded-xl border text-xs font-semibold text-center transition cursor-pointer ${refundType === 'partial'
+                className={`py-2 px-3 rounded-xl border text-xs font-semibold text-center transition cursor-pointer ${
+                  refundType === 'partial'
                     ? 'border-rose-600 bg-rose-50 text-rose-800 ring-1 ring-rose-500'
                     : 'border-stone-200 bg-white text-stone-700 hover:bg-stone-50'
-                  }`}
+                }`}
               >
                 Partial Refund
               </button>
