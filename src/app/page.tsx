@@ -1,9 +1,9 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { getHomeHeroContent, getFeaturedTeaserContent } from '@/lib/services/homeService';
+import { getHomeHeroContent, getFeaturedTeaserContent, getClientSectionContent } from '@/lib/services/homeService';
 import { getContactSectionContent } from '@/lib/services/contactService';
 import { HeroSectionComponent } from '@/components/home/hero-section';
-import { PartnersSection } from '@/components/home/partners-section';
+import { ClientsSection } from '@/components/home/partners-section';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { HomeJsonLd } from '@/components/home/home-json-ld';
 import { TeaserVideosSection } from '@/components/home/teaser-videos-section';
@@ -63,9 +63,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [heroContent, teaserContent, contactContent] = await Promise.all([
+  const [heroContent, teaserContent, clientContent, contactContent] = await Promise.all([
     getHomeHeroContent(),
     getFeaturedTeaserContent(),
+    getClientSectionContent(),
     getContactSectionContent(),
   ]);
 
@@ -79,7 +80,7 @@ export default async function HomePage() {
     teaserVideosTitle: teaserContent.teaserVideosTitle,
     teaserVideosDescription: teaserContent.teaserVideosDescription,
     teaserVideos: teaserContent.teaserVideos,
-    partners: heroContent.partners,
+    partners: clientContent.partners,
   };
 
   return (
@@ -97,8 +98,13 @@ export default async function HomePage() {
           description={teaserContent.teaserVideosDescription}
         />
 
-        {/* Section 3: Partners: 1 whole section */}
-        <PartnersSection partners={heroContent.partners} />
+        {/* Section 3: Clients & Brands Served Section */}
+        <ClientsSection
+          partners={clientContent.partners}
+          eyebrow={clientContent.eyebrow}
+          title={clientContent.title}
+          description={clientContent.description}
+        />
 
         {/* Section 4: Connect With Us Section */}
         <ConnectSection

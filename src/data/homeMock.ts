@@ -1,4 +1,5 @@
 import type { HomePageContent } from '@/types';
+import type { ClientSectionContent } from '@/types';
 
 // Helper function to mock dates relative to today
 const getRelativeDate = (daysOffset: number) => {
@@ -322,4 +323,18 @@ export const homeMockData: HomePageContent = {
             url: 'https://www.youtube.com/@casamentoevents8664'
         }
     ]
+};
+
+
+export const clientSectionMockData: ClientSectionContent = {
+    _id: 'clientSection-mock',
+    _type: 'clientSection',
+    _createdAt: '2024-01-01T00:00:00Z',
+    _updatedAt: '2024-01-02T00:00:00Z',
+    _rev: 'rev-1',
+    eyebrow: 'Trusted By',
+    title: 'Brands & Organizations We\u2019ve Served',
+    description:
+        'Proud to have orchestrated milestone celebrations, brand activations, and turnkey corporate productions for distinguished companies and organizations across the Philippines.',
+    partners: homeMockData.partners,
 };

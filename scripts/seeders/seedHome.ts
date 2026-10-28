@@ -4,11 +4,12 @@
  * Transforms `homeMockData` from src/data/homeMock.ts into Sanity singleton documents:
  * - `homeHero`
  * - `featuredTeaser`
+ * - `clientSection`
  * - `contactSection`
  * - `portfolioUpcomingEvents`
  */
 
-import { homeMockData } from '../../src/data/homeMock'
+import { homeMockData, clientSectionMockData } from '../../src/data/homeMock'
 import { createWriteClient, generateKey, uploadImageFromUrl } from './helpers'
 
 export async function seedHome(dryRun: boolean): Promise<void> {
@@ -17,7 +18,7 @@ export async function seedHome(dryRun: boolean): Promise<void> {
     const upcomingEvents = mock.upcomingEvents || []
     const socialLinks = mock.socialLinks || []
 
-    console.log('\n🏠 Seeding Home, Contact, and Portfolio Upcoming Events singletons...\n')
+    console.log('\n🏠 Seeding Home, Client Section, Contact, and Portfolio Upcoming Events singletons...\n')
 
     // ── Hero slide images & posters ──────────────────────────────────────────
     console.log('▸ Uploading hero slide media assets...')
@@ -77,9 +78,9 @@ export async function seedHome(dryRun: boolean): Promise<void> {
     )
 
     // ── Partner logo images ──────────────────────────────────────────────────
-    console.log('\n▸ Uploading partner logos...')
+    console.log('\n▸ Uploading partner logos for Client Section...')
     const partnerLogoRefs = await Promise.all(
-        mock.partners.map(async (partner, i) => {
+        clientSectionMockData.partners.map(async (partner, i) => {
             const ref = await uploadImageFromUrl(
                 client,
                 partner.logo.asset.url!,
@@ -137,20 +138,6 @@ export async function seedHome(dryRun: boolean): Promise<void> {
                 }
             }),
         },
-        partners: mock.partners.map((partner, i) => ({
-            _key: generateKey(`partner-${partner.name}`),
-            _type: 'partner',
-            name: partner.name,
-            url: partner.url,
-            priority: partner.priority,
-            ...(partnerLogoRefs[i] && {
-                logo: {
-                    _type: 'image',
-                    asset: partnerLogoRefs[i],
-                    alt: partner.logo.alt,
-                },
-            }),
-        })),
     }
 
     // ── 2. Build featuredTeaser document ─────────────────────────────────────
@@ -189,7 +176,32 @@ export async function seedHome(dryRun: boolean): Promise<void> {
         }),
     }
 
-    // ── 3. Build contactSection document ─────────────────────────────────────
+    // ── 3. Build clientSection document ──────────────────────────────────────
+    const clientSectionDoc = {
+        _id: 'clientSection',
+        _type: 'clientSection',
+        eyebrow: clientSectionMockData.eyebrow || 'Trusted By',
+        title: clientSectionMockData.title || 'Brands & Organizations We\u2019ve Served',
+        description:
+            clientSectionMockData.description ||
+            'Proud to have orchestrated milestone celebrations, brand activations, and turnkey corporate productions for distinguished companies and organizations across the Philippines.',
+        partners: clientSectionMockData.partners.map((partner, i) => ({
+            _key: generateKey(`partner-${partner.name}`),
+            _type: 'partner',
+            name: partner.name,
+            url: partner.url,
+            priority: partner.priority,
+            ...(partnerLogoRefs[i] && {
+                logo: {
+                    _type: 'image',
+                    asset: partnerLogoRefs[i],
+                    alt: partner.logo.alt,
+                },
+            }),
+        })),
+    }
+
+    // ── 4. Build contactSection document ─────────────────────────────────────
     const contactSectionDoc = {
         _id: 'contactSection',
         _type: 'contactSection',
@@ -205,7 +217,7 @@ export async function seedHome(dryRun: boolean): Promise<void> {
         })),
     }
 
-    // ── 4. Build portfolioUpcomingEvents document ───────────────────────────
+    // ── 5. Build portfolioUpcomingEvents document ───────────────────────────
     const portfolioUpcomingEventsDoc = {
         _id: 'portfolioUpcomingEvents',
         _type: 'portfolioUpcomingEvents',
@@ -233,8 +245,8 @@ export async function seedHome(dryRun: boolean): Promise<void> {
     }
 
     if (dryRun) {
-        console.log('\n[dry-run] Would upsert homeHero, featuredTeaser, contactSection, portfolioUpcomingEvents:')
-        console.log(JSON.stringify({ homeHeroDoc, featuredTeaserDoc, contactSectionDoc, portfolioUpcomingEventsDoc }, null, 2))
+        console.log('\n[dry-run] Would upsert homeHero, featuredTeaser, clientSection, contactSection, portfolioUpcomingEvents:')
+        console.log(JSON.stringify({ homeHeroDoc, featuredTeaserDoc, clientSectionDoc, contactSectionDoc, portfolioUpcomingEventsDoc }, null, 2))
         return
     }
 
@@ -242,6 +254,7 @@ export async function seedHome(dryRun: boolean): Promise<void> {
     await Promise.all([
         client.delete('drafts.homeHero').catch(() => {}),
         client.delete('drafts.featuredTeaser').catch(() => {}),
+        client.delete('drafts.clientSection').catch(() => {}),
         client.delete('drafts.contactSection').catch(() => {}),
         client.delete('drafts.portfolioUpcomingEvents').catch(() => {}),
     ])
@@ -252,6 +265,9 @@ export async function seedHome(dryRun: boolean): Promise<void> {
 
     await client.createOrReplace(featuredTeaserDoc)
     console.log('✅ featuredTeaser singleton upserted successfully')
+
+    await client.createOrReplace(clientSectionDoc)
+    console.log('✅ clientSection singleton upserted successfully')
 
     await client.createOrReplace(contactSectionDoc)
     console.log('✅ contactSection singleton upserted successfully')

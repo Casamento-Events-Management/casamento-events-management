@@ -106,6 +106,7 @@ export function RecordPaymentModal({
   // 1. Reset state on modal open
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       resetForm();
     }
   }, [isOpen]);

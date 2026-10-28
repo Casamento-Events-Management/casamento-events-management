@@ -1,7 +1,8 @@
 // =============================================================================
 // home.ts — Home Page Document Types
 //
-// Types the shape of `homeHero` and `featuredTeaser` Sanity documents returned by GROQ.
+// Types the shape of `homeHero`, `featuredTeaser`, and `clientSection`
+// Sanity documents returned by GROQ.
 // =============================================================================
 
 import type { SanityDocument, SanityImageWithPriority, VideoSource } from './sanity';
@@ -53,17 +54,36 @@ export interface HeroSection {
 
 /**
  * Interface representing the `homeHero` singleton document in Sanity.
+ * NOTE: The `partners` array has been moved to `clientSection` singleton.
  */
 export interface HomeHeroContent extends SanityDocument {
   _type: 'homeHero';
   /** Full-screen landing / hero section data. */
   hero: HeroSection;
+}
+
+// ---------------------------------------------------------------------------
+// 3. Client Section Document (`_type: 'clientSection'`)
+// ---------------------------------------------------------------------------
+
+/**
+ * Interface representing the standalone `clientSection` singleton document in Sanity.
+ * Contains the section copy (eyebrow, title, description) and the partner logos array.
+ */
+export interface ClientSectionContent extends SanityDocument {
+  _type: 'clientSection';
+  /** Small tagline above the section title (e.g. "Trusted By"). */
+  eyebrow?: string;
+  /** Main heading for the Clients & Brands Served section. */
+  title?: string;
+  /** Introductory paragraph beneath the section heading. */
+  description?: string;
   /** Partner / sponsor logos. */
   partners: Partner[];
 }
 
 // ---------------------------------------------------------------------------
-// 3. Featured Teaser Document (`_type: 'featuredTeaser'`)
+// 4. Featured Teaser Document (`_type: 'featuredTeaser'`)
 // ---------------------------------------------------------------------------
 
 /**

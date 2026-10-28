@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       case 'homePage':
       case 'homeHero':
       case 'featuredTeaser':
+      case 'clientSection':
         revalidatePath('/');
         break;
       case 'contactSection':

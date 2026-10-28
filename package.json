@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "seed": "tsx scripts/seed-sanity.ts"
+    "seed": "tsx scripts/seed-sanity.ts",
+    "migrate:clients": "tsx scripts/migrations/migrateClientSection.ts"
   },
   "dependencies": {
     "@sanity/image-url": "2.1.1",

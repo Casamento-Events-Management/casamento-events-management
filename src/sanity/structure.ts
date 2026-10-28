@@ -22,6 +22,14 @@ export const structure: StructureResolver = (S) =>
             .schemaType('featuredTeaser')
             .documentId('featuredTeaser')
         ),
+      S.listItem()
+        .title('Client Section')
+        .id('clientSectionSingleton')
+        .child(
+          S.document()
+            .schemaType('clientSection')
+            .documentId('clientSection')
+        ),
       S.divider(),
 
       // 2. Contact Section Documents
@@ -122,6 +130,7 @@ export const structure: StructureResolver = (S) =>
           ![
             'homeHero',
             'featuredTeaser',
+            'clientSection',
             'contactSection',
             'portfolioHero',
             'portfolioUpcomingEvents',

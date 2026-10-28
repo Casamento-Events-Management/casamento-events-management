@@ -5,6 +5,7 @@ import { articleVlogBanner } from './documents/articleVlogBanner'
 import { articlesHero } from './documents/articlesHero'
 import { articleVlog } from './documents/articleVlog'
 import { bookingHero } from './documents/bookingHero'
+import { clientSection } from './documents/clientSection'
 import { homeHero } from './documents/homeHero'
 import { featuredTeaser } from './documents/featuredTeaser'
 import { contactSection } from './documents/contactSection'
@@ -38,6 +39,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     articleVlog,
     bookingHero,
     clientFeedback,
+    clientSection,
     homeHero,
     featuredTeaser,
     contactSection,

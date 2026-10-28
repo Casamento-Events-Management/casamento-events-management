@@ -46,6 +46,7 @@ export type {
     HeroSection,
     HeroSlide,
     HomeHeroContent,
+    ClientSectionContent,
     FeaturedTeaserContent,
     HomePageContent,
 } from './home';
