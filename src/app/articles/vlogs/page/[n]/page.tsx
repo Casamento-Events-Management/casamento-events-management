@@ -12,6 +12,13 @@ import {
   getArticleVlogTotalCount,
   getPortfolioCategories,
 } from '@/lib/services/articleVlogService';
+import { safeJsonLd } from '@/lib/utils/securityUtils';
+import {
+  buildBreadcrumbJsonLd,
+  buildCanonicalUrl,
+  buildOpenGraphImages,
+  SITE_NAME,
+} from '@/lib/utils/seoUtils';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -22,19 +29,32 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { n } = await params;
   const pageNum = parseInt(n, 10);
+  const canonicalUrl = buildCanonicalUrl(`/articles/vlogs/page/${pageNum}`);
+  const ogImages = buildOpenGraphImages(
+    undefined,
+    `Vlogs & Guides — Page ${pageNum} — ${SITE_NAME}`
+  );
 
   return {
-    title: `Vlogs & Guides — Page ${pageNum} | Casamento Events`,
-    description: `Browse page ${pageNum} of behind-the-scenes vlogs and event production guides from Casamento Events Management.`,
+    title: `Event Vlogs & Guides — Page ${pageNum}`,
+    description: `Browse page ${pageNum} of behind-the-scenes production vlogs and event management guides from ${SITE_NAME} in the Philippines.`,
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/vlogs/page/${pageNum}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
-      title: `Vlogs & Guides — Page ${pageNum} | Casamento Events`,
-      description: `Browse page ${pageNum} of behind-the-scenes vlogs and event guides.`,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/vlogs/page/${pageNum}`,
-      siteName: 'Casamento Events Management',
+      title: `Event Vlogs & Guides — Page ${pageNum} | ${SITE_NAME}`,
+      description: `Browse page ${pageNum} of behind-the-scenes production vlogs and event management guides.`,
+      url: canonicalUrl,
+      siteName: SITE_NAME,
+      locale: 'en_PH',
       type: 'website',
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Event Vlogs & Guides — Page ${pageNum} | ${SITE_NAME}`,
+      description: `Browse page ${pageNum} of behind-the-scenes production vlogs and event management guides.`,
+      images: ogImages.map((img) => img.url),
     },
   };
 }
@@ -59,9 +79,21 @@ export default async function VlogsPageN({ params }: PageProps) {
   const prevHref = pageNum === 2 ? '/articles/vlogs' : `/articles/vlogs/page/${pageNum - 1}`;
   const hasNext = pageNum < totalPages;
 
+  const breadcrumbSchema = buildBreadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Articles & Vlogs', path: '/articles' },
+    { name: 'Vlogs & Guides', path: '/articles/vlogs' },
+    { name: `Page ${pageNum}`, path: `/articles/vlogs/page/${pageNum}` },
+  ]);
+
   return (
-    <main className="min-h-screen bg-[#F7F3E8] pt-20">
-      <ArticlesHero content={heroContent} />
+    <div className="min-h-screen bg-[#F7F3E8] pt-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }}
+      />
+
+      <ArticlesHero content={heroContent} headingLevel="h1" />
 
       <div className="pb-8">
         <VlogGallery
@@ -122,6 +154,6 @@ export default async function VlogsPageN({ params }: PageProps) {
         description={contactData.description}
         socialLinks={contactData.socialLinks}
       />
-    </main>
+    </div>
   );
 }

@@ -204,13 +204,13 @@ export const GROQ_SERVICES_HERO = `
 
 /** Hardcoded fallback used when Sanity is unreachable or document is unpublished. */
 const SERVICES_HERO_FALLBACK: ServicesHeroContent = {
-    title: 'Crafted Experiences, Unforgettable Moments',
+    title: 'Full-Service Events Management & Production',
     description:
-        'Discover our bespoke wedding planning, turnkey coordination, and broadcast-grade technical production services tailored for luxury celebrations across the Philippines.',
+        'Discover our end-to-end capabilities across corporate events, brand activations, nationwide roadshows, social celebrations, creative production, event styling, livestreaming, and e-commerce production in the Philippines.',
     servicesEyebrow: 'OUR SERVICE CATALOG',
     servicesTitle: 'Explore Our Service Offerings',
     servicesDescription:
-        'Select a category below to explore package inclusions, optional add-ons, and custom quote options.',
+        'Select a category below to explore package inclusions, optional add-ons, and custom proposal options for your event or brand.',
 };
 
 /**

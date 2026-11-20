@@ -51,7 +51,7 @@ export function toVimeoEmbedUrl(rawUrl: string, autoplay = true): string {
 /**
  * Parses any `VideoSource` (Sanity CDN asset or external link) into a normalized video object.
  */
-export function parseVideoSource(source?: VideoSource | null): ParsedVideoInfo {
+export function parseVideoSource(source?: VideoSource | null, autoplay = true): ParsedVideoInfo {
   if (!source) {
     return { sourceType: 'native', directUrl: '' };
   }
@@ -93,7 +93,7 @@ export function parseVideoSource(source?: VideoSource | null): ParsedVideoInfo {
   ) {
     return {
       sourceType: 'external',
-      embedUrl: toYouTubeEmbedUrl(rawUrl),
+      embedUrl: toYouTubeEmbedUrl(rawUrl, autoplay),
       provider: 'youtube',
     };
   }
@@ -102,7 +102,7 @@ export function parseVideoSource(source?: VideoSource | null): ParsedVideoInfo {
   if (rawUrl.includes('vimeo.com')) {
     return {
       sourceType: 'external',
-      embedUrl: toVimeoEmbedUrl(rawUrl),
+      embedUrl: toVimeoEmbedUrl(rawUrl, autoplay),
       provider: 'vimeo',
     };
   }

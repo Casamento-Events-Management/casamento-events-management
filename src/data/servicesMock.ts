@@ -1,40 +1,48 @@
 import type { ServiceCategory, ServiceItem, ServicesHeroContent } from '@/types';
 
 export const MOCK_SERVICES_HERO: ServicesHeroContent = {
-    title: 'Crafted Experiences, Unforgettable Moments',
+    title: 'Full-Service Events Management & Production',
     description:
-        'From bespoke full wedding planning to technical broadcast production, we deliver immaculate events tailored to your vision.',
+        'From corporate conferences and brand activations to social celebrations, stage styling, livestreaming, and e-commerce production, we deliver turnkey events tailored to your goals.',
     servicesEyebrow: 'OUR SERVICE CATALOG',
     servicesTitle: 'Explore Our Service Offerings',
     servicesDescription:
-        'Select a category below to explore package inclusions, optional add-ons, and custom quote options.',
+        'Select a category below to explore package inclusions, optional add-ons, and custom proposal options.',
 };
 
 /**
- * Mock Service Categories for Phase 1 Scaffolding & Fallback State.
+ * Mock Service Categories for Fallback State.
  */
 export const MOCK_SERVICE_CATEGORIES: ServiceCategory[] = [
     {
         id: 'cat-1',
-        title: 'Full Planning & Styling',
-        slug: 'full-planning',
-        description: 'End-to-end luxury wedding and corporate gala conceptualization, budgeting, and execution.',
-        icon: 'Sparkles',
-        priority: 30,
+        title: 'Corporate Events',
+        slug: 'corporate-events',
+        description: 'Conferences, conventions, year-end parties, kickoffs, awards nights, and executive productions.',
+        icon: 'Briefcase',
+        priority: 40,
     },
     {
         id: 'cat-2',
-        title: 'Coordination & Management',
-        slug: 'coordination',
-        description: 'Same-day and turn-key event management for smooth, stress-free execution.',
-        icon: 'CalendarCheck',
-        priority: 20,
+        title: 'Brand Activations & Roadshows',
+        slug: 'brand-activations-and-roadshows',
+        description: 'Product launches, mall activations, nationwide roadshows, and experiential sampling campaigns.',
+        icon: 'Megaphone',
+        priority: 30,
     },
     {
         id: 'cat-3',
-        title: 'Technical Production & Stream',
+        title: 'Social Events',
+        slug: 'social-events',
+        description: 'Full-service planning and on-the-day coordination for weddings, debuts, milestones, and private celebrations.',
+        icon: 'Sparkles',
+        priority: 20,
+    },
+    {
+        id: 'cat-4',
+        title: 'Livestreaming & Technical Production',
         slug: 'production',
-        description: 'Broadcast-grade live streaming, intelligent LED stage lighting, and acoustic audio systems.',
+        description: 'Broadcast-grade multi-camera livestreaming, hybrid production, LED walls, and stage design.',
         icon: 'Radio',
         priority: 10,
     },
@@ -49,8 +57,8 @@ export const MOCK_SERVICE_ITEMS: ServiceItem[] = [
         title: 'Bespoke Full Wedding Planning & Production',
         slug: 'bespoke-full-wedding-planning',
         category: {
-            title: 'Full Planning & Styling',
-            slug: 'full-planning',
+            title: 'Social Events',
+            slug: 'social-events',
         },
         serviceType: 'Turnkey Event Management',
         shortDescription: 'Complete end-to-end wedding design, master timeline planning, budget allocation, vendor negotiations, and full day-of execution.',
@@ -96,8 +104,8 @@ export const MOCK_SERVICE_ITEMS: ServiceItem[] = [
         title: 'Turnkey On-The-Day Wedding Coordination',
         slug: 'turnkey-on-the-day-coordination',
         category: {
-            title: 'Coordination & Management',
-            slug: 'coordination',
+            title: 'Social Events',
+            slug: 'social-events',
         },
         serviceType: 'Same-Day Management',
         shortDescription: 'Seamless execution for couples who have planned their suppliers and need expert day-of directing, timeline enforcement, and crowd control.',
@@ -137,7 +145,7 @@ export const MOCK_SERVICE_ITEMS: ServiceItem[] = [
         title: 'Hybrid Broadcast Live Streaming & LED Production',
         slug: 'broadcast-live-streaming-production',
         category: {
-            title: 'Technical Production & Stream',
+            title: 'Livestreaming & Technical Production',
             slug: 'production',
         },
         serviceType: 'Technical Event Production',
@@ -179,8 +187,8 @@ export const MOCK_SERVICE_ITEMS: ServiceItem[] = [
         title: 'Luxury Destination Wedding Planning & Styling',
         slug: 'luxury-destination-wedding-planning',
         category: {
-            title: 'Full Planning & Styling',
-            slug: 'full-planning',
+            title: 'Social Events',
+            slug: 'social-events',
         },
         serviceType: 'Bespoke Destination Planning',
         shortDescription: 'Comprehensive planning, travel arrangement, guest hospitality, multi-day itinerary design, and venue styling for island and overseas destination weddings.',

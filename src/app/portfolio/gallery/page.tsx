@@ -12,28 +12,49 @@ import {
   getPortfolioItemTotalCount,
   PORTFOLIO_PAGE_SIZE,
 } from '@/lib/services/portfolioService';
+import {
+  buildCanonicalUrl,
+  buildOpenGraphImages,
+  SITE_NAME,
+} from '@/lib/utils/seoUtils';
+
+const canonicalUrl = buildCanonicalUrl('/portfolio/gallery');
+const defaultOgImages = buildOpenGraphImages(
+  undefined,
+  `Full Portfolio Showcase — ${SITE_NAME}`
+);
 
 export const metadata: Metadata = {
-  title: 'Full Portfolio Showcase | Event Productions & Cinematography Gallery',
-  description: 'Browse our complete portfolio archive of corporate conferences, brand activations, wedding films, stage and lighting designs, and broadcast live streams from Casamento Events Management across the Philippines.',
+  title: 'Full Event Production & Portfolio Gallery',
+  description:
+    'Browse our complete portfolio archive of corporate conferences, brand activations, nationwide roadshows, stage and lighting designs, broadcast livestreams, and social celebrations across the Philippines.',
   keywords: [
     'event gallery Philippines',
     'corporate event portfolio Manila',
     'brand activation showcase PH',
-    'wedding films portfolio Philippines',
     'stage production showcase Manila',
     'live streaming gallery Philippines',
     'Casamento Events gallery',
   ],
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/portfolio/gallery`,
+    canonical: canonicalUrl,
   },
   openGraph: {
-    title: 'Full Portfolio Showcase | Event Productions & Cinematography Gallery',
-    description: 'Browse our complete portfolio archive of corporate conferences, brand activations, wedding films, and stage production designs.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/portfolio/gallery`,
-    siteName: 'Casamento Events Management',
+    title: `Full Event Production & Portfolio Gallery | ${SITE_NAME}`,
+    description:
+      'Browse our complete portfolio archive of corporate conferences, brand activations, stage production designs, broadcast livestreams, and social events.',
+    url: canonicalUrl,
+    siteName: SITE_NAME,
+    locale: 'en_PH',
     type: 'website',
+    images: defaultOgImages,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Full Event Production & Portfolio Gallery | ${SITE_NAME}`,
+    description:
+      'Browse our complete portfolio archive of corporate conferences, brand activations, stage production designs, and broadcast livestreams.',
+    images: defaultOgImages.map((img) => img.url),
   },
 };
 
@@ -49,20 +70,21 @@ export default async function PortfolioGalleryPage() {
   const totalPages = Math.ceil(totalCount / PORTFOLIO_PAGE_SIZE);
 
   return (
-    <main className="min-h-screen bg-[#F7F3E8] pt-20">
+    <div className="min-h-screen bg-[#F7F3E8] pt-20">
       <div className="pb-8">
         <PortfolioView
           items={items}
           categories={categories}
           activeCategory="all"
           showViewMore={false}
+          galleryHeadingLevel="h1"
           galleryEyebrow={heroContent.galleryEyebrow}
           galleryTitle={heroContent.galleryTitle}
           galleryDescription={heroContent.galleryDescription}
         />
       </div>
 
-      <PortfolioJsonLd items={items} />
+      <PortfolioJsonLd items={items} isGalleryPage />
 
       {/* Pagination nav */}
       <nav
@@ -108,6 +130,6 @@ export default async function PortfolioGalleryPage() {
         description={contactData.description}
         socialLinks={contactData.socialLinks}
       />
-    </main>
+    </div>
   );
 }

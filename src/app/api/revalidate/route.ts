@@ -6,6 +6,8 @@ import { buildFeedbackClientPostedEmail } from '@/lib/email';
 import { logAudit } from '@/lib/services/auditService';
 import { resolveFeedbackContactEmails } from '@/lib/services/admin-feedback-queries';
 
+export const runtime = 'nodejs';
+
 interface SanityWebhookPayload {
   _type?: string;
   _id?: string;
@@ -89,24 +91,36 @@ export async function POST(req: NextRequest) {
         break;
       case 'contactSection':
         revalidatePath('/');
+        revalidatePath('/about');
         revalidatePath('/portfolio');
+        revalidatePath('/portfolio/gallery');
         revalidatePath('/services');
         revalidatePath('/articles');
+        revalidatePath('/articles/vlogs');
+        revalidatePath('/articles/feedback');
         revalidatePath('/book-now');
+        revalidatePath('/privacy');
+        revalidatePath('/terms');
+        revalidatePath('/cookies');
         break;
       case 'portfolioHero':
       case 'portfolioUpcomingEvents':
       case 'portfolioItem':
       case 'portfolioCategory':
         revalidatePath('/portfolio');
+        revalidatePath('/portfolio/gallery');
+        revalidatePath('/portfolio/gallery/page/[n]', 'page');
         revalidatePath('/portfolio/[category]', 'page');
         revalidatePath('/');
+        revalidatePath('/sitemap.xml');
         break;
       case 'servicesHero':
       case 'serviceItem':
       case 'serviceCategory':
         revalidatePath('/services');
+        revalidatePath('/book-now');
         revalidatePath('/');
+        revalidatePath('/sitemap.xml');
         break;
       case 'bookingHero':
         revalidatePath('/book-now');
@@ -114,13 +128,17 @@ export async function POST(req: NextRequest) {
       case 'articleVlogBanner':
       case 'articlesHero':
         revalidatePath('/articles');
+        revalidatePath('/articles/vlogs');
         revalidatePath('/articles/vlogs/page/[n]', 'page');
         revalidatePath('/');
         break;
       case 'articleVlog':
         revalidatePath('/articles');
+        revalidatePath('/articles/vlogs');
         revalidatePath('/articles/vlogs/page/[n]', 'page');
+        revalidatePath('/articles/vlogs/[slug]', 'page');
         revalidatePath('/');
+        revalidatePath('/sitemap.xml');
 
         let articleTitle = body.name || (body as { title?: string }).title || '';
         if (!articleTitle && body._id) {
@@ -157,7 +175,7 @@ export async function POST(req: NextRequest) {
             documentType,
             documentId: body._id,
             title: vlogTitle,
-            revalidatedPaths: ['/articles', '/articles/vlogs/page/[n]', '/'],
+            revalidatedPaths: ['/articles', '/articles/vlogs', '/articles/vlogs/page/[n]', '/articles/vlogs/[slug]', '/', '/sitemap.xml'],
           },
           ipAddress,
           userAgent,
@@ -168,6 +186,7 @@ export async function POST(req: NextRequest) {
         revalidatePath('/articles/feedback');
         revalidatePath('/articles/feedback/page/[n]', 'page');
         revalidatePath('/');
+        revalidatePath('/sitemap.xml');
 
         // If Sanity webhook payload omitted projected fields, fetch current document from Sanity
         let currentStatus = body.status;

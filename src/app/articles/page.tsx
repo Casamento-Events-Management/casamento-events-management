@@ -11,41 +11,78 @@ import {
   getArticleVlogTotalCount,
   getPortfolioCategories,
 } from '@/lib/services/articleVlogService';
-import { getFeaturedFeedbacks, getApprovedFeedbacksCount } from '@/lib/services/feedbackService';
+import {
+  getAggregateRating,
+  getApprovedFeedbacksCount,
+  getFeaturedFeedbacks,
+} from '@/lib/services/feedbackService';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { getContactSectionContent } from '@/lib/services/contactService';
+import { safeJsonLd } from '@/lib/utils/securityUtils';
+import {
+  buildBreadcrumbJsonLd,
+  buildCanonicalUrl,
+  buildOpenGraphImages,
+  getSiteUrl,
+  SITE_NAME,
+} from '@/lib/utils/seoUtils';
 
-export const metadata: Metadata = {
-  title: 'Articles & Vlogs | Event Planning Guides & Production Insights',
-  description: 'Read expert event planning guides, corporate activation trends, behind-the-scenes vlogs, and technical production insights from the Casamento Events editorial journal in the Philippines.',
-  keywords: [
-    'event planning articles Philippines',
-    'corporate event guides Manila',
-    'wedding planning tips Philippines',
-    'brand activation case studies PH',
-    'behind the scenes event production',
-    'live stream production tips Manila',
-    'Casamento Events editorial',
-  ],
-  openGraph: {
-    title: 'Articles & Vlogs | Casamento Events Editorial Journal',
-    description: 'Read expert event planning guides, corporate activation trends, behind-the-scenes vlogs, and production insights across the Philippines.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/articles`,
-    siteName: 'Casamento Events Management',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Articles & Vlogs | Casamento Events Editorial Journal',
-    description: 'Read expert event planning guides, corporate activation trends, behind-the-scenes vlogs, and production insights across the Philippines.',
-  },
-  alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/articles`,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const bannerData = await getArticleVlogBanner();
+  const canonicalUrl = buildCanonicalUrl('/articles');
+  const ogImages = buildOpenGraphImages(
+    bannerData?.backgroundImage?.asset?.url,
+    bannerData?.backgroundImage?.alt || `Event Planning Guides & Vlogs — ${SITE_NAME}`
+  );
+
+  return {
+    title: 'Event Planning Guides, Production Insights & Vlogs',
+    description:
+      'Read expert event planning guides, corporate activation strategies, behind-the-scenes vlogs, and technical production insights from the Casamento Events editorial journal in the Philippines.',
+    keywords: [
+      'event planning articles Philippines',
+      'corporate event guides Manila',
+      'brand activation case studies PH',
+      'behind the scenes event production',
+      'live stream production tips Manila',
+      'event management insights Philippines',
+      'Casamento Events editorial',
+    ],
+    openGraph: {
+      title: `Event Planning Guides, Production Insights & Vlogs | ${SITE_NAME}`,
+      description:
+        'Read expert event planning guides, corporate activation strategies, behind-the-scenes vlogs, and production insights across the Philippines.',
+      url: canonicalUrl,
+      siteName: SITE_NAME,
+      locale: 'en_PH',
+      type: 'website',
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Event Planning Guides, Production Insights & Vlogs | ${SITE_NAME}`,
+      description:
+        'Read expert event planning guides, corporate activation strategies, behind-the-scenes vlogs, and production insights across the Philippines.',
+      images: ogImages.map((img) => img.url),
+    },
+    alternates: {
+      canonical: canonicalUrl,
+    },
+  };
+}
 
 export default async function ArticlesPage() {
-  const [bannerData, heroContent, items, categories, totalCount, contactData, featuredFeedbacks, totalFeedbackCount] = await Promise.all([
+  const [
+    bannerData,
+    heroContent,
+    items,
+    categories,
+    totalCount,
+    contactData,
+    featuredFeedbacks,
+    totalFeedbackCount,
+    aggregateRating,
+  ] = await Promise.all([
     getArticleVlogBanner(),
     getArticlesHero(),
     getArticleVlogsForGallery(undefined, 1, 6),
@@ -54,18 +91,50 @@ export default async function ArticlesPage() {
     getContactSectionContent(),
     getFeaturedFeedbacks(),
     getApprovedFeedbacksCount(),
+    getAggregateRating(),
   ]);
 
   const showViewMore = totalCount > 6;
+  const hasBannerHeading = Boolean(bannerData?.backgroundImage?.asset?.url && bannerData?.title);
+
+  const siteUrl = getSiteUrl();
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `Event Planning Guides & Vlogs | ${SITE_NAME}`,
+    description:
+      'Editorial journal featuring event planning guides, corporate event insights, brand activation recaps, and production vlogs across the Philippines.',
+    url: buildCanonicalUrl('/articles'),
+    inLanguage: 'en-PH',
+    isPartOf: {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      name: SITE_NAME,
+      url: siteUrl,
+    },
+  };
+  const breadcrumbSchema = buildBreadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Articles & Vlogs', path: '/articles' },
+  ]);
 
   return (
-    <main className="min-h-screen bg-[#F7F3E8] pt-20">
+    <div className="min-h-screen bg-[#F7F3E8] pt-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(collectionSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }}
+      />
+
       {/* Section 1: Article Vlog Banner */}
       <ArticleVlogBanner banner={bannerData} />
 
       {/* Section 2: Articles Hero + Vlog Gallery */}
-      <div className='bg-[#EFEAD8]/60 border-y border-[#3A4F1C]/10'>
-        <ArticlesHero content={heroContent} />
+      <div className="bg-[#EFEAD8]/60 border-y border-[#3A4F1C]/10">
+        <ArticlesHero content={heroContent} headingLevel={hasBannerHeading ? 'h2' : 'h1'} />
         <VlogGallery
           items={items}
           categories={categories}
@@ -75,7 +144,11 @@ export default async function ArticlesPage() {
       </div>
 
       {/* Section 3: Client Feedback & Testimonials */}
-      <FeedbackSection feedbacks={featuredFeedbacks} totalCount={totalFeedbackCount} />
+      <FeedbackSection
+        feedbacks={featuredFeedbacks}
+        totalCount={totalFeedbackCount}
+        averageRating={aggregateRating.average}
+      />
 
       <ConnectSection
         eyebrow={contactData.eyebrow}
@@ -83,6 +156,6 @@ export default async function ArticlesPage() {
         description={contactData.description}
         socialLinks={contactData.socialLinks}
       />
-    </main>
+    </div>
   );
 }

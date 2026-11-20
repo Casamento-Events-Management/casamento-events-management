@@ -20,15 +20,26 @@ import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { PortfolioJsonLd } from '@/components/portfolio/portfolio-json-ld';
 import { UpcomingEventsSection } from '@/components/home/upcoming-events-section';
 import { ConnectSection } from '@/components/layout/connect-section';
+import {
+    buildCanonicalUrl,
+    buildOpenGraphImages,
+    SITE_NAME,
+} from '@/lib/utils/seoUtils';
+
+const canonicalUrl = buildCanonicalUrl('/portfolio');
+const defaultOgImages = buildOpenGraphImages(
+    undefined,
+    'Event Production Portfolio & Showcase — Casamento Events Management Philippines'
+);
 
 export const metadata: Metadata = {
-    title: 'Portfolio Showcase | Corporate Events, Brand Activations, Films & Broadcasts',
-    description: 'Explore our portfolio of corporate conferences, brand activations, wedding films, stage and lighting designs, and broadcast live streams by Casamento Events across the Philippines.',
+    title: 'Event Production Portfolio & Showcase Philippines',
+    description:
+        'Explore our portfolio of corporate conferences, brand activations, roadshows, stage and lighting designs, broadcast livestreams, and social celebrations across the Philippines.',
     keywords: [
         'event portfolio Philippines',
         'corporate event videos Manila',
         'brand activation portfolio PH',
-        'wedding films portfolio Philippines',
         'stage production portfolio Manila',
         'live streaming portfolio Philippines',
         'event cinematography showcase',
@@ -36,19 +47,24 @@ export const metadata: Metadata = {
         'Casamento Events portfolio',
     ],
     openGraph: {
-        title: 'Casamento Events Portfolio | Event Productions & Showcase',
-        description: 'Explore our portfolio of corporate conferences, brand activations, wedding films, stage productions, and broadcast live streams.',
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/portfolio`,
-        siteName: 'Casamento Events Management',
+        title: `Event Production Portfolio & Showcase | ${SITE_NAME}`,
+        description:
+            'Explore our portfolio of corporate conferences, brand activations, roadshows, stage productions, broadcast livestreams, and social events across the Philippines.',
+        url: canonicalUrl,
+        siteName: SITE_NAME,
+        locale: 'en_PH',
         type: 'website',
+        images: defaultOgImages,
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Casamento Events Portfolio | Event Productions & Showcase',
-        description: 'Explore our portfolio of corporate conferences, brand activations, wedding films, stage productions, and broadcast live streams.',
+        title: `Event Production Portfolio & Showcase | ${SITE_NAME}`,
+        description:
+            'Explore our portfolio of corporate conferences, brand activations, roadshows, stage productions, broadcast livestreams, and social events.',
+        images: defaultOgImages.map((img) => img.url),
     },
     alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/portfolio`,
+        canonical: canonicalUrl,
     },
 };
 
@@ -65,7 +81,7 @@ export default async function PortfolioPage() {
     const showViewMore = totalCount > 20;
 
     return (
-        <main className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
+        <div className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
             <PortfolioHero
                 title={heroContent.title}
                 description={heroContent.description}
@@ -94,6 +110,6 @@ export default async function PortfolioPage() {
                 description={contactData.description}
                 socialLinks={contactData.socialLinks}
             />
-        </main>
+        </div>
     );
 }

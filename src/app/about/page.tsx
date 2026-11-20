@@ -22,37 +22,55 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { Button } from '@/components/ui/button';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { getContactSectionContent } from '@/lib/services/contactService';
+import {
+  buildBreadcrumbJsonLd,
+  buildCanonicalUrl,
+  buildOpenGraphImages,
+  getSiteUrl,
+  SITE_EMAIL,
+  SITE_LEGAL_NAME,
+  SITE_NAME,
+  SITE_PHONE,
+} from '@/lib/utils/seoUtils';
+
+const canonicalUrl = buildCanonicalUrl('/about');
+const defaultOgImages = buildOpenGraphImages(
+  undefined,
+  `About ${SITE_NAME} — 14+ Years of Event Management in the Philippines`
+);
 
 export const metadata: Metadata = {
-  title: 'About Us | Our Story, Mission & Values | Casamento Events',
+  title: 'About Us — 14+ Years of Events Management in the Philippines',
   description:
-    'Learn about Casamento Events Management — born from love and family, with over 14 years of creating meaningful, memorable events, corporate activations, and full-scale productions across the Philippines.',
+    'Learn about Casamento Events Management — over 14 years of delivering corporate events, brand activations, roadshows, social celebrations, creative production, livestreaming, and e-commerce production across the Philippines.',
   keywords: [
     'about Casamento Events',
     'Casamento story',
     'events management Philippines',
-    'wedding coordinator Manila',
     'corporate event production Philippines',
     'brand activation agency Manila',
     'Casamento core values',
     'full service event production company Manila',
   ],
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/about`,
+    canonical: canonicalUrl,
   },
   openGraph: {
-    title: 'About Us | Casamento Events Management',
+    title: `About Us | ${SITE_NAME}`,
     description:
-      'Born from a deeply personal story of love and purpose. Over 14 years of bringing meaningful celebrations, corporate activations, and productions to life across the Philippines.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/about`,
-    siteName: 'Casamento Events Management',
+      'Over 14 years of delivering meaningful celebrations, corporate activations, and full-scale event productions across Metro Manila, Luzon, Visayas, and Mindanao.',
+    url: canonicalUrl,
+    siteName: SITE_NAME,
+    locale: 'en_PH',
     type: 'website',
+    images: defaultOgImages,
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'About Us | Casamento Events Management',
+    title: `About Us | ${SITE_NAME}`,
     description:
-      'Born from a deeply personal story of love and purpose. Over 14 years of bringing meaningful celebrations and productions to life across the Philippines.',
+      'Over 14 years of delivering meaningful celebrations, corporate activations, and full-scale event productions across the Philippines.',
+    images: defaultOgImages.map((img) => img.url),
   },
 };
 
@@ -136,37 +154,66 @@ const WHY_CHOOSE_ITEMS = [
 
 export default async function AboutPage() {
   const contactData = await getContactSectionContent();
+  const siteUrl = getSiteUrl();
+  const sameAs = (contactData.socialLinks || [])
+    .map((s) => s.url?.trim())
+    .filter((url): url is string => Boolean(url));
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
-    name: 'About Casamento Events Management',
+    name: `About ${SITE_NAME}`,
     description:
-      'The story, mission, vision, core values, and capabilities of Casamento Events Management.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/about`,
+      'The story, mission, vision, core values, and nationwide event production capabilities of Casamento Events Management.',
+    url: canonicalUrl,
+    inLanguage: 'en-PH',
     mainEntity: {
       '@type': 'Organization',
-      name: 'Casamento Events Management',
-      url: process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com',
+      '@id': `${siteUrl}/#organization`,
+      name: SITE_NAME,
+      legalName: SITE_LEGAL_NAME,
+      url: siteUrl,
+      telephone: SITE_PHONE,
+      email: SITE_EMAIL,
       foundingDate: '2012',
       description:
-        'A full-service events, creative, and production company offering social and corporate event management, creative production, event styling, digital advertising, livestreaming, and e-commerce production management across the Philippines.',
+        'A full-service events, creative, and production company offering corporate event management, brand activations and roadshows, social events, creative production, event styling, digital advertising, livestreaming, and e-commerce production management across the Philippines.',
+      areaServed: [
+        { '@type': 'Country', name: 'Philippines' },
+        { '@type': 'AdministrativeArea', name: 'Metro Manila' },
+        { '@type': 'AdministrativeArea', name: 'Luzon' },
+        { '@type': 'AdministrativeArea', name: 'Visayas' },
+        { '@type': 'AdministrativeArea', name: 'Mindanao' },
+      ],
       knowsAbout: [
         'Event Management',
-        'Creative Production',
-        'Wedding Planning',
         'Corporate Events',
-        'Livestreaming Production',
-        'Event Styling',
+        'Brand Activations and Roadshows',
+        'Social Events',
+        'Creative Production',
+        'Event Styling and Production Design',
+        'Livestreaming and Digital Events',
+        'E-Commerce Production Management',
+        'Digital Advertising',
       ],
+      ...(sameAs.length > 0 && { sameAs }),
     },
   };
+
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'About Us', path: '/about' },
+  ]);
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
 
       <article className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">

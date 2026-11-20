@@ -14,6 +14,12 @@ import {
   getApprovedFeedbacksCount,
   getAggregateRating,
 } from '@/lib/services/feedbackService';
+import {
+  buildBreadcrumbJsonLd,
+  buildCanonicalUrl,
+  buildOpenGraphImages,
+  SITE_NAME,
+} from '@/lib/utils/seoUtils';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -35,19 +41,32 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { n } = await params;
   const pageNum = parseInt(n, 10);
+  const canonicalUrl = buildCanonicalUrl(`/articles/feedback/page/${pageNum}`);
+  const ogImages = buildOpenGraphImages(
+    undefined,
+    `Client Reviews — Page ${pageNum} — ${SITE_NAME}`
+  );
 
   return {
-    title: `Client Feedbacks - Page ${pageNum} | Casamento Events`,
-    description: `Read page ${pageNum} of verified client reviews and testimonials for Casamento Events Management.`,
+    title: `Client Reviews & Testimonials — Page ${pageNum}`,
+    description: `Read page ${pageNum} of verified client reviews and event testimonials for ${SITE_NAME} across the Philippines.`,
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/feedback/page/${pageNum}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
-      title: `Client Feedbacks - Page ${pageNum} | Casamento Events`,
-      description: `Read page ${pageNum} of verified client reviews and testimonials.`,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/feedback/page/${pageNum}`,
-      siteName: 'Casamento Events Management',
+      title: `Client Reviews & Testimonials — Page ${pageNum} | ${SITE_NAME}`,
+      description: `Read page ${pageNum} of verified client reviews and event testimonials.`,
+      url: canonicalUrl,
+      siteName: SITE_NAME,
+      locale: 'en_PH',
       type: 'website',
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Client Reviews & Testimonials — Page ${pageNum} | ${SITE_NAME}`,
+      description: `Read page ${pageNum} of verified client reviews and event testimonials.`,
+      images: ogImages.map((img) => img.url),
     },
   };
 }
@@ -71,40 +90,18 @@ export default async function FeedbackPageN({ params }: PageProps) {
   const prevHref = pageNum === 2 ? '/articles/feedback' : `/articles/feedback/page/${pageNum - 1}`;
   const hasNext = pageNum < totalPages;
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Casamento Events Management',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: aggregate.average,
-      reviewCount: aggregate.count,
-      bestRating: 5,
-      worstRating: 1,
-    },
-    review: feedbacks.map((item) => ({
-      '@type': 'Review',
-      author: {
-        '@type': 'Person',
-        name: item.name,
-      },
-      datePublished: item.submittedAt,
-      reviewBody: item.message,
-      reviewRating: {
-        '@type': 'Rating',
-        ratingValue: item.rating,
-        bestRating: 5,
-        worstRating: 1,
-      },
-    })),
-  };
+  const breadcrumbSchema = buildBreadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Articles & Vlogs', path: '/articles' },
+    { name: 'Client Reviews', path: '/articles/feedback' },
+    { name: `Page ${pageNum}`, path: `/articles/feedback/page/${pageNum}` },
+  ]);
 
   return (
-    <main className="min-h-screen bg-[#F7F3E8] pt-24 pb-16">
+    <div className="min-h-screen bg-[#F7F3E8] pt-24 pb-16">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -121,20 +118,21 @@ export default async function FeedbackPageN({ params }: PageProps) {
         {/* Section Heading */}
         <SectionHeading
           eyebrow="CLIENT REVIEWS & TESTIMONIALS"
-          title={`Client Experiences`}
-          description="Read full experiences and honest feedback from our valued clients."
+          title="Client Experiences"
+          description="Read verified experiences and honest feedback from our valued clients across the Philippines."
           theme="light"
+          headingLevel="h1"
         />
 
-        {/* Rating Display (No Card Container) */}
+        {/* Rating Display (Reflects true computed average) */}
         <div className="flex items-center justify-center gap-2 mb-12 text-center -mt-4 sm:-mt-6">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" aria-hidden="true">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star key={star} className="w-4 sm:w-5 h-4 sm:h-5 fill-[#BC6F07] text-[#BC6F07]" />
             ))}
           </div>
           <span className="text-sm sm:text-base font-serif font-semibold text-[#3A4F1C]">
-            5.0 Rating out of {totalCount} feedbacks
+            {aggregate.average.toFixed(1)} Rating out of {totalCount} {totalCount === 1 ? 'review' : 'reviews'}
           </span>
         </div>
 
@@ -200,6 +198,6 @@ export default async function FeedbackPageN({ params }: PageProps) {
         description={contactData.description}
         socialLinks={contactData.socialLinks}
       />
-    </main>
+    </div>
   );
 }

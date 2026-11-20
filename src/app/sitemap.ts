@@ -1,164 +1,128 @@
 // =============================================================================
-// sitemap.ts — Dynamic Sitemap
+// sitemap.ts — Dynamic XML Sitemap
 //
-// Generates a fully dynamic XML sitemap including:
-//   - Core static routes (/, /services, /portfolio, /articles, /about, /book-now)
-//   - All published portfolio category subpaths (/portfolio/[category])
-//
-// Portfolio category routes are resolved dynamically via the service layer
-// so newly published Sanity CMS categories are auto-indexed without code changes.
+// Generates an accurate XML sitemap using real Sanity CMS timestamps for:
+//   - Core public routes (/, /services, /portfolio, /articles, /about, /book-now)
+//   - Published portfolio category routes (/portfolio/[category])
+//   - Portfolio gallery, vlogs, and client feedback hub pages
+//   - Individual article & vlog detail pages (/articles/vlogs/[slug])
 // =============================================================================
 
 import type { MetadataRoute } from 'next';
-import { getPortfolioCategories, getPortfolioItemTotalCount } from '@/lib/services/portfolioService';
-import { getApprovedFeedbacksCount } from '@/lib/services/feedbackService';
-import { getArticleVlogTotalCount, getAllArticleVlogSlugs } from '@/lib/services/articleVlogService';
+import {
+  getLatestPortfolioUpdateDate,
+  getPortfolioCategorySitemapEntries,
+} from '@/lib/services/portfolioService';
+import { getArticleVlogSitemapEntries } from '@/lib/services/articleVlogService';
+import { buildCanonicalUrl, getSiteUrl } from '@/lib/utils/seoUtils';
+
+function parseDateOrUndefined(value?: string): Date | undefined {
+  if (!value) return undefined;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
-    const currentDate = new Date();
+  const baseUrl = getSiteUrl();
 
-    // Fetch dynamic content data for full URL indexation
-    const [categories, feedbackCount, portfolioTotal, vlogTotal, vlogSlugs] = await Promise.all([
-        getPortfolioCategories(),
-        getApprovedFeedbacksCount(),
-        getPortfolioItemTotalCount('all'),
-        getArticleVlogTotalCount(),
-        getAllArticleVlogSlugs(),
-    ]);
+  const [categoryEntries, latestPortfolioUpdate, vlogEntries] = await Promise.all([
+    getPortfolioCategorySitemapEntries(),
+    getLatestPortfolioUpdateDate(),
+    getArticleVlogSitemapEntries(),
+  ]);
 
-    const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
-        url: `${baseUrl}/portfolio/${cat.slug}`,
-        lastModified: currentDate,
-        changeFrequency: 'weekly',
-        priority: 0.75,
-    }));
+  const latestPortfolioDate = parseDateOrUndefined(latestPortfolioUpdate);
+  const latestVlogDate = parseDateOrUndefined(vlogEntries[0]?.lastModified);
 
-    // Portfolio Gallery Paginated Routes
-    const portfolioPagesCount = Math.ceil(portfolioTotal / 20);
-    const portfolioGalleryRoutes: MetadataRoute.Sitemap = [
-        {
-            url: `${baseUrl}/portfolio/gallery`,
-            lastModified: currentDate,
-            changeFrequency: 'weekly',
-            priority: 0.8,
-        },
-    ];
-    for (let page = 2; page <= portfolioPagesCount; page++) {
-        portfolioGalleryRoutes.push({
-            url: `${baseUrl}/portfolio/gallery/page/${page}`,
-            lastModified: currentDate,
-            changeFrequency: 'weekly',
-            priority: 0.6,
-        });
-    }
+  const categoryRoutes: MetadataRoute.Sitemap = categoryEntries.map((cat) => ({
+    url: buildCanonicalUrl(`/portfolio/${cat.slug}`),
+    ...(parseDateOrUndefined(cat.lastModified)
+      ? { lastModified: parseDateOrUndefined(cat.lastModified) }
+      : latestPortfolioDate
+        ? { lastModified: latestPortfolioDate }
+        : {}),
+    changeFrequency: 'weekly',
+    priority: 0.75,
+  }));
 
-    // Article Vlogs Paginated Routes
-    const vlogPagesCount = Math.ceil(vlogTotal / 12);
-    const vlogRoutes: MetadataRoute.Sitemap = [
-        {
-            url: `${baseUrl}/articles/vlogs`,
-            lastModified: currentDate,
-            changeFrequency: 'weekly',
-            priority: 0.8,
-        },
-    ];
-    for (let page = 2; page <= vlogPagesCount; page++) {
-        vlogRoutes.push({
-            url: `${baseUrl}/articles/vlogs/page/${page}`,
-            lastModified: currentDate,
-            changeFrequency: 'weekly',
-            priority: 0.6,
-        });
-    }
+  const articleSlugRoutes: MetadataRoute.Sitemap = vlogEntries.map((entry) => ({
+    url: buildCanonicalUrl(`/articles/vlogs/${entry.slug}`),
+    ...(parseDateOrUndefined(entry.lastModified)
+      ? { lastModified: parseDateOrUndefined(entry.lastModified) }
+      : {}),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }));
 
-    // Individual Article / Vlog Slugs
-    const articleSlugRoutes: MetadataRoute.Sitemap = (vlogSlugs || []).map((slug) => ({
-        url: `${baseUrl}/articles/vlogs/${slug}`,
-        lastModified: currentDate,
-        changeFrequency: 'monthly',
-        priority: 0.7,
-    }));
-
-    // Feedback Paginated Routes
-    const feedbackPagesCount = Math.ceil(feedbackCount / 12);
-    const feedbackRoutes: MetadataRoute.Sitemap = [
-        {
-            url: `${baseUrl}/articles/feedback`,
-            lastModified: currentDate,
-            changeFrequency: 'weekly',
-            priority: 0.8,
-        },
-    ];
-
-    for (let page = 2; page <= feedbackPagesCount; page++) {
-        feedbackRoutes.push({
-            url: `${baseUrl}/articles/feedback/page/${page}`,
-            lastModified: currentDate,
-            changeFrequency: 'weekly',
-            priority: 0.6,
-        });
-    }
-
-    return [
-        {
-            url: baseUrl,
-            lastModified: currentDate,
-            changeFrequency: 'daily',
-            priority: 1.0,
-        },
-        {
-            url: `${baseUrl}/services`,
-            lastModified: currentDate,
-            changeFrequency: 'weekly',
-            priority: 0.9,
-        },
-        {
-            url: `${baseUrl}/portfolio`,
-            lastModified: currentDate,
-            changeFrequency: 'weekly',
-            priority: 0.8,
-        },
-        ...portfolioGalleryRoutes,
-        ...categoryRoutes,
-        {
-            url: `${baseUrl}/articles`,
-            lastModified: currentDate,
-            changeFrequency: 'weekly',
-            priority: 0.8,
-        },
-        ...vlogRoutes,
-        ...articleSlugRoutes,
-        ...feedbackRoutes,
-        {
-            url: `${baseUrl}/about`,
-            lastModified: currentDate,
-            changeFrequency: 'monthly',
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/book-now`,
-            lastModified: currentDate,
-            changeFrequency: 'monthly',
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/cookies`,
-            lastModified: currentDate,
-            changeFrequency: 'yearly',
-            priority: 0.4,
-        },
-        {
-            url: `${baseUrl}/privacy`,
-            lastModified: currentDate,
-            changeFrequency: 'yearly',
-            priority: 0.5,
-        },
-        {
-            url: `${baseUrl}/terms`,
-            lastModified: currentDate,
-            changeFrequency: 'yearly',
-            priority: 0.5,
-        },
-    ];
+  return [
+    {
+      url: baseUrl,
+      ...(latestPortfolioDate || latestVlogDate
+        ? { lastModified: latestPortfolioDate || latestVlogDate }
+        : {}),
+      changeFrequency: 'weekly',
+      priority: 1.0,
+    },
+    {
+      url: buildCanonicalUrl('/services'),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
+    {
+      url: buildCanonicalUrl('/portfolio'),
+      ...(latestPortfolioDate ? { lastModified: latestPortfolioDate } : {}),
+      changeFrequency: 'weekly',
+      priority: 0.85,
+    },
+    {
+      url: buildCanonicalUrl('/portfolio/gallery'),
+      ...(latestPortfolioDate ? { lastModified: latestPortfolioDate } : {}),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    ...categoryRoutes,
+    {
+      url: buildCanonicalUrl('/articles'),
+      ...(latestVlogDate ? { lastModified: latestVlogDate } : {}),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+    {
+      url: buildCanonicalUrl('/articles/vlogs'),
+      ...(latestVlogDate ? { lastModified: latestVlogDate } : {}),
+      changeFrequency: 'weekly',
+      priority: 0.75,
+    },
+    ...articleSlugRoutes,
+    {
+      url: buildCanonicalUrl('/articles/feedback'),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
+    {
+      url: buildCanonicalUrl('/about'),
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
+      url: buildCanonicalUrl('/book-now'),
+      changeFrequency: 'monthly',
+      priority: 0.75,
+    },
+    {
+      url: buildCanonicalUrl('/privacy'),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: buildCanonicalUrl('/terms'),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      url: buildCanonicalUrl('/cookies'),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+  ];
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import type { ArticlesHeroProps } from '@/types';
 import { SectionHero } from '@/components/ui/section-heading';
 
-export function ArticlesHero({ content }: ArticlesHeroProps) {
+export function ArticlesHero({ content, headingLevel = 'h2' }: ArticlesHeroProps) {
   if (!content) return null;
 
   return (
@@ -12,6 +12,7 @@ export function ArticlesHero({ content }: ArticlesHeroProps) {
         title={content.title}
         description={content.description}
         centered={true}
+        headingLevel={headingLevel}
       />
     </div>
   );

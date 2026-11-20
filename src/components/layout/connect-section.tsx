@@ -50,6 +50,8 @@ export function ConnectSection({
             src={iconImg}
             alt=""
             fill
+            sizes="(max-width: 640px) 650px, (max-width: 1024px) 1000px, 1200px"
+            loading="lazy"
             className="object-contain object-top lg:object-center"
             priority={false}
           />

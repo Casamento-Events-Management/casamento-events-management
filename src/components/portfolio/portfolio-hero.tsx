@@ -8,7 +8,7 @@ interface PortfolioHeroProps {
 
 export function PortfolioHero({
     title = 'Masterpieces in Motion',
-    description = 'Explore our curated showcase of high-end wedding films, immersive stage productions, and broadcast-grade live streams crafted with technical precision and artistic passion.',
+    description = 'Explore our curated showcase of corporate events, brand activations, nationwide roadshows, stage and lighting production, broadcast livestreams, and social celebrations across the Philippines.',
     categoryTitle,
 }: PortfolioHeroProps) {
     const displayTitle = categoryTitle ? `${categoryTitle} Portfolio` : title;

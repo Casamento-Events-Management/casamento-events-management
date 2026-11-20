@@ -15,6 +15,25 @@ function getGrecaptcha(): GrecaptchaApi | undefined {
 }
 
 /**
+ * Lazily injects the Google reCAPTCHA v3 script on demand (e.g. when a user focuses a form)
+ * so third-party script execution is avoided on initial page load.
+ */
+export function warmRecaptchaScript(): void {
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+  if (!siteKey || typeof window === 'undefined') {
+    return;
+  }
+
+  if (!getGrecaptcha() && !document.querySelector('script[src*="google.com/recaptcha/api.js"]')) {
+    const script = document.createElement('script');
+    script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+}
+
+/**
  * Ensures the Google reCAPTCHA v3 script is loaded on the page and resolves a token
  * for the specified action. Waits briefly if the script is still lazy-loading.
  */
@@ -24,13 +43,7 @@ export async function executeRecaptcha(action: string): Promise<string> {
     return '';
   }
 
-  // Inject script on demand if not already mounted on the current route
-  if (!getGrecaptcha() && !document.querySelector('script[src*="google.com/recaptcha/api.js"]')) {
-    const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/api.js?render=${encodeURIComponent(siteKey)}`;
-    script.async = true;
-    document.head.appendChild(script);
-  }
+  warmRecaptchaScript();
 
   // Poll briefly (up to 4 seconds) for grecaptcha to finish initializing
   const maxWaitMs = 4000;

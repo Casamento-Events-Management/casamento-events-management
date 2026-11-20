@@ -16,7 +16,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-[#F7F3E8]/80 leading-relaxed font-light max-w-md">
-              Crafting unforgettable celebrations that last a lifetime. From intimate weddings to grand corporate galas, we bring bespoke elegance and seamless execution to every occasion.
+              Full-service events management and creative production in the Philippines. We plan and produce corporate events, brand activations, roadshows, social celebrations, stage styling, broadcast livestreaming, and e-commerce productions nationwide.
             </p>
             <div className="pt-2">
               <span className="inline-block w-8 h-0.5 bg-[#BC6F07]" />
@@ -69,7 +69,7 @@ export function Footer() {
             </h3>
             <ul className="space-y-2.5 text-sm text-[#F7F3E8]/80">
               <li>Casamento Events Management Inc.</li>
-              <li>Metro Manila & Destination Events</li>
+              <li>Metro Manila • Luzon, Visayas &amp; Mindanao</li>
               <li>
                 <a href="mailto:hello@casamentoevents.com" className="hover:text-[#BC6F07] transition-colors">
                   hello@casamentoevents.com

@@ -11,21 +11,44 @@ import {
   getArticleVlogTotalCount,
   getPortfolioCategories,
 } from '@/lib/services/articleVlogService';
+import { safeJsonLd } from '@/lib/utils/securityUtils';
+import {
+  buildBreadcrumbJsonLd,
+  buildCanonicalUrl,
+  buildOpenGraphImages,
+  SITE_NAME,
+} from '@/lib/utils/seoUtils';
 
 const ITEMS_PER_PAGE = 12;
+const canonicalUrl = buildCanonicalUrl('/articles/vlogs');
+const defaultOgImages = buildOpenGraphImages(
+  undefined,
+  `Event Production Vlogs & Guides — ${SITE_NAME}`
+);
 
 export const metadata: Metadata = {
-  title: 'All Vlogs & Guides | Casamento Events Editorial Journal',
-  description: 'Browse the full collection of behind-the-scenes vlogs, event production guides, and luxury styling articles from Casamento Events Management.',
+  title: 'Event Production Vlogs & Planning Guides',
+  description:
+    'Browse the complete collection of behind-the-scenes production vlogs, corporate event guides, brand activation recaps, and styling insights from Casamento Events Management in the Philippines.',
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/vlogs`,
+    canonical: canonicalUrl,
   },
   openGraph: {
-    title: 'All Vlogs & Guides | Casamento Events',
-    description: 'Browse the full collection of behind-the-scenes vlogs, event production guides, and luxury styling articles.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/vlogs`,
-    siteName: 'Casamento Events Management',
+    title: `Event Production Vlogs & Planning Guides | ${SITE_NAME}`,
+    description:
+      'Browse behind-the-scenes production vlogs, corporate event guides, brand activation recaps, and styling insights across the Philippines.',
+    url: canonicalUrl,
+    siteName: SITE_NAME,
+    locale: 'en_PH',
     type: 'website',
+    images: defaultOgImages,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Event Production Vlogs & Planning Guides | ${SITE_NAME}`,
+    description:
+      'Browse behind-the-scenes production vlogs, corporate event guides, brand activation recaps, and styling insights across the Philippines.',
+    images: defaultOgImages.map((img) => img.url),
   },
 };
 
@@ -40,9 +63,31 @@ export default async function ArticlesVlogsPage() {
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
+  const collectionSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `Event Production Vlogs & Planning Guides | ${SITE_NAME}`,
+    url: canonicalUrl,
+    inLanguage: 'en-PH',
+  };
+  const breadcrumbSchema = buildBreadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Articles & Vlogs', path: '/articles' },
+    { name: 'Vlogs & Guides', path: '/articles/vlogs' },
+  ]);
+
   return (
-    <main className="min-h-screen bg-[#F7F3E8] pt-20">
-      <ArticlesHero content={heroContent} />
+    <div className="min-h-screen bg-[#F7F3E8] pt-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(collectionSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }}
+      />
+
+      <ArticlesHero content={heroContent} headingLevel="h1" />
 
       <div className="pb-8">
         <VlogGallery
@@ -97,6 +142,6 @@ export default async function ArticlesVlogsPage() {
         description={contactData.description}
         socialLinks={contactData.socialLinks}
       />
-    </main>
+    </div>
   );
 }

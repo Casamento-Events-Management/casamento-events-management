@@ -1,8 +1,9 @@
 import type { MetadataRoute } from 'next';
+import { getSiteUrl, isIndexingAllowed } from '@/lib/utils/seoUtils';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
-  const allowIndexing = process.env.NEXT_PUBLIC_ALLOW_INDEXING || 'true';
+  const baseUrl = getSiteUrl();
+  const allowIndexing = isIndexingAllowed();
 
   return {
     rules: [

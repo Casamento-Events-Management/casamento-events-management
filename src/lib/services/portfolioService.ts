@@ -425,6 +425,52 @@ export async function getPortfolioHeroContent(): Promise<PortfolioHeroContent> {
     return PORTFOLIO_HERO_FALLBACK;
 }
 
+export interface PortfolioCategorySitemapEntry {
+    slug: string;
+    lastModified?: string;
+}
+
+/**
+ * Fetches portfolio category slugs with real CMS timestamps for sitemap.xml.
+ */
+export async function getPortfolioCategorySitemapEntries(): Promise<PortfolioCategorySitemapEntry[]> {
+    try {
+        const entries = await client.fetch<Array<{ slug?: string; lastModified?: string }>>(
+            `*[_type == "portfolioCategory" && defined(slug.current)] | order(priority desc) {
+                "slug": slug.current,
+                "lastModified": coalesce(_updatedAt, _createdAt)
+            }`,
+            {},
+            { next: { revalidate: 3600, tags: ['portfolioCategory'] } }
+        );
+        if (Array.isArray(entries) && entries.length > 0) {
+            return entries
+                .filter((e): e is { slug: string; lastModified?: string } => Boolean(e.slug))
+                .map((e) => ({ slug: e.slug, lastModified: e.lastModified }));
+        }
+    } catch (err) {
+        console.warn('[portfolioService] Failed to fetch category sitemap entries:', err);
+    }
+
+    return MOCK_PORTFOLIO_CATEGORIES.map((cat) => ({ slug: cat.slug }));
+}
+
+/**
+ * Fetches the latest portfolio update timestamp for sitemap.xml freshness accuracy.
+ */
+export async function getLatestPortfolioUpdateDate(): Promise<string | undefined> {
+    try {
+        const latest = await client.fetch<string | null>(
+            `*[_type in ["portfolioItem", "portfolioCategory", "portfolioHero", "portfolioUpcomingEvents"]] | order(_updatedAt desc)[0]._updatedAt`,
+            {},
+            { next: { revalidate: 3600, tags: ['portfolioItem', 'portfolioCategory'] } }
+        );
+        return latest || undefined;
+    } catch {
+        return undefined;
+    }
+}
+
 /**
  * Fetches Portfolio Upcoming Events content from Sanity CMS with fallback to mock data.
  */

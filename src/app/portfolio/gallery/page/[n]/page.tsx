@@ -13,6 +13,11 @@ import {
   getPortfolioItemTotalCount,
   PORTFOLIO_PAGE_SIZE,
 } from '@/lib/services/portfolioService';
+import {
+  buildCanonicalUrl,
+  buildOpenGraphImages,
+  SITE_NAME,
+} from '@/lib/utils/seoUtils';
 
 interface PageProps {
   params: Promise<{ n: string }>;
@@ -21,20 +26,32 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { n } = await params;
   const pageNum = parseInt(n, 10);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
+  const canonicalUrl = buildCanonicalUrl(`/portfolio/gallery/page/${pageNum}`);
+  const ogImages = buildOpenGraphImages(
+    undefined,
+    `Portfolio Gallery — Page ${pageNum} — ${SITE_NAME}`
+  );
 
   return {
-    title: `Portfolio Gallery — Page ${pageNum} | Casamento Events Management`,
-    description: `Browse page ${pageNum} of event cinematography, corporate conferences, brand activations, wedding films, and stage production showcase from Casamento Events Management across the Philippines.`,
+    title: `Portfolio Gallery — Page ${pageNum}`,
+    description: `Browse page ${pageNum} of corporate events, brand activations, stage and lighting designs, broadcast livestreams, and social celebrations by ${SITE_NAME} across the Philippines.`,
     alternates: {
-      canonical: `${siteUrl}/portfolio/gallery/page/${pageNum}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
-      title: `Portfolio Gallery — Page ${pageNum} | Casamento Events Management`,
-      description: `Browse page ${pageNum} of event productions, wedding films, and corporate activations showcase.`,
-      url: `${siteUrl}/portfolio/gallery/page/${pageNum}`,
-      siteName: 'Casamento Events Management',
+      title: `Portfolio Gallery — Page ${pageNum} | ${SITE_NAME}`,
+      description: `Browse page ${pageNum} of event productions, corporate activations, stage designs, and broadcast livestreams.`,
+      url: canonicalUrl,
+      siteName: SITE_NAME,
+      locale: 'en_PH',
       type: 'website',
+      images: ogImages,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `Portfolio Gallery — Page ${pageNum} | ${SITE_NAME}`,
+      description: `Browse page ${pageNum} of event productions, corporate activations, stage designs, and broadcast livestreams.`,
+      images: ogImages.map((img) => img.url),
     },
   };
 }
@@ -62,20 +79,21 @@ export default async function PortfolioGalleryPageN({ params }: PageProps) {
   const hasNext = pageNum < totalPages;
 
   return (
-    <main className="min-h-screen bg-[#F7F3E8] pt-20">
+    <div className="min-h-screen bg-[#F7F3E8] pt-20">
       <div className="pb-8">
         <PortfolioView
           items={items}
           categories={categories}
           activeCategory="all"
           showViewMore={false}
+          galleryHeadingLevel="h1"
           galleryEyebrow={heroContent.galleryEyebrow}
           galleryTitle={heroContent.galleryTitle}
           galleryDescription={heroContent.galleryDescription}
         />
       </div>
 
-      <PortfolioJsonLd items={items} />
+      <PortfolioJsonLd items={items} isGalleryPage pageNum={pageNum} />
 
       {/* Pagination nav */}
       <nav
@@ -127,6 +145,6 @@ export default async function PortfolioGalleryPageN({ params }: PageProps) {
         description={contactData.description}
         socialLinks={contactData.socialLinks}
       />
-    </main>
+    </div>
   );
 }

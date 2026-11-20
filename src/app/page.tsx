@@ -2,73 +2,86 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { getHomeHeroContent, getFeaturedTeaserContent, getClientSectionContent } from '@/lib/services/homeService';
 import { getContactSectionContent } from '@/lib/services/contactService';
+import { getPortfolioUpcomingEvents } from '@/lib/services/portfolioService';
+import { getServiceCategories } from '@/lib/services/serviceService';
 import { HeroSectionComponent } from '@/components/home/hero-section';
 import { ClientsSection } from '@/components/home/partners-section';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { HomeJsonLd } from '@/components/home/home-json-ld';
 import { TeaserVideosSection } from '@/components/home/teaser-videos-section';
+import {
+  buildCanonicalUrl,
+  buildOpenGraphImages,
+  SITE_NAME,
+} from '@/lib/utils/seoUtils';
 
 export async function generateMetadata(): Promise<Metadata> {
   const heroContent = await getHomeHeroContent();
   const firstSlide = heroContent.hero?.slides?.[0];
   const pageDescription =
     firstSlide?.description ||
-    'Professional event planning, turnkey corporate activations, broadcast-grade livestreaming, and memorable milestone celebrations across Metro Manila, Tagaytay, and nationwide.';
+    'Full-service events management and creative production in the Philippines: corporate events, brand activations, roadshows, social celebrations, styling, broadcast livestreaming, and e-commerce production nationwide.';
   const pageOgImage =
     firstSlide?.image?.asset?.url ||
     firstSlide?.videoPoster?.asset?.url ||
-    '';
+    undefined;
+  const ogImages = buildOpenGraphImages(
+    pageOgImage,
+    firstSlide?.heading || `${SITE_NAME} — Full-Service Event Planning & Production Philippines`,
+    pageOgImage ? 1920 : 1200,
+    pageOgImage ? 1080 : 630
+  );
+  const canonicalUrl = buildCanonicalUrl('/');
 
   return {
-    title: 'Casamento Events Management | Professional Event Planning & Production Philippines',
+    title: {
+      absolute: 'Events Management & Production Philippines | Casamento Events Management',
+    },
     description: pageDescription,
     keywords: [
       'event management company Philippines',
       'corporate event planner Metro Manila',
       'brand activation agency Philippines',
-      'wedding coordinator Tagaytay Manila',
-      'OTD coordinator Manila',
+      'event production company Philippines',
       'live stream production Manila',
       'stage and lighting design Philippines',
-      'debut package Philippines',
       'company year end party organizer',
       'mall tour event organizer Metro Manila',
+      'e-commerce live selling production Manila',
+      'social event coordinator Philippines',
       'Casamento Events Management',
     ],
     alternates: {
-      canonical: process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com',
+      canonical: canonicalUrl,
     },
     openGraph: {
-      title: 'Casamento Events Management | Professional Event Planning & Production Philippines',
+      title: 'Events Management & Production Philippines | Casamento Events Management',
       description: pageDescription,
-      url: process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com',
-      siteName: 'Casamento Events Management',
+      url: canonicalUrl,
+      siteName: SITE_NAME,
       locale: 'en_PH',
-      images: [
-        {
-          url: pageOgImage || '/icon.png',
-          width: 1920,
-          height: 1080,
-          alt: firstSlide?.heading || 'Casamento Events Management',
-        },
-      ],
+      type: 'website',
+      images: ogImages,
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Casamento Events Management | Professional Event Planning & Production',
+      title: 'Events Management & Production Philippines | Casamento Events Management',
       description: pageDescription,
-      images: [pageOgImage || '/icon.png'],
+      images: ogImages.map((img) => img.url),
     },
   };
 }
 
 export default async function HomePage() {
-  const [heroContent, teaserContent, clientContent, contactContent] = await Promise.all([
-    getHomeHeroContent(),
-    getFeaturedTeaserContent(),
-    getClientSectionContent(),
-    getContactSectionContent(),
-  ]);
+  const [heroContent, teaserContent, clientContent, contactContent, upcomingEventsData, serviceCategories] =
+    await Promise.all([
+      getHomeHeroContent(),
+      getFeaturedTeaserContent(),
+      getClientSectionContent(),
+      getContactSectionContent(),
+      getPortfolioUpcomingEvents(),
+      getServiceCategories(),
+    ]);
 
   const compositeJsonLdContent = {
     _id: heroContent._id,
@@ -81,11 +94,13 @@ export default async function HomePage() {
     teaserVideosDescription: teaserContent.teaserVideosDescription,
     teaserVideos: teaserContent.teaserVideos,
     partners: clientContent.partners,
+    socialLinks: contactContent.socialLinks,
+    upcomingEvents: upcomingEventsData.upcomingEvents,
   };
 
   return (
     <>
-      <HomeJsonLd content={compositeJsonLdContent} />
+      <HomeJsonLd content={compositeJsonLdContent} serviceCategories={serviceCategories} />
       <article className="flex flex-col w-full">
         {/* Section 1: Hero / Landing Section */}
         <HeroSectionComponent hero={heroContent.hero} />

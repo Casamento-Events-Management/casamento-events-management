@@ -64,6 +64,7 @@ export interface FeedbackUploadResult {
 export interface FeedbackSectionProps {
   feedbacks: ClientFeedback[];
   totalCount?: number;
+  averageRating?: number;
 }
 
 export interface FeedbackCardProps {

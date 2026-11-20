@@ -4,12 +4,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import {
-  getArticleVlogBySlug,
   getAllArticleVlogSlugs,
+  getArticleVlogBySlug,
+  getRelatedArticleVlogs,
 } from '@/lib/services/articleVlogService';
 import { CustomPortableText } from '@/components/ui/portable-text';
 import { parseVideoSource } from '@/lib/utils/videoUtils';
 import { SocialIcon } from '@/components/ui/social-icon';
+import { ArticleVlogJsonLd } from '@/components/articles/article-vlog-json-ld';
+import { Button } from '@/components/ui/button';
+import {
+  buildCanonicalUrl,
+  buildOpenGraphImages,
+  SITE_NAME,
+} from '@/lib/utils/seoUtils';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -25,32 +33,40 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const item = await getArticleVlogBySlug(slug);
 
   if (!item) {
-    return { title: 'Vlog Not Found | Casamento Events' };
+    return { title: 'Article Not Found' };
   }
 
+  const canonicalUrl = buildCanonicalUrl(`/articles/vlogs/${slug}`);
   const thumbnailUrl = item.thumbnail?.asset?.url;
+  const description = item.description ?? item.summary;
+  const ogImages = buildOpenGraphImages(
+    thumbnailUrl,
+    item.thumbnail?.alt || item.title
+  );
 
   return {
-    title: `${item.title} | Casamento Events`,
-    description: item.description ?? item.summary,
+    title: item.title,
+    description,
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/vlogs/${slug}`,
+      canonical: canonicalUrl,
     },
     openGraph: {
-      title: item.title,
-      description: item.description ?? item.summary,
-      url: `${process.env.NEXT_PUBLIC_SITE_URL}/articles/vlogs/${slug}`,
-      siteName: 'Casamento Events Management',
+      title: `${item.title} | ${SITE_NAME}`,
+      description,
+      url: canonicalUrl,
+      siteName: SITE_NAME,
+      locale: 'en_PH',
       type: 'article',
       publishedTime: item.publishedAt,
-      ...(thumbnailUrl && {
-        images: [{ url: thumbnailUrl, alt: item.thumbnail.alt || item.title }],
-      }),
+      modifiedTime: item._updatedAt || item.publishedAt,
+      ...(item.category?.title && { section: item.category.title }),
+      images: ogImages,
     },
     twitter: {
       card: 'summary_large_image',
-      title: item.title,
-      description: item.description ?? item.summary,
+      title: `${item.title} | ${SITE_NAME}`,
+      description,
+      images: ogImages.map((img) => img.url),
     },
   };
 }
@@ -61,6 +77,7 @@ export default async function VlogDetailPage({ params }: PageProps) {
 
   if (!item) return notFound();
 
+  const relatedItems = await getRelatedArticleVlogs(slug, item.category?.slug, 3);
   const thumbnailUrl = item.thumbnail?.asset?.url;
 
   const publishedDate = item.publishedAt
@@ -72,30 +89,41 @@ export default async function VlogDetailPage({ params }: PageProps) {
     : null;
 
   return (
-    <main className="min-h-screen bg-[#F7F3E8] pt-20">
+    <div className="min-h-screen bg-[#F7F3E8] pt-20">
+      <ArticleVlogJsonLd item={item} slug={slug} />
+
       <article className="max-w-4xl mx-auto px-6 sm:px-8 py-12">
         {/* Breadcrumb */}
-        <nav className="mb-8 text-xs text-[#3A4F1C]/50 flex items-center gap-2">
+        <nav aria-label="Breadcrumb" className="mb-8 text-xs text-[#3A4F1C]/50 flex items-center gap-2 flex-wrap">
+          <Link href="/" className="hover:text-[#BC6F07] transition-colors">
+            Home
+          </Link>
+          <span aria-hidden="true">/</span>
           <Link href="/articles" className="hover:text-[#BC6F07] transition-colors">
             Articles
           </Link>
-          <span>/</span>
+          <span aria-hidden="true">/</span>
           <Link href="/articles/vlogs" className="hover:text-[#BC6F07] transition-colors">
             Vlogs
           </Link>
-          <span>/</span>
-          <span className="text-[#3A4F1C]/80 truncate max-w-[200px]">{item.title}</span>
+          <span aria-hidden="true">/</span>
+          <span className="text-[#3A4F1C]/80 truncate max-w-[220px]">{item.title}</span>
         </nav>
 
         {/* Category & Date */}
-        <div className="flex items-center gap-4 mb-4">
+        <div className="flex items-center gap-4 mb-4 flex-wrap">
           {item.category?.title && (
-            <span className="text-xs font-semibold tracking-[0.2em] text-[#BC6F07] uppercase">
+            <Link
+              href={`/portfolio/${item.category.slug}`}
+              className="text-xs font-semibold tracking-[0.2em] text-[#BC6F07] uppercase hover:underline underline-offset-4"
+            >
               {item.category.title}
-            </span>
+            </Link>
           )}
           {publishedDate && (
-            <span className="text-xs text-[#3A4F1C]/50">{publishedDate}</span>
+            <time dateTime={item.publishedAt} className="text-xs text-[#3A4F1C]/50">
+              {publishedDate}
+            </time>
           )}
           {item.mediaType === 'video' && item.videoDuration && (
             <span className="text-xs text-[#3A4F1C]/50">{item.videoDuration}</span>
@@ -120,7 +148,7 @@ export default async function VlogDetailPage({ params }: PageProps) {
         {/* Hero Media Container — Video Player or Image Showcase */}
         {(() => {
           if (item.mediaType === 'video' && item.videoSource) {
-            const parsed = parseVideoSource(item.videoSource);
+            const parsed = parseVideoSource(item.videoSource, false);
 
             if (parsed.sourceType === 'sanity' || parsed.sourceType === 'native') {
               const videoUrl = parsed.directUrl || '';
@@ -129,6 +157,9 @@ export default async function VlogDetailPage({ params }: PageProps) {
                   <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-10 bg-[#1A2310] shadow-xl">
                     <video
                       controls
+                      preload="none"
+                      width={1280}
+                      height={720}
                       playsInline
                       poster={thumbnailUrl}
                       className="w-full h-full object-contain bg-black"
@@ -164,6 +195,7 @@ export default async function VlogDetailPage({ params }: PageProps) {
                   alt={item.thumbnail.alt || item.title}
                   fill
                   priority
+                  fetchPriority="high"
                   className="object-cover object-center"
                   sizes="(max-width: 1024px) 100vw, 896px"
                 />
@@ -212,16 +244,92 @@ export default async function VlogDetailPage({ params }: PageProps) {
           </div>
         )}
 
+        {/* E-E-A-T Publisher Attribution & Service CTA */}
+        <aside className="mt-12 p-6 sm:p-8 rounded-2xl bg-[#EFEAD8]/70 border border-[#3A4F1C]/15">
+          <p className="text-xs font-semibold tracking-[0.2em] text-[#BC6F07] uppercase mb-2">
+            Published by {SITE_NAME}
+          </p>
+          <h2 className="text-xl sm:text-2xl font-serif font-semibold text-[#3A4F1C] mb-2">
+            Planning an Upcoming Event or Production in the Philippines?
+          </h2>
+          <p className="text-sm text-[#3A4F1C]/80 font-light leading-relaxed mb-5 max-w-2xl">
+            With over 14 years of nationwide experience across Metro Manila, Luzon, Visayas, and Mindanao, our team delivers corporate events, brand activations, roadshows, social celebrations, stage styling, livestreaming, and e-commerce production.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button href="/book-now" size="sm" variant="primary">
+              Plan Your Event
+            </Button>
+            <Button href="/services" size="sm" variant="outline">
+              Explore Our Services
+            </Button>
+            {item.category?.slug && (
+              <Link
+                href={`/portfolio/${item.category.slug}`}
+                className="text-xs font-semibold uppercase tracking-wider text-[#3A4F1C] hover:text-[#BC6F07] underline underline-offset-4 ml-1 transition-colors"
+              >
+                View {item.category.title} Portfolio →
+              </Link>
+            )}
+          </div>
+        </aside>
+
+        {/* Related Articles & Vlogs (Internal Linking) */}
+        {relatedItems.length > 0 && (
+          <section aria-labelledby="related-vlogs-heading" className="mt-14 pt-10 border-t border-[#3A4F1C]/15">
+            <h2
+              id="related-vlogs-heading"
+              className="text-xl sm:text-2xl font-serif font-semibold text-[#3A4F1C] mb-6"
+            >
+              More Event Planning Guides &amp; Vlogs
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {relatedItems.map((related) => {
+                const relThumb = related.thumbnail?.asset?.url;
+                return (
+                  <Link
+                    key={related._id}
+                    href={`/articles/vlogs/${related.slug.current}`}
+                    className="group flex flex-col rounded-xl bg-white/80 border border-[#3A4F1C]/10 overflow-hidden hover:border-[#BC6F07]/40 hover:shadow-sm transition-all duration-200"
+                  >
+                    {relThumb && (
+                      <div className="relative w-full aspect-video bg-[#1A2310] overflow-hidden">
+                        <Image
+                          src={relThumb}
+                          alt={related.thumbnail?.alt || related.title}
+                          fill
+                          loading="lazy"
+                          sizes="(max-width: 640px) 100vw, 280px"
+                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4 flex flex-col gap-1.5 flex-1">
+                      {related.category?.title && (
+                        <span className="text-[10px] font-semibold tracking-widest uppercase text-[#BC6F07]">
+                          {related.category.title}
+                        </span>
+                      )}
+                      <h3 className="text-sm font-serif font-semibold text-[#3A4F1C] group-hover:text-[#BC6F07] transition-colors line-clamp-2 leading-snug">
+                        {related.title}
+                      </h3>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Back link */}
-        <div className="mt-14">
+        <div className="mt-12">
           <Link
             href="/articles/vlogs"
             className="text-sm text-[#3A4F1C]/60 hover:text-[#BC6F07] transition-colors duration-200 underline underline-offset-4"
           >
-            ← Back to all vlogs
+            ← Back to all vlogs &amp; guides
           </Link>
         </div>
       </article>
-    </main>
+    </div>
   );
 }

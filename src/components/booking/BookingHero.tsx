@@ -16,8 +16,8 @@ interface BookingHeroProps {
  */
 export function BookingHero({
   eyebrow = 'SERVICE BOOKING',
-  title = 'Reserve Your Date with Casamento',
-  description = 'Schedule a personalized consultation with us or begin your booking inquiry for weddings, product streaming, social events, etc...',
+  title = 'Plan Your Event with Casamento',
+  description = 'Schedule a personalized consultation or begin your inquiry for corporate events, brand activations, roadshows, social celebrations, livestreaming, creative production, and more across the Philippines.',
 }: BookingHeroProps) {
   return (
     <section className="relative overflow-hidden bg-[#F7F3E8] pt-24 pb-12 sm:pt-28 sm:pb-16 md:pt-32 md:pb-20">

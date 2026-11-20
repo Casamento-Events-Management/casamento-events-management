@@ -21,8 +21,9 @@ export const ArticleVlogBanner: React.FC<ArticleVlogBannerProps> = ({ banner }) 
         alt={backgroundImage.alt || title || 'Article Vlog Banner'}
         fill
         priority
+        fetchPriority="high"
         className="object-cover object-center transition-transform duration-700 hover:scale-[1.02]"
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 100vw"
+        sizes="100vw"
       />
 
       {/* Conditionally render overlay gradient scrim & text if title/description exist */}

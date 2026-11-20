@@ -1,10 +1,40 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Play } from 'lucide-react';
 import { PortableText, type PortableTextComponents } from 'next-sanity';
 import { urlFor } from '@/sanity/lib/image';
 import { sanitizeHref, sanitizeVideoEmbedUrl } from '@/lib/utils/securityUtils';
+
+/**
+ * Extracts natural image dimensions from a Sanity image `_ref` (e.g. `image-abc-1200x800-jpg`)
+ * or asset metadata so embedded article images reserve layout space and prevent CLS.
+ */
+function parseSanityImageDimensions(value: {
+  asset?: {
+    _ref?: string;
+    metadata?: { dimensions?: { width?: number; height?: number } };
+  };
+}): { width: number; height: number } {
+  const metaW = value.asset?.metadata?.dimensions?.width;
+  const metaH = value.asset?.metadata?.dimensions?.height;
+  if (metaW && metaH) {
+    return { width: metaW, height: metaH };
+  }
+
+  const ref = value.asset?._ref || '';
+  const match = ref.match(/-(\d+)x(\d+)-/);
+  if (match) {
+    const width = Number.parseInt(match[1], 10);
+    const height = Number.parseInt(match[2], 10);
+    if (width > 0 && height > 0) {
+      return { width, height };
+    }
+  }
+
+  return { width: 1200, height: 675 };
+}
 
 interface CustomPortableTextProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,6 +118,8 @@ function ClickToPlayVideoEmbed({
           <img
             src={thumbnailSrc}
             alt={caption || 'Video thumbnail poster'}
+            width={480}
+            height={360}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
           />
@@ -143,12 +175,14 @@ function NativeUploadedVideoFile({
 
   return (
     <figure className="my-8">
-      <div className="rounded-xl overflow-hidden bg-[#1A2310] shadow-lg">
+      <div className="relative aspect-video rounded-xl overflow-hidden bg-[#1A2310] shadow-lg">
         <video
           controls
-          preload="metadata"
+          preload="none"
+          width={1280}
+          height={720}
           poster={posterUrl || undefined}
-          className="w-full h-auto block"
+          className="w-full h-full object-contain block"
           playsInline
         >
           <source src={cdnUrl} type={mimeType} />
@@ -166,10 +200,11 @@ function NativeUploadedVideoFile({
 
 const components: PortableTextComponents = {
   block: {
+    // Demote body H1 blocks to H2 so article detail pages maintain a single semantic H1
     h1: ({ children }) => (
-      <h1 className="text-3xl sm:text-4xl font-serif text-[#3A4F1C] font-semibold mt-8 mb-4 tracking-tight leading-snug">
+      <h2 className="text-3xl sm:text-4xl font-serif text-[#3A4F1C] font-semibold mt-8 mb-4 tracking-tight leading-snug">
         {children}
-      </h1>
+      </h2>
     ),
     h2: ({ children }) => (
       <h2 className="text-2xl sm:text-3xl font-serif text-[#3A4F1C] font-semibold mt-8 mb-4 tracking-tight leading-snug">
@@ -248,12 +283,16 @@ const components: PortableTextComponents = {
 
       if (!imageUrl) return null;
 
+      const { width, height } = parseSanityImageDimensions(value);
+
       return (
         <figure className="my-8">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={imageUrl}
-            alt={value.alt || 'Article embedded image'}
+            alt={value.alt || value.caption || 'Casamento Events production visual'}
+            width={width}
+            height={height}
+            sizes="(max-width: 1024px) 100vw, 896px"
             className="w-full h-auto rounded-xl block"
             loading="lazy"
           />

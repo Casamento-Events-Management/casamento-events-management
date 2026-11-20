@@ -10,11 +10,11 @@ import type { MediaCategory, PortfolioCategory, PortfolioHeroContent, PortfolioI
 export const MOCK_PORTFOLIO_HERO: PortfolioHeroContent = {
     title: 'Masterpieces in Motion',
     description:
-        'Explore our curated showcase of high-end wedding films, immersive stage productions, and broadcast-grade live streams crafted with technical precision and artistic passion.',
+        'Explore our curated showcase of corporate events, brand activations, nationwide roadshows, social celebrations, stage production designs, and broadcast livestreams across the Philippines.',
     galleryEyebrow: 'Portfolio Gallery',
     galleryTitle: 'Explore Our Showcase',
     galleryDescription:
-        'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
+        'Browse our curated collection of corporate productions, brand activations, stage designs, broadcast livestreams, and milestone celebrations.',
 };
 
 export const MOCK_MEDIA_CATEGORIES: MediaCategory[] = [
@@ -85,8 +85,8 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
         slug: 'julian-sophia-wedding',
         mediaType: 'video',
         category: {
-            title: 'Wedding Events',
-            slug: 'weddings',
+            title: 'Social Events',
+            slug: 'social-events',
         },
         tags: ['Destination Wedding', 'Same Day Edit', '4K Cinema', 'Boracay'],
         thumbnail: {
@@ -116,8 +116,8 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
         slug: 'apex-tech-gala-production',
         mediaType: 'video',
         category: {
-            title: 'Production Designs',
-            slug: 'production-design',
+            title: 'Events Styling and Production Design',
+            slug: 'events-styling-and-production-design',
         },
         tags: ['Stage Design', 'LED Mapping', 'Lighting Production', 'Corporate'],
         thumbnail: {
@@ -147,8 +147,8 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
         slug: 'celestial-floral-stage-architecture',
         mediaType: 'image',
         category: {
-            title: 'Production Designs',
-            slug: 'production-design',
+            title: 'Events Styling and Production Design',
+            slug: 'events-styling-and-production-design',
         },
         tags: ['Floral Architecture', 'Luxury Wedding', 'Stage Production', 'Manila'],
         thumbnail: {
@@ -173,8 +173,8 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
         slug: 'global-healthcare-summit-live',
         mediaType: 'video',
         category: {
-            title: 'Streaming & Broadcast',
-            slug: 'streaming',
+            title: 'Livestreaming and Digital Events',
+            slug: 'livestreaming-and-digital-events',
         },
         tags: ['Multi-Cam Broadcast', 'Hybrid Event', 'Low-Latency Stream', '1080p60'],
         thumbnail: {
@@ -204,8 +204,8 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
         slug: 'marc-elena-cathedral-wedding',
         mediaType: 'image',
         category: {
-            title: 'Wedding Events',
-            slug: 'weddings',
+            title: 'Social Events',
+            slug: 'social-events',
         },
         tags: ['Church Wedding', 'Cathedral', 'Editorial Photography', 'Manila'],
         thumbnail: {
@@ -230,8 +230,8 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
         slug: 'vogue-horizon-fashion-week',
         mediaType: 'video',
         category: {
-            title: 'Production Designs',
-            slug: 'production-design',
+            title: 'Events Styling and Production Design',
+            slug: 'events-styling-and-production-design',
         },
         tags: ['Runway Setup', 'Architectural Lighting', 'Sound Engineering'],
         thumbnail: {
@@ -265,8 +265,8 @@ export const MOCK_PORTFOLIO_ITEMS: PortfolioItem[] = [
         slug: 'national-esports-championship-broadcast',
         mediaType: 'video',
         category: {
-            title: 'Streaming & Broadcast',
-            slug: 'streaming',
+            title: 'Livestreaming and Digital Events',
+            slug: 'livestreaming-and-digital-events',
         },
         tags: ['Esports Live', 'Low-Latency Streaming', 'Virtual Studio', 'Twitch & YT'],
         thumbnail: {

@@ -185,9 +185,83 @@ export async function getAllArticleVlogSlugs(): Promise<string[]> {
     return await client.fetch<string[]>(
       `*[_type == "articleVlog"].slug.current`,
       {},
-      { next: { revalidate: 3600 } }
+      { next: { revalidate: 3600, tags: ['articleVlog'] } }
     );
   } catch {
     return articleVlogMockItems.map((v) => v.slug.current);
   }
+}
+
+export interface ArticleVlogSitemapEntry {
+  slug: string;
+  lastModified?: string;
+}
+
+/**
+ * Fetch article/vlog slugs with real CMS timestamps for sitemap.xml.
+ */
+export async function getArticleVlogSitemapEntries(): Promise<ArticleVlogSitemapEntry[]> {
+  try {
+    const entries = await client.fetch<Array<{ slug?: string; lastModified?: string }>>(
+      `*[_type == "articleVlog" && defined(slug.current)] | order(publishedAt desc) {
+        "slug": slug.current,
+        "lastModified": coalesce(_updatedAt, publishedAt, _createdAt)
+      }`,
+      {},
+      { next: { revalidate: 3600, tags: ['articleVlog'] } }
+    );
+    if (Array.isArray(entries) && entries.length > 0) {
+      return entries
+        .filter((e): e is { slug: string; lastModified?: string } => Boolean(e.slug))
+        .map((e) => ({ slug: e.slug, lastModified: e.lastModified }));
+    }
+  } catch (err) {
+    console.warn('[articleVlogService] Failed to fetch sitemap entries:', err);
+  }
+  return articleVlogMockItems.map((v) => ({
+    slug: v.slug.current,
+    lastModified: v._updatedAt || v.publishedAt,
+  }));
+}
+
+/**
+ * Fetch related article/vlog items (prioritizing same category, excluding current slug)
+ * for internal linking & topical authority on /articles/vlogs/[slug].
+ */
+export async function getRelatedArticleVlogs(
+  currentSlug: string,
+  categorySlug?: string,
+  limit = 3
+): Promise<ArticleVlogItem[]> {
+  const query = `
+    *[_type == "articleVlog" && slug.current != $currentSlug]
+    | order(select(category->slug.current == $categorySlug => 1, 0) desc, priority desc, publishedAt desc)
+    [0...$limit]
+    ${GALLERY_PROJECTION}
+  `;
+
+  try {
+    const data = await client.fetch<ArticleVlogItem[]>(
+      query,
+      { currentSlug, categorySlug: categorySlug ?? '', limit },
+      { next: { revalidate: 3600, tags: ['articleVlog'] } }
+    );
+    if (Array.isArray(data) && data.length > 0) {
+      return data.map((item) => ({
+        ...item,
+        slug: typeof item.slug === 'string' ? { current: item.slug } : item.slug,
+      }));
+    }
+  } catch (err) {
+    console.warn('[articleVlogService] Failed to fetch related vlogs:', err);
+  }
+
+  return articleVlogMockItems
+    .filter((v) => v.slug.current !== currentSlug)
+    .sort((a, b) => {
+      const aMatch = a.category?.slug === categorySlug ? 1 : 0;
+      const bMatch = b.category?.slug === categorySlug ? 1 : 0;
+      return bMatch - aMatch;
+    })
+    .slice(0, limit);
 }

@@ -13,31 +13,52 @@ import {
   getApprovedFeedbacksCount,
   getAggregateRating,
 } from '@/lib/services/feedbackService';
+import {
+  buildBreadcrumbJsonLd,
+  buildCanonicalUrl,
+  buildOpenGraphImages,
+  getSiteUrl,
+  SITE_NAME,
+} from '@/lib/utils/seoUtils';
 
 const ITEMS_PER_PAGE = 12;
+const canonicalUrl = buildCanonicalUrl('/articles/feedback');
+const defaultOgImages = buildOpenGraphImages(
+  undefined,
+  `Client Reviews & Testimonials — ${SITE_NAME}`
+);
 
 export const metadata: Metadata = {
-  title: 'Client Feedbacks & Reviews | Casamento Events Management',
+  title: 'Client Reviews & Event Testimonials Philippines',
   description:
-    'Read verified client reviews, testimonials, and experiences from corporate events, brand activations, debuts, and weddings coordinated by Casamento Events Management across the Philippines.',
+    'Read verified client reviews, testimonials, and experiences from corporate events, brand activations, roadshows, livestream productions, and social celebrations managed by Casamento Events Management across the Philippines.',
   keywords: [
     'Casamento Events reviews',
     'events management reviews Philippines',
-    'wedding coordinator testimonials Manila',
     'corporate event planner feedback PH',
+    'brand activation agency testimonials Manila',
     'client feedback Casamento Events',
     'event coordinator ratings Manila',
   ],
   alternates: {
-    canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/articles/feedback`,
+    canonical: canonicalUrl,
   },
   openGraph: {
-    title: 'Client Feedbacks & Reviews | Casamento Events Management',
+    title: `Client Reviews & Event Testimonials | ${SITE_NAME}`,
     description:
-      'Read verified client reviews and testimonials from corporate partners, brands, couples, and celebrants with Casamento Events Management.',
-    url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/articles/feedback`,
-    siteName: 'Casamento Events Management',
+      'Read verified client reviews and testimonials from corporate partners, brands, and event clients with Casamento Events Management across the Philippines.',
+    url: canonicalUrl,
+    siteName: SITE_NAME,
+    locale: 'en_PH',
     type: 'website',
+    images: defaultOgImages,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `Client Reviews & Event Testimonials | ${SITE_NAME}`,
+    description:
+      'Read verified client reviews and testimonials from corporate partners, brands, and event clients with Casamento Events Management.',
+    images: defaultOgImages.map((img) => img.url),
   },
 };
 
@@ -52,43 +73,41 @@ export default async function FeedbackPage() {
 
   const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
   const hasNext = pageNum < totalPages;
+  const siteUrl = getSiteUrl();
 
-  // JSON-LD Structured Data injection for SEO
-  const jsonLd = {
+  // Policy-compliant CollectionPage + BreadcrumbList JSON-LD (avoids self-serving Organization review snippet spam)
+  const collectionSchema = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Casamento Events Management',
-    url: process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com',
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: aggregate.average,
-      reviewCount: aggregate.count,
-      bestRating: 5,
-      worstRating: 1,
+    '@type': 'CollectionPage',
+    name: `Client Reviews & Event Testimonials | ${SITE_NAME}`,
+    description:
+      'Verified client experiences and event testimonials for Casamento Events Management across the Philippines.',
+    url: canonicalUrl,
+    inLanguage: 'en-PH',
+    isPartOf: {
+      '@type': 'WebSite',
+      '@id': `${siteUrl}/#website`,
+      name: SITE_NAME,
+      url: siteUrl,
     },
-    review: feedbacks.map((item) => ({
-      '@type': 'Review',
-      author: {
-        '@type': 'Person',
-        name: item.name,
-      },
-      datePublished: item.submittedAt,
-      reviewBody: item.message,
-      reviewRating: {
-        '@type': 'Rating',
-        ratingValue: item.rating,
-        bestRating: 5,
-        worstRating: 1,
-      },
-    })),
   };
 
+  const breadcrumbSchema = buildBreadcrumbJsonLd([
+    { name: 'Home', path: '/' },
+    { name: 'Articles & Vlogs', path: '/articles' },
+    { name: 'Client Reviews', path: '/articles/feedback' },
+  ]);
+
   return (
-    <main className="min-h-screen bg-[#F7F3E8] pt-24 pb-16">
+    <div className="min-h-screen bg-[#F7F3E8] pt-24 pb-16">
       {/* Schema.org JSON-LD */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(collectionSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -106,19 +125,20 @@ export default async function FeedbackPage() {
         <SectionHeading
           eyebrow="CLIENT REVIEWS & TESTIMONIALS"
           title="What Our Clients Say"
-          description="Read full experiences and honest feedback from our valued clients."
+          description="Read verified experiences and honest feedback from our corporate partners, brands, and event clients across the Philippines."
           theme="light"
+          headingLevel="h1"
         />
 
-        {/* Rating Display (No card container - directly centered below hero) */}
+        {/* Rating Display (Reflects true computed average) */}
         <div className="flex items-center justify-center gap-2 mb-12 text-center -mt-4 sm:-mt-6">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" aria-hidden="true">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star key={star} className="w-4 sm:w-5 h-4 sm:h-5 fill-[#BC6F07] text-[#BC6F07]" />
             ))}
           </div>
           <span className="text-sm sm:text-base font-serif font-semibold text-[#3A4F1C]">
-            5.0 Rating out of {totalCount} feedbacks
+            {aggregate.average.toFixed(1)} Rating out of {totalCount} {totalCount === 1 ? 'review' : 'reviews'}
           </span>
         </div>
 
@@ -183,6 +203,6 @@ export default async function FeedbackPage() {
         description={contactData.description}
         socialLinks={contactData.socialLinks}
       />
-    </main>
+    </div>
   );
 }

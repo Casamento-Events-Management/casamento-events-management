@@ -86,6 +86,7 @@ export interface ArticlesHeroContent extends SanityDocument {
 
 export interface ArticlesHeroProps {
     content?: ArticlesHeroContent | null;
+    headingLevel?: 'h1' | 'h2';
 }
 
 export interface VlogGalleryProps {

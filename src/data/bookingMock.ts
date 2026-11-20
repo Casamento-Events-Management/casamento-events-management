@@ -6,9 +6,9 @@ import type { BookingHeroContent, BookingFormData } from '@/types';
 
 export const MOCK_BOOKING_HERO: BookingHeroContent = {
   eyebrow: 'SERVICE BOOKING',
-  title: 'Reserve Your Date with Casamento',
+  title: 'Plan Your Event with Casamento',
   description:
-    'Schedule a personalized consultation with us or begin your booking inquiry for weddings, product streaming, social events, etc...',
+    'Schedule a personalized consultation or begin your inquiry for corporate events, brand activations, roadshows, social celebrations, livestreaming, creative production, and more across the Philippines.',
 };
 
 export const INITIAL_BOOKING_FORM_DATA: BookingFormData = {

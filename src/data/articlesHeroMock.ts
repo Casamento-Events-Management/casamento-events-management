@@ -8,5 +8,5 @@ export const articlesHeroMock: ArticlesHeroContent = {
   _rev: 'mock-rev',
   eyebrow: 'EVENT JOURNAL',
   title: 'Explore Our Vlogs & Guides',
-  description: 'Behind-the-scenes production insights, luxury styling trends, and cinematic event highlights by Casamento Events.',
+  description: 'Behind-the-scenes production insights, corporate event strategies, styling trends, and event management guides by Casamento Events.',
 };

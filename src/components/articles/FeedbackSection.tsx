@@ -8,9 +8,15 @@ import { FeedbackSlider } from '@/components/articles/FeedbackSlider';
 import { FeedbackModal } from '@/components/articles/FeedbackModal';
 import type { FeedbackSectionProps } from '@/types';
 
-export function FeedbackSection({ feedbacks, totalCount }: FeedbackSectionProps) {
+export function FeedbackSection({ feedbacks, totalCount, averageRating }: FeedbackSectionProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const countDisplay = totalCount || feedbacks?.length || 0;
+  const computedAvg =
+    typeof averageRating === 'number' && !Number.isNaN(averageRating)
+      ? averageRating
+      : feedbacks.length > 0
+        ? feedbacks.reduce((acc, f) => acc + (f.rating || 5), 0) / feedbacks.length
+        : 5.0;
 
   return (
     <section className="py-16 sm:py-24 bg-[#F7F3E8] border-t border-[#3A4F1C]/10">
@@ -19,19 +25,19 @@ export function FeedbackSection({ feedbacks, totalCount }: FeedbackSectionProps)
         <SectionHeading
           eyebrow="CLIENT EXPERIENCES"
           title="What Our Clients Say"
-          description="Real stories, honest reviews, and unforgettable memories from yours."
+          description="Verified stories and honest reviews from corporate partners, brands, and event clients across the Philippines."
           theme="light"
         />
 
         {/* 2. Sub-Hero Rating Display (Centered below section heading) */}
         <div className="flex items-center justify-center gap-2 mb-10 text-center -mt-4 sm:-mt-6">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1" aria-hidden="true">
             {[1, 2, 3, 4, 5].map((star) => (
               <Star key={star} className="w-4 sm:w-5 h-4 sm:h-5 fill-[#BC6F07] text-[#BC6F07]" />
             ))}
           </div>
           <span className="text-sm sm:text-base font-serif font-semibold text-[#3A4F1C]">
-            5.0 Rating out of {countDisplay} feedbacks
+            {computedAvg.toFixed(1)} Rating out of {countDisplay} {countDisplay === 1 ? 'review' : 'reviews'}
           </span>
         </div>
 

@@ -12,163 +12,159 @@
 import React from 'react';
 import type { PortfolioItem } from '@/types';
 import { safeJsonLd } from '@/lib/utils/securityUtils';
+import {
+  buildBreadcrumbJsonLd,
+  getSiteUrl,
+  SITE_NAME,
+  toIsoDateString,
+  toIsoDuration,
+} from '@/lib/utils/seoUtils';
+import { parseVideoSource } from '@/lib/utils/videoUtils';
 
 interface PortfolioJsonLdProps {
-    items: PortfolioItem[];
-    /** Current page slug — used to generate accurate BreadcrumbList entries. */
-    categorySlug?: string;
-    /** Current category display title for the BreadcrumbList label. */
-    categoryTitle?: string;
-    siteUrl?: string;
+  items: PortfolioItem[];
+  /** Current page slug — used to generate accurate BreadcrumbList entries. */
+  categorySlug?: string;
+  /** Current category display title for the BreadcrumbList label. */
+  categoryTitle?: string;
+  /** True when rendered on /portfolio/gallery or /portfolio/gallery/page/[n]. */
+  isGalleryPage?: boolean;
+  /** Optional pagination number when rendered on /portfolio/gallery/page/[n]. */
+  pageNum?: number;
+  siteUrl?: string;
 }
 
 /**
- * Resolves the correct `contentUrl` and `embedUrl` for a VideoObject schema.
+ * Resolves the normalized `contentUrl` and `embedUrl` for a VideoObject schema.
  *
- * - External YouTube / Vimeo sources → only `embedUrl` (not `contentUrl`,
- *   which Google expects to be a direct downloadable file URL).
- * - Sanity CDN / Supabase hosted videos → `contentUrl` (direct file URL).
+ * - External YouTube / Vimeo sources → normalized non-autoplay `embedUrl`.
+ * - Sanity CDN / native MP4 hosted videos → `contentUrl` (direct file URL).
  */
 function resolveVideoUrls(
-    video: PortfolioItem['video'],
+  video: PortfolioItem['video']
 ): { contentUrl?: string; embedUrl?: string } {
-    if (!video) return {};
+  if (!video) return {};
 
-    if (video._type === 'external') {
-        // YouTube / Vimeo: use embedUrl only — these are not direct download URLs
-        return { embedUrl: video.url };
-    }
+  const parsed = parseVideoSource(video, false);
+  if (parsed.sourceType === 'external' && parsed.embedUrl) {
+    return { embedUrl: parsed.embedUrl };
+  }
+  if ((parsed.sourceType === 'sanity' || parsed.sourceType === 'native') && parsed.directUrl) {
+    return { contentUrl: parsed.directUrl };
+  }
 
-    if (video._type === 'sanity' && video.asset?.url) {
-        // Direct CDN-hosted video: use contentUrl (downloadable source)
-        return { contentUrl: video.asset.url };
-    }
-
-    return {};
+  return {};
 }
 
 export function PortfolioJsonLd({
-    items,
-    categorySlug,
-    categoryTitle,
-    siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com',
+  items,
+  categorySlug,
+  categoryTitle,
+  isGalleryPage = false,
+  pageNum,
+  siteUrl = getSiteUrl(),
 }: PortfolioJsonLdProps) {
-    if (!items || items.length === 0) return null;
+  if (!items || items.length === 0) return null;
 
-    // -------------------------------------------------------------------------
-    // 1. Build ItemList schema — VideoObject or Visual Artwork per item
-    // -------------------------------------------------------------------------
-    const itemListSchema = {
-        '@context': 'https://schema.org',
-        '@type': 'ItemList',
-        itemListElement: items.map((item, index) => {
-            const isVideo = item.mediaType === 'video' && item.video;
+  // ---------------------------------------------------------------------------
+  // 1. Build ItemList schema — VideoObject or VisualArtwork per item
+  // ---------------------------------------------------------------------------
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: categoryTitle
+      ? `${categoryTitle} Portfolio — ${SITE_NAME}`
+      : `Event Production Portfolio — ${SITE_NAME}`,
+    numberOfItems: items.length,
+    itemListElement: items.map((item, index) => {
+      const isVideo = item.mediaType === 'video' && item.video;
 
-            // uploadDate: use real event date or createdAt; omit entirely if unknown
-            // (Google tolerates an absent uploadDate better than a false fallback)
-            const uploadDate: string | undefined =
-                item.eventDate || item.createdAt || undefined;
+      const uploadDate = toIsoDateString(item.eventDate || item.createdAt);
+      const isoDuration = toIsoDuration(item.duration);
 
-            if (isVideo) {
-                const { contentUrl, embedUrl } = resolveVideoUrls(item.video);
+      if (isVideo) {
+        const { contentUrl, embedUrl } = resolveVideoUrls(item.video);
 
-                return {
-                    '@type': 'ListItem',
-                    position: index + 1,
-                    item: {
-                        '@type': 'VideoObject',
-                        name: item.title,
-                        description: item.description || item.title,
-                        // thumbnailUrl must be an array per Google guidelines
-                        thumbnailUrl: [item.thumbnail.url],
-                        ...(uploadDate && { uploadDate }),
-                        ...(item.duration && { duration: item.duration }),
-                        ...(contentUrl && { contentUrl }),
-                        ...(embedUrl && { embedUrl }),
-                        publisher: {
-                            '@type': 'Organization',
-                            name: 'Casamento Events Management',
-                            url: siteUrl,
-                            logo: {
-                                '@type': 'ImageObject',
-                                url: `${siteUrl}/icon.png`,
-                            },
-                        },
-                    },
-                };
-            }
+        return {
+          '@type': 'ListItem',
+          position: index + 1,
+          item: {
+            '@type': 'VideoObject',
+            name: item.title,
+            description: item.description || `${item.title} — ${item.category.title} by ${SITE_NAME}`,
+            thumbnailUrl: [item.thumbnail.url],
+            ...(uploadDate && { uploadDate }),
+            ...(isoDuration && { duration: isoDuration }),
+            ...(contentUrl && { contentUrl }),
+            ...(embedUrl && { embedUrl }),
+            publisher: {
+              '@type': 'Organization',
+              name: SITE_NAME,
+              url: siteUrl,
+              logo: {
+                '@type': 'ImageObject',
+                url: `${siteUrl}/icon.png`,
+              },
+            },
+          },
+        };
+      }
 
-            // VisualArtwork — images
-            return {
-                '@type': 'ListItem',
-                position: index + 1,
-                item: {
-                    '@type': 'VisualArtwork',
-                    name: item.title,
-                    description: item.description || item.title,
-                    image: item.thumbnail.url,
-                    ...(item.eventDate && { dateCreated: item.eventDate }),
-                    ...(item.location && { locationCreated: item.location }),
-                    creator: {
-                        '@type': 'Organization',
-                        name: 'Casamento Events Management',
-                        url: siteUrl,
-                    },
-                },
-            };
-        }),
-    };
-
-    // -------------------------------------------------------------------------
-    // 2. Build BreadcrumbList schema
-    //    /portfolio                  → [Home > Portfolio]
-    //    /portfolio/[category]       → [Home > Portfolio > Category]
-    // -------------------------------------------------------------------------
-    const breadcrumbItems: Array<{
-        '@type': string;
-        position: number;
-        name: string;
-        item: string;
-    }> = [
-        {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Home',
-            item: siteUrl,
+      return {
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'VisualArtwork',
+          name: item.title,
+          description: item.description || `${item.title} — ${item.category.title} by ${SITE_NAME}`,
+          image: item.thumbnail.url,
+          ...(uploadDate && { dateCreated: uploadDate }),
+          ...(item.location && { locationCreated: item.location }),
+          creator: {
+            '@type': 'Organization',
+            name: SITE_NAME,
+            url: siteUrl,
+          },
         },
-        {
-            '@type': 'ListItem',
-            position: 2,
-            name: 'Portfolio',
-            item: `${siteUrl}/portfolio`,
-        },
-    ];
+      };
+    }),
+  };
 
-    if (categorySlug && categoryTitle) {
-        breadcrumbItems.push({
-            '@type': 'ListItem',
-            position: 3,
-            name: categoryTitle,
-            item: `${siteUrl}/portfolio/${categorySlug}`,
-        });
+  // ---------------------------------------------------------------------------
+  // 2. Build BreadcrumbList schema
+  // ---------------------------------------------------------------------------
+  const breadcrumbEntries: Array<{ name: string; path: string }> = [
+    { name: 'Home', path: '/' },
+    { name: 'Portfolio', path: '/portfolio' },
+  ];
+
+  if (isGalleryPage) {
+    breadcrumbEntries.push({ name: 'Gallery', path: '/portfolio/gallery' });
+    if (pageNum && pageNum > 1) {
+      breadcrumbEntries.push({
+        name: `Page ${pageNum}`,
+        path: `/portfolio/gallery/page/${pageNum}`,
+      });
     }
+  } else if (categorySlug && categoryTitle) {
+    breadcrumbEntries.push({
+      name: categoryTitle,
+      path: `/portfolio/${categorySlug}`,
+    });
+  }
 
-    const breadcrumbSchema = {
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: breadcrumbItems,
-    };
+  const breadcrumbSchema = buildBreadcrumbJsonLd(breadcrumbEntries);
 
-    return (
-        <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListSchema) }}
-            />
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }}
-            />
-        </>
-    );
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }}
+      />
+    </>
+  );
 }

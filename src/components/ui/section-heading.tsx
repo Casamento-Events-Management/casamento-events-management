@@ -19,6 +19,8 @@ export interface SectionHeadingProps {
   showDivider?: boolean;
   /** Additional container classes. */
   className?: string;
+  /** Semantic heading level for the section title. Defaults to 'h2'; use 'h1' for top-level archive/hub pages. */
+  headingLevel?: 'h1' | 'h2';
 }
 
 export function SectionHeading({
@@ -31,12 +33,14 @@ export function SectionHeading({
   centered = true,
   showDivider = true,
   className = '',
+  headingLevel = 'h2',
 }: SectionHeadingProps) {
   const displayDescription = description || subtitle;
   const isDark = theme === 'dark';
 
   const titleColorClass = isDark ? 'text-[#F7F3E8]' : 'text-[#3A4F1C]';
   const descColorClass = isDark ? 'text-[#F7F3E8]/80' : 'text-[#3A4F1C]/80';
+  const HeadingTag = headingLevel;
 
   return (
     <div
@@ -50,9 +54,9 @@ export function SectionHeading({
         </span>
       )}
       {typeof title === 'string' ? (
-        <h2 className={`text-2xl sm:text-3xl md:text-4xl font-serif font-semibold tracking-tight ${titleColorClass} leading-tight`}>
+        <HeadingTag className={`text-2xl sm:text-3xl md:text-4xl font-serif font-semibold tracking-tight ${titleColorClass} leading-tight`}>
           {title}
-        </h2>
+        </HeadingTag>
       ) : (
         <div className={`text-2xl sm:text-3xl md:text-4xl font-serif font-semibold tracking-tight ${titleColorClass} leading-tight`}>
           {title}

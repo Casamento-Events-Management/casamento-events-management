@@ -1,7 +1,7 @@
 // =============================================================================
 // app/portfolio/[category]/page.tsx — Category SEO Landing Page
 //
-// Dynamic / ISR Server Component for category subpath routes (e.g. /portfolio/weddings).
+// Dynamic / ISR Server Component for category subpath routes (e.g. /portfolio/corporate-events).
 // Dynamically pre-renders category pages via generateStaticParams().
 // =============================================================================
 
@@ -18,6 +18,11 @@ import { PortfolioHero } from '@/components/portfolio/portfolio-hero';
 import { PortfolioView } from '@/components/portfolio/portfolio-view';
 import { PortfolioJsonLd } from '@/components/portfolio/portfolio-json-ld';
 import { UpcomingEventsSection } from '@/components/home/upcoming-events-section';
+import {
+    buildCanonicalUrl,
+    buildOpenGraphImages,
+    SITE_NAME,
+} from '@/lib/utils/seoUtils';
 
 interface CategoryPageProps {
     params: Promise<{ category: string }>;
@@ -38,18 +43,29 @@ export async function generateStaticParams() {
  */
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
     const { category: categorySlug } = await params;
-    const category = await getPortfolioCategoryBySlug(categorySlug);
+    const [category, categoryItems] = await Promise.all([
+        getPortfolioCategoryBySlug(categorySlug),
+        getPortfolioItems(categorySlug, 0, 1),
+    ]);
 
     if (!category) {
         return {
-            title: 'Category Not Found | Casamento Events',
+            title: 'Category Not Found',
         };
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com';
-    const title = `${category.title} Portfolio | Casamento Events Management`;
-    const description = category.description || `Explore our professional ${category.title.toLowerCase()} event production showcase by Casamento Events Management across the Philippines.`;
-    const canonical = `${siteUrl}/portfolio/${category.slug}`;
+    const title = `${category.title} Portfolio Philippines`;
+    const description =
+        category.description ||
+        `Explore our ${category.title.toLowerCase()} event management and production showcase by ${SITE_NAME} across Metro Manila and the Philippines.`;
+    const canonical = buildCanonicalUrl(`/portfolio/${category.slug}`);
+    const leadThumb = categoryItems[0]?.thumbnail;
+    const ogImages = buildOpenGraphImages(
+        leadThumb?.url,
+        leadThumb?.alt || `${category.title} Portfolio — ${SITE_NAME}`,
+        leadThumb?.width || 1200,
+        leadThumb?.height || 630
+    );
 
     return {
         title,
@@ -63,16 +79,19 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
             'Casamento Events Management',
         ],
         openGraph: {
-            title: `${category.title} Portfolio | Casamento Events Management`,
+            title: `${title} | ${SITE_NAME}`,
             description,
             url: canonical,
-            siteName: 'Casamento Events Management',
+            siteName: SITE_NAME,
+            locale: 'en_PH',
             type: 'website',
+            images: ogImages,
         },
         twitter: {
             card: 'summary_large_image',
-            title: `${category.title} Portfolio | Casamento Events Management`,
+            title: `${title} | ${SITE_NAME}`,
             description,
+            images: ogImages.map((img) => img.url),
         },
         alternates: {
             canonical,
@@ -97,7 +116,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     }
 
     return (
-        <main className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
+        <div className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
             <PortfolioHero
                 categoryTitle={category.title}
                 description={category.description}
@@ -121,6 +140,6 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 categorySlug={categorySlug}
                 categoryTitle={category.title}
             />
-        </main>
+        </div>
     );
 }

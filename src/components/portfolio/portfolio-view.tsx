@@ -23,6 +23,7 @@ interface PortfolioViewProps {
     galleryEyebrow?: string;
     galleryTitle?: string;
     galleryDescription?: string;
+    galleryHeadingLevel?: 'h1' | 'h2';
     showViewMore?: boolean;
 }
 
@@ -32,7 +33,8 @@ function PortfolioViewContent({
     activeCategory: initialActiveCategory,
     galleryEyebrow = 'Portfolio Gallery',
     galleryTitle = 'Explore Our Showcase',
-    galleryDescription = 'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.',
+    galleryDescription = 'Browse our curated portfolio of corporate events, brand activations, roadshows, stage production designs, broadcast livestreams, and social celebrations.',
+    galleryHeadingLevel = 'h2',
     showViewMore = false,
 }: PortfolioViewProps) {
     const router = useRouter();
@@ -97,7 +99,7 @@ function PortfolioViewContent({
 
     const displayEyebrow = (galleryEyebrow && galleryEyebrow.trim().length > 0) ? galleryEyebrow : 'Portfolio Gallery';
     const displayTitle = (galleryTitle && galleryTitle.trim().length > 0) ? galleryTitle : 'Explore Our Showcase';
-    const displayDescription = (galleryDescription && galleryDescription.trim().length > 0) ? galleryDescription : 'Browse through our curated collection of wedding films, stage production designs, and broadcast live streams.';
+    const displayDescription = (galleryDescription && galleryDescription.trim().length > 0) ? galleryDescription : 'Browse our curated portfolio of corporate events, brand activations, roadshows, stage production designs, broadcast livestreams, and social celebrations.';
 
     return (
         <section className="py-12 md:py-20 bg-[#F7F3E8]">
@@ -108,6 +110,7 @@ function PortfolioViewContent({
                     title={displayTitle}
                     description={displayDescription}
                     centered={true}
+                    headingLevel={galleryHeadingLevel}
                 />
 
                 {/* Category Filter Tabs */}

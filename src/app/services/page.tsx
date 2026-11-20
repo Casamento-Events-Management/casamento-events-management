@@ -13,37 +13,53 @@ import { ServicesHero } from '@/components/services/services-hero';
 import { ServicesView } from '@/components/services/services-view';
 import { ServicesJsonLd } from '@/components/services/services-json-ld';
 import { ConnectSection } from '@/components/layout/connect-section';
+import {
+    buildCanonicalUrl,
+    buildOpenGraphImages,
+    SITE_NAME,
+} from '@/lib/utils/seoUtils';
+
+const canonicalUrl = buildCanonicalUrl('/services');
+const defaultOgImages = buildOpenGraphImages(
+    undefined,
+    'Event Management & Production Services — Casamento Events Management Philippines'
+);
 
 export const metadata: Metadata = {
-    title: 'Event Management & Production Services | Casamento Events Philippines',
-    description: 'Explore our full-service event offerings: corporate conferences, brand activations, creative production, stage and lighting design, broadcast livestreaming, e-commerce live selling, and turnkey wedding coordination across the Philippines.',
+    title: 'Event Management & Production Services Philippines',
+    description:
+        'Explore full-service events management in the Philippines: corporate conferences, brand activations, roadshows, creative production, stage and lighting design, broadcast livestreaming, e-commerce live selling, and social events.',
     keywords: [
         'corporate event services Manila',
         'brand activation packages PH',
         'event styling and stage design Metro Manila',
         'live selling production services',
         'hybrid event broadcast Philippines',
-        'OTD coordination Manila',
         'lights and sounds package Manila',
         'conference organizer Philippines',
-        'wedding coordinator Manila',
-        'debut packages Philippines',
+        'social event coordination Manila',
+        'digital advertising production PH',
         'Casamento Events services',
     ],
     openGraph: {
-        title: 'Event Management & Production Services | Casamento Events',
-        description: 'Full-service event planning, corporate activations, stage production, broadcast livestreaming, and turnkey event management across the Philippines.',
-        url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/services`,
-        siteName: 'Casamento Events Management',
+        title: `Event Management & Production Services Philippines | ${SITE_NAME}`,
+        description:
+            'Full-service event planning, corporate events, brand activations, creative production, stage styling, broadcast livestreaming, and e-commerce production across the Philippines.',
+        url: canonicalUrl,
+        siteName: SITE_NAME,
+        locale: 'en_PH',
         type: 'website',
+        images: defaultOgImages,
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Event Management & Production Services | Casamento Events',
-        description: 'Full-service event planning, corporate activations, stage production, broadcast livestreaming, and turnkey event management.',
+        title: `Event Management & Production Services Philippines | ${SITE_NAME}`,
+        description:
+            'Full-service event planning, corporate events, brand activations, creative production, stage styling, broadcast livestreaming, and e-commerce production across the Philippines.',
+        images: defaultOgImages.map((img) => img.url),
     },
     alternates: {
-        canonical: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://casamentoevents.com'}/services`,
+        canonical: canonicalUrl,
     },
 };
 
@@ -56,7 +72,7 @@ export default async function ServicesPage() {
     ]);
 
     return (
-        <main className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
+        <div className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
             <ServicesHero
                 title={heroContent.title}
                 description={heroContent.description}
@@ -69,13 +85,13 @@ export default async function ServicesPage() {
                 title={heroContent.servicesTitle}
                 description={heroContent.servicesDescription}
             />
-            <ServicesJsonLd services={services} />
+            <ServicesJsonLd services={services} categories={categories} />
             <ConnectSection
                 eyebrow={contactData.eyebrow}
                 title={contactData.title}
                 description={contactData.description}
                 socialLinks={contactData.socialLinks}
             />
-        </main>
+        </div>
     );
 }
