@@ -1,0 +1,5 @@
+# AI agent skills, rules, and workspace instructions (dev-only)
+.agents/
+skills-lock.json
+AGENTS.md
+GEMINI.md
