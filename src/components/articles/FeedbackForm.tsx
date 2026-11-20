@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Star, CheckCircle, AlertCircle, Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import type { FeedbackFormProps, FeedbackUploadResult } from '@/types';
 import { FILE_CONSTRAINTS } from '@/lib/schemas/feedback';
+import { executeRecaptcha } from '@/lib/utils/recaptchaClient';
 
 export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
   const [formData, setFormData] = useState({
@@ -40,20 +41,9 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  /** Helper to trigger Google reCAPTCHA v3 if available */
-  const getRecaptchaToken = async (): Promise<string> => {
-    if (
-      typeof window !== 'undefined' &&
-      (window as unknown as { grecaptcha?: { execute?: (key: string, options: { action: string }) => Promise<string> } }).grecaptcha?.execute
-    ) {
-      const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-      if (siteKey) {
-        return await (window as unknown as { grecaptcha: { execute: (key: string, options: { action: string }) => Promise<string> } }).grecaptcha.execute(siteKey, {
-          action: 'feedback_submit',
-        });
-      }
-    }
-    return '';
+  /** Helper to trigger Google reCAPTCHA v3 via shared loader */
+  const getRecaptchaToken = async (action: 'feedback_submit' | 'feedback_upload'): Promise<string> => {
+    return executeRecaptcha(action);
   };
 
   /** Upload an asset eagerly to POST /api/feedback/upload */
@@ -74,7 +64,7 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
     setPreviewUrl(localPreview);
 
     try {
-      const recaptchaToken = await getRecaptchaToken();
+      const recaptchaToken = await getRecaptchaToken('feedback_upload');
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
       uploadFormData.append('uploadType', uploadType);
@@ -120,7 +110,7 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
     setSubmitError(null);
 
     try {
-      const recaptchaToken = await getRecaptchaToken();
+      const recaptchaToken = await getRecaptchaToken('feedback_submit');
 
       const response = await fetch('/api/feedback', {
         method: 'POST',

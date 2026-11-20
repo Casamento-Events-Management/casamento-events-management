@@ -5,7 +5,7 @@
 // =============================================================================
 
 import React, { useState } from 'react';
-import { X, Mail, User, Shield, Loader2, AlertCircle, CheckCircle2, Copy, Check } from 'lucide-react';
+import { X, Mail, User, Shield, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { inviteStaffAction } from '@/lib/services/admin-team-actions';
 import type { AdminRole } from '@/types/admin-auth';
 
@@ -22,21 +22,8 @@ export function InviteStaffModal({ isOpen, onClose, onSuccess }: InviteStaffModa
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
-
-  const handleCopyLink = async () => {
-    if (!generatedLink) return;
-    try {
-      await navigator.clipboard.writeText(generatedLink);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback
-    }
-  };
 
   const handleClose = () => {
     setFullName('');
@@ -44,8 +31,6 @@ export function InviteStaffModal({ isOpen, onClose, onSuccess }: InviteStaffModa
     setRole('admin');
     setErrorMessage(null);
     setSuccessMessage(null);
-    setGeneratedLink(null);
-    setCopied(false);
     onClose();
     if (onSuccess) onSuccess();
   };
@@ -54,7 +39,6 @@ export function InviteStaffModal({ isOpen, onClose, onSuccess }: InviteStaffModa
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
-    setGeneratedLink(null);
     setIsLoading(true);
 
     try {
@@ -70,10 +54,7 @@ export function InviteStaffModal({ isOpen, onClose, onSuccess }: InviteStaffModa
         return;
       }
 
-      setSuccessMessage(result.message || 'Invitation created successfully!');
-      if (result.inviteLink) {
-        setGeneratedLink(result.inviteLink);
-      }
+      setSuccessMessage(result.message || 'Invitation email dispatched securely!');
       setIsLoading(false);
     } catch (err) {
       console.error('[InviteStaffModal Error]:', err);
@@ -126,41 +107,14 @@ export function InviteStaffModal({ isOpen, onClose, onSuccess }: InviteStaffModa
               <p className="leading-snug">{successMessage}</p>
             </div>
 
-            {generatedLink && (
-              <div className="rounded-xl border border-[#3A4F1C]/15 bg-[#F7F3E8] p-3 text-xs">
-                <p className="font-semibold text-[#2B3817]">
-                  Direct Onboarding Link:
-                </p>
-                <p className="mt-0.5 text-[11px] text-[#2B3817]/60">
-                  Email dispatched via Resend. You can also copy and send this link directly:
-                </p>
-                <div className="mt-2 flex items-center gap-2">
-                  <input
-                    type="text"
-                    readOnly
-                    value={generatedLink}
-                    className="w-full rounded-lg border border-[#3A4F1C]/20 bg-white px-2.5 py-1.5 text-[11px] text-[#2B3817]"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleCopyLink}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-[#3A4F1C] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#2A3A14] transition cursor-pointer shadow-xs"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-emerald-400" />
-                        <span>Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3.5 w-3.5" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
+            <div className="rounded-xl border border-[#3A4F1C]/15 bg-[#F7F3E8] p-3 text-xs">
+              <p className="font-semibold text-[#2B3817]">
+                Secure Email Delivery
+              </p>
+              <p className="mt-0.5 text-[11px] text-[#2B3817]/70">
+                For account security, the one-time onboarding link is sent exclusively to the invited team member&apos;s email inbox and is not displayed in the browser.
+              </p>
+            </div>
 
             <button
               type="button"

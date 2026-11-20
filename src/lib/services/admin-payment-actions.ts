@@ -33,24 +33,25 @@ import {
 } from '@/lib/email';
 import { parseContactEmailRecipients, parseContactEmailCC } from '@/lib/utils/envUtils';
 import { pesosToCentavos, formatPesos } from '@/lib/utils/currencyUtils';
+import { escapeCsvCell, sanitizePostgrestSearch } from '@/lib/utils/securityUtils';
 import type {
   PaymentRecord,
   FinancialTotalsSummary,
 } from '@/types/payment';
 
 /**
- * Generates an unguessable payment reference: PAY-YYYY-XXXXX
+ * Generates an internal payment reference: PAY-YYYY-XXXXX (internal helper, not exported)
  */
-export async function generatePaymentNumber(): Promise<string> {
+async function generatePaymentNumber(): Promise<string> {
   const year = new Date().getFullYear();
   const randomSuffix = Math.floor(10000 + Math.random() * 90000);
   return `PAY-${year}-${randomSuffix}`;
 }
 
 /**
- * Generates a client-facing receipt reference: CSM-RCPT-YYYY-XXXXX
+ * Generates a client-facing receipt reference: CSM-RCPT-YYYY-XXXXX (internal helper, not exported)
  */
-export async function generateReceiptNumber(): Promise<string> {
+async function generateReceiptNumber(): Promise<string> {
   const year = new Date().getFullYear();
   const randomSuffix = Math.floor(10000 + Math.random() * 90000);
   return `CSM-RCPT-${year}-${randomSuffix}`;
@@ -96,8 +97,8 @@ async function dispatchClientEmail(
       body: JSON.stringify({
         from: `Casamento Events <${process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to: [clientEmail],
-        cc: combinedCC.length > 0 ? combinedCC : undefined,
-        reply_to: teamRecipients[0] || process.env.CONTACT_EMAIL_FROM,
+        bcc: combinedCC.length > 0 ? combinedCC : undefined,
+        reply_to: process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev',
         subject,
         html,
       }),
@@ -551,10 +552,12 @@ export async function searchBookingsForPaymentAction(searchQuery?: string): Prom
       .limit(30);
 
     if (searchQuery && searchQuery.trim().length > 0) {
-      const q = searchQuery.trim();
-      query = query.or(
-        `booking_reference.ilike.%${q}%,client_full_name.ilike.%${q}%,client_email.ilike.%${q}%,service_title.ilike.%${q}%`
-      );
+      const q = sanitizePostgrestSearch(searchQuery);
+      if (q.length > 0) {
+        query = query.or(
+          `booking_reference.ilike.%${q}%,client_full_name.ilike.%${q}%,client_email.ilike.%${q}%,service_title.ilike.%${q}%`
+        );
+      }
     }
 
     const { data: bookings, error: bookingsErr } = await query;
@@ -1473,11 +1476,7 @@ export async function exportPaymentsCsvAction(filters: PaymentListFilters): Prom
     const searchLower = filters.search?.trim().toLowerCase();
     const csvExportRows: string[] = [];
 
-    const escapeCsv = (val: unknown): string => {
-      if (val === null || val === undefined) return '""';
-      const str = String(val).replace(/"/g, '""');
-      return `"${str}"`;
-    };
+    const escapeCsv = escapeCsvCell;
 
     for (const b of bookings) {
       const bPayments = paymentsByBooking.get(b.id) || [];
@@ -1977,8 +1976,8 @@ export async function getBookingBalanceAction(bookingId: string): Promise<{
   error?: string;
 }> {
   const adminData = await getCurrentActiveAdmin();
-  if (!adminData) {
-    return { success: false, error: 'Unauthorized: Active admin session required.' };
+  if (!adminData || adminData.profile.role === 'staff') {
+    return { success: false, error: 'Unauthorized: Operator privileges required.' };
   }
 
   const supabase = createAdminClient();

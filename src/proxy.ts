@@ -1,11 +1,12 @@
 // =============================================================================
-// middleware.ts — Application Middleware & Auth Guard
+// proxy.ts — Next.js 16 Application Proxy & Admin Auth Guard
+// (Migrated from deprecated middleware.ts per Next.js 16 convention)
 // =============================================================================
 
 import { type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }
 

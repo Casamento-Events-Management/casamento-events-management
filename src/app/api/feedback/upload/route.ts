@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { FILE_CONSTRAINTS, type UploadType } from '@/lib/schemas/feedback';
 import { verifyRecaptchaToken } from '@/lib/services/recaptchaService';
+import { validateImageMagicBytes } from '@/lib/utils/securityUtils';
 import { client } from '@/sanity/lib/client';
 
 export const runtime = 'nodejs';
@@ -8,9 +9,9 @@ export const runtime = 'nodejs';
 /**
  * Domain API Route Handler for Client Feedback Asset Uploads (`/api/feedback/upload`).
  *
- * Accepts multipart/form-data containing an image file ('photo' or 'backgroundImage')
- * and streams it directly to the Sanity Asset API using the write token.
- * Keeps file upload payload processing separate from main form JSON submission.
+ * Accepts multipart/form-data containing an image file ('photo' or 'backgroundImage'),
+ * enforces unconditional reCAPTCHA v3 verification, validates both MIME header and
+ * binary magic bytes, and streams verified images to Sanity Asset API.
  */
 export async function POST(request: Request) {
   try {
@@ -18,6 +19,15 @@ export async function POST(request: Request) {
     const uploadType = (formData.get('uploadType') as UploadType) || 'photo';
     const recaptchaToken = (formData.get('recaptchaToken') as string) || '';
     const file = formData.get('file') as File | null;
+
+    // 1. Unconditional Anti-bot reCAPTCHA v3 verification BEFORE reading file payload
+    const recaptchaResult = await verifyRecaptchaToken(recaptchaToken, 'feedback_upload');
+    if (!recaptchaResult.success) {
+      return NextResponse.json(
+        { error: recaptchaResult.error || 'Anti-bot verification failed for file upload.' },
+        { status: 403 }
+      );
+    }
 
     if (!file) {
       return NextResponse.json(
@@ -28,23 +38,23 @@ export async function POST(request: Request) {
 
     if (!FILE_CONSTRAINTS[uploadType]) {
       return NextResponse.json(
-        { error: `Invalid uploadType "${uploadType}". Must be "photo" or "backgroundImage".` },
+        { error: 'Invalid uploadType. Must be "photo" or "backgroundImage".' },
         { status: 400 }
       );
     }
 
     const constraints = FILE_CONSTRAINTS[uploadType];
 
-    // 1. File type check
+    // 2. Declared MIME type check
     if (!constraints.accept.includes(file.type as typeof constraints.accept[number])) {
       return NextResponse.json(
-        { error: `Invalid file format (${file.type}). Allowed formats: JPG, PNG, WebP.` },
+        { error: 'Invalid file format. Allowed formats: JPG, PNG, WebP.' },
         { status: 400 }
       );
     }
 
-    // 2. File size check
-    if (file.size > constraints.maxBytes) {
+    // 3. File size check
+    if (file.size <= 0 || file.size > constraints.maxBytes) {
       const maxMb = constraints.maxBytes / (1024 * 1024);
       return NextResponse.json(
         { error: `File size exceeds maximum allowed limit of ${maxMb}MB.` },
@@ -52,19 +62,18 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Anti-bot reCAPTCHA v3 verification
-    if (recaptchaToken) {
-      const recaptchaResult = await verifyRecaptchaToken(recaptchaToken, 'feedback_submit');
-      if (!recaptchaResult.success) {
-        return NextResponse.json(
-          { error: recaptchaResult.error || 'Anti-bot verification failed for file upload.' },
-          { status: 403 }
-        );
-      }
+    // 4. Inspect binary magic bytes to prevent spoofed Content-Type uploads
+    const buffer = Buffer.from(await file.arrayBuffer());
+    if (!validateImageMagicBytes(buffer, file.type)) {
+      return NextResponse.json(
+        { error: 'Uploaded file content does not match an allowed image format (JPG, PNG, WebP).' },
+        { status: 400 }
+      );
     }
 
-    // 4. Sanity Asset Upload
+    // 5. Sanity Asset Upload with sanitized filename
     const writeToken = process.env.SANITY_API_WRITE_TOKEN || process.env.SANITY_API_TOKEN;
+    const safeFilename = (file.name || 'upload.jpg').replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100);
 
     if (writeToken) {
       const writeClient = client.withConfig({
@@ -72,9 +81,8 @@ export async function POST(request: Request) {
         useCdn: false,
       });
 
-      const buffer = Buffer.from(await file.arrayBuffer());
       const assetDocument = await writeClient.assets.upload('image', buffer, {
-        filename: file.name,
+        filename: safeFilename,
         contentType: file.type,
       });
 

@@ -21,7 +21,7 @@ export function buildBookingClientCancelledEmail(
   const subject = `Event Notice: ${booking.service_title} [${booking.booking_reference}] Cancelled`;
 
   const dataTableHtml = renderDataTable([
-    { label: 'Booking Reference', value: `<strong>${booking.booking_reference}</strong>`, isHtml: true },
+    { label: 'Booking Reference', value: `<strong>${escapeHtml(booking.booking_reference)}</strong>`, isHtml: true },
     { label: 'Service', value: `${booking.service_title} (${booking.category_title})` },
     { label: 'Original Event Date', value: booking.event_date },
     { label: 'Venue Location', value: `${booking.venue_city}${booking.event_country_name ? `, ${booking.event_country_name}` : ''}` },

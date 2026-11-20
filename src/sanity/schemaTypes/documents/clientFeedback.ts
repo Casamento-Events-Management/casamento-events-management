@@ -21,10 +21,10 @@ export const clientFeedback = defineType({
     }),
     defineField({
       name: 'email',
-      title: 'Email Address',
+      title: 'Email Address (Legacy — Stored Privately in Supabase)',
       type: 'string',
-      description: 'Client contact email (Admin reference & approval email target; NOT displayed publicly).',
-      validation: (Rule) => Rule.required().email(),
+      description: 'Legacy field. New submissions store private client email & phone in RLS-protected Supabase storage.',
+      validation: (Rule) => Rule.email(),
     }),
     defineField({
       name: 'phone',

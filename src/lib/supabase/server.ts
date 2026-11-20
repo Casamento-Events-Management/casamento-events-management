@@ -16,7 +16,14 @@ export async function createClient() {
     throw new Error('Supabase environment variables are missing');
   }
 
+  const isProd = process.env.NODE_ENV === 'production';
+
   return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: {
+      path: '/',
+      sameSite: 'lax',
+      secure: isProd,
+    },
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -24,11 +31,16 @@ export async function createClient() {
       setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
+            cookieStore.set(name, value, {
+              ...options,
+              path: options?.path ?? '/',
+              sameSite: options?.sameSite ?? 'lax',
+              secure: isProd ? true : options?.secure,
+            })
           );
         } catch {
           // The `setAll` method was called from a Server Component.
-          // This can be ignored if middleware is refreshing sessions.
+          // This can be ignored if proxy is refreshing sessions.
         }
       },
     },

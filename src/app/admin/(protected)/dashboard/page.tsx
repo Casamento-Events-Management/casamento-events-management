@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
 import { createClient } from '@/lib/supabase/server';
 import { fetchOverviewData } from '@/lib/services/admin-overview-service';
-import { fetchPendingFeedbacks } from '@/lib/services/admin-feedback-service';
+import { fetchPendingFeedbacksInternal } from '@/lib/services/admin-feedback-queries';
 import { OverviewShell } from '@/components/admin/overview/overview-shell';
 
 export const metadata: Metadata = {
@@ -32,7 +32,7 @@ export default async function AdminDashboardPage() {
   if (adminData.profile.role !== 'staff') {
     const { fetchPaymentStatsAction } = await import('@/lib/services/admin-payment-actions');
     const [pendingFeedbacks, payRes] = await Promise.all([
-      fetchPendingFeedbacks(),
+      fetchPendingFeedbacksInternal(),
       fetchPaymentStatsAction(),
     ]);
     initialData.pendingFeedbacks = pendingFeedbacks;

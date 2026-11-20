@@ -8,32 +8,13 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Mail, Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { requestPasswordResetAction } from '@/lib/services/admin-auth-actions';
+import { executeRecaptcha } from '@/lib/utils/recaptchaClient';
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  const getRecaptchaToken = async (): Promise<string | undefined> => {
-    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-    if (!siteKey || typeof window === 'undefined' || !window.grecaptcha) {
-      return undefined;
-    }
-
-    try {
-      return await new Promise<string>((resolve) => {
-        window.grecaptcha?.ready(() => {
-          window.grecaptcha
-            ?.execute(siteKey, { action: 'admin_forgot_password' })
-            .then((token: string) => resolve(token))
-            .catch(() => resolve(''));
-        });
-      });
-    } catch {
-      return undefined;
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +23,7 @@ export function ForgotPasswordForm() {
     setIsLoading(true);
 
     try {
-      const recaptchaToken = await getRecaptchaToken();
+      const recaptchaToken = await executeRecaptcha('admin_forgot_password');
       const result = await requestPasswordResetAction({
         email,
         recaptchaToken,

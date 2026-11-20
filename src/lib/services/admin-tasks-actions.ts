@@ -6,6 +6,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
 import type { EventTask } from '@/types/booking';
 import { logAudit } from '@/lib/services/auditService';
@@ -85,14 +86,16 @@ export async function getAdminTasksAction(params: {
     return { success: false, error: 'Failed to load tasks.', isSuperAdmin };
   }
 
-  // Fetch creator names for display
+  // Fetch creator display names ONLY (no email/phone/role) via service role so staff can see who assigned their tasks
+  // even after Migration 014 restricts direct admin_profiles SELECT for staff to their own profile.
   const creatorIds = Array.from(
     new Set((data || []).map((t) => t.created_by).filter(Boolean))
   ) as string[];
 
   const creatorMap = new Map<string, string>();
   if (creatorIds.length > 0) {
-    const { data: creatorProfiles } = await supabase
+    const supabaseAdmin = createAdminClient();
+    const { data: creatorProfiles } = await supabaseAdmin
       .from('admin_profiles')
       .select('user_id, full_name')
       .in('user_id', creatorIds);

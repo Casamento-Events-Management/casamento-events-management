@@ -1,4 +1,5 @@
 import type { VideoSource } from '@/types';
+import { sanitizeVideoEmbedUrl } from '@/lib/utils/securityUtils';
 
 export interface ParsedVideoInfo {
   sourceType: 'sanity' | 'external' | 'native';
@@ -106,11 +107,12 @@ export function parseVideoSource(source?: VideoSource | null): ParsedVideoInfo {
     };
   }
 
-  // Fallback: external or native
+  // Fallback: external or native (only allow trusted HTTPS embed hosts)
   if (rawType === 'external') {
+    const safeEmbed = sanitizeVideoEmbedUrl(rawUrl);
     return {
       sourceType: 'external',
-      embedUrl: rawUrl,
+      embedUrl: safeEmbed || undefined,
       provider: (rawObj.provider as ParsedVideoInfo['provider']) || 'unknown',
     };
   }

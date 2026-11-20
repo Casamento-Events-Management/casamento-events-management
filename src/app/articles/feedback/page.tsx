@@ -7,6 +7,7 @@ import { FeedbackCard } from '@/components/articles/FeedbackCard';
 import { ShareExperienceTrigger } from '@/components/articles/ShareExperienceTrigger';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { getContactSectionContent } from '@/lib/services/contactService';
+import { safeJsonLd } from '@/lib/utils/securityUtils';
 import {
   getApprovedFeedbacksPage,
   getApprovedFeedbacksCount,
@@ -87,7 +88,7 @@ export default async function FeedbackPage() {
       {/* Schema.org JSON-LD */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

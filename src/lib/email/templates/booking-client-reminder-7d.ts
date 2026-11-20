@@ -27,9 +27,9 @@ export function buildBookingClientReminderEmail(
       : 'None';
 
   const dataTableHtml = renderDataTable([
-    { label: 'Booking Reference', value: `<strong>${booking.booking_reference}</strong>`, isHtml: true },
+    { label: 'Booking Reference', value: `<strong>${escapeHtml(booking.booking_reference)}</strong>`, isHtml: true },
     { label: 'Event Service', value: `${booking.service_title} (${booking.category_title})` },
-    { label: 'Event Date', value: `<strong style="color: #3A4F1C; font-size: 15px;">${booking.event_date}</strong>`, isHtml: true },
+    { label: 'Event Date', value: `<strong style="color: #3A4F1C; font-size: 15px;">${escapeHtml(booking.event_date)}</strong>`, isHtml: true },
     { label: 'Days Remaining', value: `<strong style="color: #BC6F07;">${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}</strong>`, isHtml: true },
     { label: 'Venue Location', value: `${booking.venue_city}${booking.venue_address ? `, ${booking.venue_address}` : ''}${booking.event_country_name ? ` (${booking.event_country_name})` : ''}` },
     { label: 'Add-ons Arranged', value: addOnsDisplay },

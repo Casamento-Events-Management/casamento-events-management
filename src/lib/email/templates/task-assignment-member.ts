@@ -1,4 +1,5 @@
 import type { BookingRecord } from '@/types/booking';
+import { escapeHtml } from '@/lib/utils/securityUtils';
 import { renderBaseEmailLayout } from './layouts/base';
 import { renderDataTable } from './blocks/dataTable';
 import { renderCtaButton } from './blocks/ctaButton';
@@ -27,19 +28,19 @@ function formatTaskDue(date?: string | null, time?: string | null): string {
       const parts = time.split(':');
       if (parts.length >= 2) {
         const hour = parseInt(parts[0], 10);
-        const min = parts[1];
+        const min = escapeHtml(parts[1]);
         const ampm = hour >= 12 ? 'PM' : 'AM';
         const displayHour = hour % 12 || 12;
         formattedTime = ` at ${displayHour}:${min} ${ampm}`;
       } else {
-        formattedTime = ` at ${time}`;
+        formattedTime = ` at ${escapeHtml(time)}`;
       }
     } catch {
-      formattedTime = ` at ${time}`;
+      formattedTime = ` at ${escapeHtml(time)}`;
     }
   }
 
-  const datePart = date ? `<strong>${date}</strong>` : '';
+  const datePart = date ? `<strong>${escapeHtml(date)}</strong>` : '';
   return `${datePart}${formattedTime}`;
 }
 
@@ -71,12 +72,12 @@ export function buildTaskAssignmentMemberEmail({
 
   // Event Context Summary
   const eventDetailsHtml = renderDataTable([
-    { label: 'Booking Reference', value: `<strong>${booking.booking_reference}</strong>`, isHtml: true },
+    { label: 'Booking Reference', value: `<strong>${escapeHtml(booking.booking_reference)}</strong>`, isHtml: true },
     { label: 'Event Service', value: `${booking.service_title} (${booking.category_title})` },
-    { label: 'Event Date', value: `<strong style="color: #3A4F1C; font-size: 15px;">${booking.event_date}</strong>`, isHtml: true },
+    { label: 'Event Date', value: `<strong style="color: #3A4F1C; font-size: 15px;">${escapeHtml(booking.event_date)}</strong>`, isHtml: true },
     { label: 'Client Name', value: booking.client_full_name },
     { label: 'Venue Location', value: `${booking.venue_city}${booking.venue_address ? `, ${booking.venue_address}` : ''}${booking.event_country_name ? ` (${booking.event_country_name})` : ''}` },
-    { label: 'Assigned By', value: `<strong>${assignedBy}</strong>`, isHtml: true },
+    { label: 'Assigned By', value: `<strong>${escapeHtml(assignedBy)}</strong>`, isHtml: true },
   ]);
 
   // Tasks Checklist Table HTML
@@ -92,7 +93,7 @@ export function buildTaskAssignmentMemberEmail({
         <td style="padding: 10px 12px; font-size: 13px; color: #2B3817; vertical-align: middle;">
           <span style="display: inline-block; width: 22px; font-weight: bold; color: #BC6F07;">${idx + 1}.</span>
           ${badgeHtml}
-          <span style="${t.is_done ? 'text-decoration: line-through; color: #888;' : 'font-weight: 500;'}">${t.title}</span>
+          <span style="${t.is_done ? 'text-decoration: line-through; color: #888;' : 'font-weight: 500;'}">${escapeHtml(t.title)}</span>
         </td>
         <td style="padding: 10px 12px; font-size: 12px; color: #555; vertical-align: middle; text-align: right; white-space: nowrap;">
           ${formatTaskDue(t.due_date, t.due_time)}
@@ -128,12 +129,12 @@ export function buildTaskAssignmentMemberEmail({
   );
 
   const introText = hasBoth
-    ? `<strong>${assignedBy}</strong> has assigned new tasks to you for <strong>${booking.service_title}</strong>. Below is your full updated task checklist containing both your previous and newly assigned tasks:`
-    : `<strong>${assignedBy}</strong> has assigned you ${newTasks.length === 1 ? 'a new task' : `<strong>${newTasks.length} tasks</strong>`} for <strong>${booking.service_title}</strong>:`;
+    ? `<strong>${escapeHtml(assignedBy)}</strong> has assigned new tasks to you for <strong>${escapeHtml(booking.service_title)}</strong>. Below is your full updated task checklist containing both your previous and newly assigned tasks:`
+    : `<strong>${escapeHtml(assignedBy)}</strong> has assigned you ${newTasks.length === 1 ? 'a new task' : `<strong>${newTasks.length} tasks</strong>`} for <strong>${escapeHtml(booking.service_title)}</strong>:`;
 
   const contentHtml = `
     <p style="margin: 0 0 16px 0; font-size: 15px; color: #2B3817; line-height: 1.6;">
-      Hello <strong>${memberName}</strong>,
+      Hello <strong>${escapeHtml(memberName)}</strong>,
     </p>
 
     <p style="margin: 0 0 16px 0; font-size: 14px; color: #2B3817; line-height: 1.6;">

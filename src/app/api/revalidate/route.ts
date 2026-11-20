@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { buildFeedbackClientPostedEmail } from '@/lib/email';
 import { logAudit } from '@/lib/services/auditService';
+import { resolveFeedbackContactEmails } from '@/lib/services/admin-feedback-queries';
 
 interface SanityWebhookPayload {
   _type?: string;
@@ -197,6 +198,12 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // Resolve private client email from Supabase (fallback to legacy Sanity field)
+        if (!clientEmail && body._id) {
+          const emailMap = await resolveFeedbackContactEmails([body._id, body._id.replace(/^drafts\./, '')]);
+          clientEmail = emailMap.get(body._id) || emailMap.get(body._id.replace(/^drafts\./, '')) || clientEmail;
+        }
+
         // Audit Trail & Lifecycle dispatch based on resolved status
         if (currentStatus === 'approved') {
           void logAudit({
@@ -204,30 +211,30 @@ export async function POST(req: NextRequest) {
             action: 'Feedback Approved',
             severity: 'Info',
             outcome: 'Success',
-            summary: `Feedback approved in Sanity Studio for ${body.name || 'Client'} (${body.email || 'No email'})`,
+            summary: `Feedback approved in Sanity Studio for ${clientName || 'Client'} (${clientEmail || 'No email'})`,
             actorType: 'webhook',
             actorCode: 'SAN-CMS',
             actorName: 'Sanity Studio Webhook',
             entityType: 'clientFeedback',
             entityId: body._id,
-            entityRef: body.email,
+            entityRef: clientEmail || body._id,
             metadata: {
               documentId: body._id,
-              name: body.name,
-              email: body.email,
-              eventType: body.eventType,
-              status: body.status,
+              name: clientName,
+              email: clientEmail,
+              eventType,
+              status: currentStatus,
             },
             ipAddress,
             userAgent,
           });
 
           // Send confirmation email to client if feedback is published with status === 'approved'
-          if (body.email) {
+          if (clientEmail) {
             await sendClientApprovalEmail({
-              email: body.email,
-              name: body.name,
-              eventType: body.eventType,
+              email: clientEmail,
+              name: clientName,
+              eventType,
               documentId: body._id,
               ipAddress,
               userAgent,
@@ -367,7 +374,9 @@ async function sendClientApprovalEmail(payload: {
       return;
     }
 
-    console.log(`[api/revalidate] Client feedback posted notification email sent to ${payload.email}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[api/revalidate] Client feedback posted notification email sent to ${payload.email}`);
+    }
     void logAudit({
       category: 'Feedback',
       action: 'Feedback Approval Email',

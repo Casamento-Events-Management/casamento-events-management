@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -20,6 +20,7 @@ import {
   Users,
   UserCog,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 import { logoutAdminAction } from '@/lib/services/admin-auth-actions';
 import { EditProfileModal } from '@/components/admin/layout/edit-profile-modal';
 import type { AdminProfile } from '@/types/admin-auth';
@@ -29,7 +30,6 @@ interface AdminSidebarProps {
 }
 
 export function AdminSidebar({ admin }: AdminSidebarProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -59,9 +59,17 @@ export function AdminSidebar({ admin }: AdminSidebarProps) {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
+      // 1. Revoke all sessions globally on the server and expire auth cookies
       const result = await logoutAdminAction();
-      router.push(result.redirectUrl || '/admin/login');
-      router.refresh();
+      // 2. Tear down the cached browser Supabase singleton and its auto-refresh timers
+      try {
+        const browserSupabase = createClient();
+        await browserSupabase.auth.signOut({ scope: 'local' });
+      } catch {
+        // Ignore if browser client already cleared
+      }
+      // 3. Hard navigation to clear Next.js Router Cache, JS memory, and replace history
+      window.location.replace(result.redirectUrl || '/admin/login');
     } catch (err) {
       console.error('[Sidebar Logout Error]:', err);
       setIsLoggingOut(false);

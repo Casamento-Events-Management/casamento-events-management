@@ -11,6 +11,7 @@
 
 import React from 'react';
 import type { HomePageContent } from '@/types';
+import { safeJsonLd } from '@/lib/utils/securityUtils';
 
 interface HomeJsonLdProps {
     content: HomePageContent;
@@ -138,18 +139,18 @@ export function HomeJsonLd({ content }: HomeJsonLdProps) {
         <>
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(organizationSchema) }}
             />
             {eventSchemas.map((eventJson, index: number) => (
                 <script
                     key={index}
                     type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(eventJson) }}
+                    dangerouslySetInnerHTML={{ __html: safeJsonLd(eventJson) }}
                 />
             ))}
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }}
             />
         </>
     );

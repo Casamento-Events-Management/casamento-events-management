@@ -54,8 +54,8 @@ async function sendClientEmail(
       body: JSON.stringify({
         from: `Casamento Events <${process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to: [clientEmail],
-        cc: combinedCC.length > 0 ? combinedCC : undefined,
-        reply_to: teamRecipients[0] || process.env.CONTACT_EMAIL_FROM,
+        bcc: combinedCC.length > 0 ? combinedCC : undefined,
+        reply_to: process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev',
         subject,
         html,
       }),
@@ -547,7 +547,7 @@ export async function getTeamMembersAction(): Promise<{
   role: string;
 }[]> {
   const adminData = await getCurrentActiveAdmin();
-  if (!adminData) return [];
+  if (!adminData || adminData.profile.role === 'staff') return [];
 
   const supabase = await createClient();
   const { data } = await supabase

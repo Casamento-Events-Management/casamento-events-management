@@ -7,12 +7,17 @@
 
 'use server';
 
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { getAdminProfileById } from '@/lib/services/adminProfileService';
+import { getAdminProfileById, getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
 import { logAuditEvent } from '@/lib/services/auditService';
 import { verifyRecaptchaToken } from '@/lib/services/recaptchaService';
+import {
+  escapeHtml,
+  getTrustedSiteUrl,
+  isSafeAdminRedirectPath,
+} from '@/lib/utils/securityUtils';
 import {
   adminLoginSchema,
   adminForgotPasswordSchema,
@@ -24,25 +29,11 @@ import {
 import type { AuthActionResult } from '@/types/admin-auth';
 
 /**
- * Extracts request metadata (IP address and User-Agent) for security audit logging.
+ * Resolves the canonical trusted base URL of the application.
+ * Never trusts raw incoming `Host` or `X-Forwarded-Host` headers for security-sensitive links.
  */
-/**
- * Resolves the dynamic base URL of the active deployment/environment.
- */
-async function getBaseSiteUrl(): Promise<string> {
-  try {
-    const headersList = await headers();
-    const host = headersList.get('host');
-    if (host) {
-      const proto =
-        headersList.get('x-forwarded-proto') ||
-        (host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https');
-      return `${proto}://${host}`;
-    }
-  } catch {
-    // Fallback if headers cannot be resolved
-  }
-  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+function getBaseSiteUrl(): string {
+  return getTrustedSiteUrl();
 }
 
 async function getRequestMetadata(): Promise<{ ip: string | null; userAgent: string | null }> {
@@ -75,23 +66,21 @@ export async function loginAdminAction(input: AdminLoginInput): Promise<AuthActi
 
   const { email, password, recaptchaToken, returnUrl } = parsed.data;
 
-  // 2. Anti-bot Verification
-  if (recaptchaToken) {
-    const recaptchaResult = await verifyRecaptchaToken(recaptchaToken, 'admin_login');
-    if (!recaptchaResult.success) {
-      await logAuditEvent({
-        actorEmail: email,
-        action: 'Login Bot Blocked',
-        targetResource: 'auth',
-        details: { score: recaptchaResult.score, error: recaptchaResult.error },
-        ipAddress: ip,
-        userAgent,
-      });
-      return {
-        success: false,
-        error: 'Security verification failed. Please try again.',
-      };
-    }
+  // 2. Anti-bot Verification (unconditional — cannot be bypassed by omitting recaptchaToken)
+  const recaptchaResult = await verifyRecaptchaToken(recaptchaToken || '', 'admin_login');
+  if (!recaptchaResult.success) {
+    await logAuditEvent({
+      actorEmail: email,
+      action: 'Login Bot Blocked',
+      targetResource: 'auth',
+      details: { score: recaptchaResult.score, error: recaptchaResult.error },
+      ipAddress: ip,
+      userAgent,
+    });
+    return {
+      success: false,
+      error: 'Security verification failed. Please try again.',
+    };
   }
 
   // 3. Supabase Auth Verification
@@ -153,7 +142,7 @@ export async function loginAdminAction(input: AdminLoginInput): Promise<AuthActi
     userAgent,
   });
 
-  const destination = returnUrl && returnUrl.startsWith('/admin') ? returnUrl : '/admin/dashboard';
+  const destination = isSafeAdminRedirectPath(returnUrl) ? returnUrl : '/admin/dashboard';
 
   return {
     success: true,
@@ -163,6 +152,8 @@ export async function loginAdminAction(input: AdminLoginInput): Promise<AuthActi
 
 /**
  * Server Action: Admin Logout
+ * Revokes all active sessions globally in Supabase Auth and forcefully purges
+ * all Supabase auth cookies from the HTTP response.
  */
 export async function logoutAdminAction(): Promise<AuthActionResult> {
   const { ip, userAgent } = await getRequestMetadata();
@@ -172,7 +163,28 @@ export async function logoutAdminAction(): Promise<AuthActionResult> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  await supabase.auth.signOut();
+  const { error: signOutError } = await supabase.auth.signOut({ scope: 'global' });
+  if (signOutError) {
+    console.error('[logoutAdminAction signOut Error]:', signOutError.message);
+  }
+
+  // Defense-in-depth: explicitly expire all Supabase auth cookies even if upstream signOut errored
+  try {
+    const cookieStore = await cookies();
+    const isProd = process.env.NODE_ENV === 'production';
+    for (const cookie of cookieStore.getAll()) {
+      if (cookie.name.startsWith('sb-')) {
+        cookieStore.set(cookie.name, '', {
+          path: '/',
+          maxAge: 0,
+          sameSite: 'lax',
+          secure: isProd,
+        });
+      }
+    }
+  } catch (cookieErr) {
+    console.error('[logoutAdminAction Cookie Clear Error]:', cookieErr);
+  }
 
   if (user) {
     await logAuditEvent({
@@ -221,16 +233,16 @@ async function sendPasswordResetEmail(
           </tr>
           <tr>
             <td style="color: #2B3817; font-size: 14px; line-height: 1.6;">
-              <p>Hello <strong>${fullName}</strong>,</p>
+              <p>Hello <strong>${escapeHtml(fullName)}</strong>,</p>
               <p>We received a request to reset the password for your <strong>Casamento Events Admin</strong> account.</p>
               <p>Click the button below to choose a new password. This link is valid for 1 hour:</p>
               <div style="text-align: center; margin: 28px 0;">
-                <a href="${resetUrl}" style="background-color: #3A4F1C; color: #FFFFFF; padding: 12px 28px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-block;">Reset Password</a>
+                <a href="${escapeHtml(resetUrl)}" style="background-color: #3A4F1C; color: #FFFFFF; padding: 12px 28px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-block;">Reset Password</a>
               </div>
               <p style="font-size: 11px; color: #666; border-top: 1px solid #F0ECE1; padding-top: 16px;">
                 If you did not request a password reset, please ignore this email or notify the administrative team.<br/><br/>
                 If the button above does not work, copy and paste this link into your browser:<br/>
-                <span style="color: #BC6F07; word-break: break-all;">${resetUrl}</span>
+                <span style="color: #BC6F07; word-break: break-all;">${escapeHtml(resetUrl)}</span>
               </p>
             </td>
           </tr>
@@ -282,14 +294,13 @@ export async function requestPasswordResetAction(
 
   const { email, recaptchaToken } = parsed.data;
 
-  if (recaptchaToken) {
-    const recaptchaResult = await verifyRecaptchaToken(recaptchaToken, 'admin_forgot_password');
-    if (!recaptchaResult.success) {
-      return {
-        success: false,
-        error: 'Security verification failed. Please try again.',
-      };
-    }
+  // Unconditional anti-bot verification
+  const recaptchaResult = await verifyRecaptchaToken(recaptchaToken || '', 'admin_forgot_password');
+  if (!recaptchaResult.success) {
+    return {
+      success: false,
+      error: 'Security verification failed. Please try again.',
+    };
   }
 
   const supabaseAdmin = createAdminClient();
@@ -302,7 +313,7 @@ export async function requestPasswordResetAction(
     .maybeSingle();
 
   if (adminProfile && adminProfile.is_active) {
-    const siteUrl = await getBaseSiteUrl();
+    const siteUrl = getBaseSiteUrl();
     const redirectTo = `${siteUrl}/auth/callback?next=/admin/reset-password`;
 
     // Generate recovery link with token_hash (bypasses Supabase built-in email rate limits)
@@ -376,6 +387,15 @@ export async function updatePasswordAction(
     };
   }
 
+  // Require an active administrative profile before permitting password changes
+  const activeAdmin = await getCurrentActiveAdmin();
+  if (!activeAdmin) {
+    return {
+      success: false,
+      error: 'Unauthorized: An active administrative session is required to update your password.',
+    };
+  }
+
   const { password } = parsed.data;
   const supabase = await createClient();
 
@@ -391,6 +411,12 @@ export async function updatePasswordAction(
       success: false,
       error: updateError?.message || 'Failed to update password. Session may have expired.',
     };
+  }
+
+  // Revoke all other active sessions on other devices after a password change
+  const { error: revokeError } = await supabase.auth.signOut({ scope: 'others' });
+  if (revokeError) {
+    console.warn('[updatePasswordAction Revoke Other Sessions Warning]:', revokeError.message);
   }
 
   await logAuditEvent({

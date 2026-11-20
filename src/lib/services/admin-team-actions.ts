@@ -8,12 +8,13 @@
 
 'use server';
 
-import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
 import { logAuditEvent } from '@/lib/services/auditService';
+import { escapeHtml, getTrustedSiteUrl } from '@/lib/utils/securityUtils';
 import {
   inviteStaffSchema,
   toggleStaffStatusSchema,
@@ -30,24 +31,15 @@ interface ActionResponse {
   success: boolean;
   error?: string;
   message?: string;
-  inviteLink?: string;
 }
 
+const uuidSchema = z.string().uuid('Invalid user identifier.');
+
 /**
- * Resolves the dynamic base URL of the active deployment/environment.
+ * Resolves the canonical trusted base URL from server configuration.
  */
-async function getBaseSiteUrl(): Promise<string> {
-  try {
-    const headersList = await headers();
-    const host = headersList.get('host');
-    if (host) {
-      const proto = host.includes('localhost') || host.includes('127.0.0.1') ? 'http' : 'https';
-      return `${proto}://${host}`;
-    }
-  } catch {
-    // Fallback if headers cannot be resolved
-  }
-  return process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+function getBaseSiteUrl(): string {
+  return getTrustedSiteUrl();
 }
 
 /**
@@ -77,15 +69,15 @@ async function sendInviteEmail(
           </tr>
           <tr>
             <td style="color: #2B3817; font-size: 14px; line-height: 1.6;">
-              <p>Hello <strong>${fullName}</strong>,</p>
+              <p>Hello <strong>${escapeHtml(fullName)}</strong>,</p>
               <p>You have been invited to join the <strong>Casamento Events Management Portal</strong> as an administrator.</p>
               <p>Please click the button below to accept your invitation and set up your account password:</p>
               <div style="text-align: center; margin: 28px 0;">
-                <a href="${inviteUrl}" style="background-color: #3A4F1C; color: #FFFFFF; padding: 12px 28px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-block;">Accept Invitation & Set Password</a>
+                <a href="${escapeHtml(inviteUrl)}" style="background-color: #3A4F1C; color: #FFFFFF; padding: 12px 28px; text-decoration: none; font-size: 13px; font-weight: 600; border-radius: 8px; display: inline-block;">Accept Invitation & Set Password</a>
               </div>
               <p style="font-size: 11px; color: #666; border-top: 1px solid #F0ECE1; padding-top: 16px;">
                 If the button above does not work, copy and paste this link into your browser:<br/>
-                <span style="color: #BC6F07; word-break: break-all;">${inviteUrl}</span>
+                <span style="color: #BC6F07; word-break: break-all;">${escapeHtml(inviteUrl)}</span>
               </p>
             </td>
           </tr>
@@ -124,10 +116,11 @@ async function sendInviteEmail(
 
 /**
  * Retrieves all registered admin profiles for the team directory.
+ * Strictly restricted to admin operators ('admin' and 'super_admin').
  */
 export async function getStaffMembers(): Promise<AdminProfile[]> {
   const currentAdmin = await getCurrentActiveAdmin();
-  if (!currentAdmin) {
+  if (!currentAdmin || currentAdmin.profile.role === 'staff') {
     return [];
   }
 
@@ -180,7 +173,7 @@ export async function inviteStaffAction(input: InviteStaffInput): Promise<Action
     };
   }
 
-  const siteUrl = await getBaseSiteUrl();
+  const siteUrl = getBaseSiteUrl();
   const redirectTo = `${siteUrl}/auth/callback?next=/admin/reset-password`;
 
   // 1. Generate invitation token & link
@@ -268,8 +261,8 @@ export async function inviteStaffAction(input: InviteStaffInput): Promise<Action
     };
   }
 
-  // 3. Dispatch the email via Resend API directly
-  await sendInviteEmail(email, fullName, directInviteLink);
+  // 3. Dispatch the email via Resend API directly (never expose raw token_hash link to browser UI)
+  const emailRes = await sendInviteEmail(email, fullName, directInviteLink);
 
   // 4. Record audit event
   await logAuditEvent({
@@ -277,19 +270,26 @@ export async function inviteStaffAction(input: InviteStaffInput): Promise<Action
     actorEmail: currentAdmin.user.email,
     action: 'Admin Profile Created',
     targetResource: 'admin_profiles',
-    details: { invitedUserId: linkData.user.id, email, fullName, role },
+    details: { invitedUserId: linkData.user.id, email, fullName, role, emailDispatched: emailRes.success },
   });
 
   revalidatePath('/admin/team');
+  if (!emailRes.success) {
+    return {
+      success: true,
+      message: `Account created for ${email}, but email delivery failed. Please verify Resend settings and resend the invite.`,
+    };
+  }
+
   return {
     success: true,
-    message: `Invitation generated successfully for ${email}.`,
-    inviteLink: directInviteLink,
+    message: `Invitation email dispatched securely to ${email}.`,
   };
 }
 
 /**
  * Server Action: Toggle active status (Instant Deactivation / Reactivation).
+ * Immediately revokes all active Supabase Auth sessions and bans/unbans the auth user.
  */
 export async function toggleStaffStatusAction(
   input: ToggleStaffStatusInput
@@ -320,6 +320,28 @@ export async function toggleStaffStatusAction(
   if (error) {
     console.error('[toggleStaffStatusAction Error]:', error);
     return { success: false, error: 'Failed to update account status.' };
+  }
+
+  // Enforce immediate identity-provider session revocation & ban/unban on auth.users
+  if (!isActive) {
+    const { error: banErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      ban_duration: '876000h',
+    });
+    if (banErr) {
+      console.error('[toggleStaffStatusAction Ban Error]:', banErr.message);
+    }
+
+    const { error: signOutErr } = await supabaseAdmin.auth.admin.signOut(userId, 'global');
+    if (signOutErr) {
+      console.error('[toggleStaffStatusAction Session Revoke Error]:', signOutErr.message);
+    }
+  } else {
+    const { error: unbanErr } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      ban_duration: 'none',
+    });
+    if (unbanErr) {
+      console.error('[toggleStaffStatusAction Unban Error]:', unbanErr.message);
+    }
   }
 
   await logAuditEvent({
@@ -388,6 +410,7 @@ export async function updateStaffRoleAction(input: UpdateStaffRoleInput): Promis
 
 /**
  * Server Action: Resend invitation link to a pending staff member.
+ * Only permitted for active accounts that have not yet completed initial sign-in.
  */
 export async function resendInviteAction(userId: string): Promise<ActionResponse> {
   const currentAdmin = await getCurrentActiveAdmin();
@@ -395,18 +418,36 @@ export async function resendInviteAction(userId: string): Promise<ActionResponse
     return { success: false, error: 'Unauthorized. Super Admin permissions required.' };
   }
 
+  const parsedId = uuidSchema.safeParse(userId);
+  if (!parsedId.success) {
+    return { success: false, error: 'Invalid user identifier.' };
+  }
+
   const supabaseAdmin = createAdminClient();
   const { data: profile } = await supabaseAdmin
     .from('admin_profiles')
-    .select('email, full_name')
-    .eq('user_id', userId)
+    .select('email, full_name, is_active')
+    .eq('user_id', parsedId.data)
     .single();
 
   if (!profile) {
     return { success: false, error: 'Administrator profile not found.' };
   }
 
-  const siteUrl = await getBaseSiteUrl();
+  if (!profile.is_active) {
+    return { success: false, error: 'Cannot resend invite to a deactivated account.' };
+  }
+
+  // Verify the target user has not already completed onboarding
+  const { data: authUserResult } = await supabaseAdmin.auth.admin.getUserById(parsedId.data);
+  if (authUserResult?.user?.last_sign_in_at) {
+    return {
+      success: false,
+      error: 'This staff member has already onboarded. Ask them to use Forgot Password if needed.',
+    };
+  }
+
+  const siteUrl = getBaseSiteUrl();
   const redirectTo = `${siteUrl}/auth/callback?next=/admin/reset-password`;
 
   const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
@@ -419,7 +460,7 @@ export async function resendInviteAction(userId: string): Promise<ActionResponse
   });
 
   if (linkError || !linkData?.properties) {
-    // Fallback to recovery if invite fails
+    // Fallback to recovery if invite fails for an unconfirmed user
     const recoveryResult = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
       email: profile.email,
@@ -441,8 +482,7 @@ export async function resendInviteAction(userId: string): Promise<ActionResponse
 
     return {
       success: true,
-      message: `Invitation re-dispatched to ${profile.email}.`,
-      inviteLink: directInviteLink,
+      message: `Invitation re-dispatched securely to ${profile.email}.`,
     };
   }
 
@@ -458,13 +498,12 @@ export async function resendInviteAction(userId: string): Promise<ActionResponse
     actorEmail: currentAdmin.user.email,
     action: 'Admin Profile Updated',
     targetResource: 'admin_profiles',
-    details: { targetUserId: userId, resendInvite: true },
+    details: { targetUserId: parsedId.data, resendInvite: true },
   });
 
   return {
     success: true,
-    message: `Invitation email re-dispatched to ${profile.email}.`,
-    inviteLink: directInviteLink,
+    message: `Invitation email re-dispatched securely to ${profile.email}.`,
   };
 }
 
@@ -477,15 +516,23 @@ export async function removeStaffAction(userId: string): Promise<ActionResponse>
     return { success: false, error: 'Unauthorized. Super Admin permissions required.' };
   }
 
+  const parsedId = uuidSchema.safeParse(userId);
+  if (!parsedId.success) {
+    return { success: false, error: 'Invalid user identifier.' };
+  }
+
   // Safeguard: Prevent self-deletion
-  if (userId === currentAdmin.user.id) {
+  if (parsedId.data === currentAdmin.user.id) {
     return { success: false, error: 'You cannot delete your own administrative account.' };
   }
 
   const supabaseAdmin = createAdminClient();
 
+  // Revoke active sessions prior to deleting user
+  await supabaseAdmin.auth.admin.signOut(parsedId.data, 'global').catch(() => {});
+
   // Deleting user from auth.users cascades to admin_profiles
-  const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(parsedId.data);
 
   if (error) {
     console.error('[removeStaffAction Error]:', error);

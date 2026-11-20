@@ -76,31 +76,32 @@ async function handleContactSubmit(
 
   const formData = validationResult.data;
 
-  // 2. Anti-bot reCAPTCHA v3 verification
-  if (formData.recaptchaToken) {
-    const recaptchaResult = await verifyRecaptchaToken(formData.recaptchaToken, 'contact_submit');
-    if (!recaptchaResult.success) {
-      void logAudit({
-        category: 'Security',
-        action: 'Anti-Bot Security Blocked',
-        severity: 'Warning',
-        outcome: 'Blocked',
-        summary: `Anti-bot reCAPTCHA check failed for contact submission from ${formData.email || 'unknown'}`,
-        actorType: 'client',
-        actorCode: 'USR-BOT',
-        actorName: formData.name || 'Anonymous User',
-        actorEmail: formData.email || null,
-        entityRef: formData.email,
-        metadata: { form: 'contact_submit', reason: recaptchaResult.error },
-        ipAddress,
-        userAgent,
-      });
+  // 2. Anti-bot reCAPTCHA v3 verification (unconditional)
+  const recaptchaResult = await verifyRecaptchaToken(
+    formData.recaptchaToken || '',
+    'contact_submit'
+  );
+  if (!recaptchaResult.success) {
+    void logAudit({
+      category: 'Security',
+      action: 'Anti-Bot Security Blocked',
+      severity: 'Warning',
+      outcome: 'Blocked',
+      summary: `Anti-bot reCAPTCHA check failed for contact submission from ${formData.email || 'unknown'}`,
+      actorType: 'client',
+      actorCode: 'USR-BOT',
+      actorName: formData.name || 'Anonymous User',
+      actorEmail: formData.email || null,
+      entityRef: formData.email,
+      metadata: { form: 'contact_submit', reason: recaptchaResult.error },
+      ipAddress,
+      userAgent,
+    });
 
-      return NextResponse.json(
-        { error: recaptchaResult.error || 'Anti-bot check failed. Please try again.' },
-        { status: 403 }
-      );
-    }
+    return NextResponse.json(
+      { error: recaptchaResult.error || 'Anti-bot check failed. Please try again.' },
+      { status: 403 }
+    );
   }
 
   // 3. Dispatch Email via Resend Service
@@ -179,31 +180,32 @@ async function handleServiceInquirySubmit(
 
   const formData = validationResult.data;
 
-  // 2. Anti-bot reCAPTCHA v3 verification
-  if (formData.recaptchaToken) {
-    const recaptchaResult = await verifyRecaptchaToken(formData.recaptchaToken, 'service_inquiry');
-    if (!recaptchaResult.success) {
-      void logAudit({
-        category: 'Security',
-        action: 'Anti-Bot Security Blocked',
-        severity: 'Warning',
-        outcome: 'Blocked',
-        summary: `Anti-bot check failed for service inquiry on ${formData.serviceTitle} from ${formData.clientEmail}`,
-        actorType: 'client',
-        actorCode: 'USR-BOT',
-        actorName: formData.clientName,
-        actorEmail: formData.clientEmail,
-        entityRef: formData.serviceTitle,
-        metadata: { form: 'service_inquiry', reason: recaptchaResult.error },
-        ipAddress,
-        userAgent,
-      });
+  // 2. Anti-bot reCAPTCHA v3 verification (unconditional)
+  const recaptchaResult = await verifyRecaptchaToken(
+    formData.recaptchaToken || '',
+    'service_inquiry'
+  );
+  if (!recaptchaResult.success) {
+    void logAudit({
+      category: 'Security',
+      action: 'Anti-Bot Security Blocked',
+      severity: 'Warning',
+      outcome: 'Blocked',
+      summary: `Anti-bot check failed for service inquiry on ${formData.serviceTitle} from ${formData.clientEmail}`,
+      actorType: 'client',
+      actorCode: 'USR-BOT',
+      actorName: formData.clientName,
+      actorEmail: formData.clientEmail,
+      entityRef: formData.serviceTitle,
+      metadata: { form: 'service_inquiry', reason: recaptchaResult.error },
+      ipAddress,
+      userAgent,
+    });
 
-      return NextResponse.json(
-        { error: recaptchaResult.error || 'Anti-bot check failed. Please try again.' },
-        { status: 403 }
-      );
-    }
+    return NextResponse.json(
+      { error: recaptchaResult.error || 'Anti-bot check failed. Please try again.' },
+      { status: 403 }
+    );
   }
 
   // 3. Dispatch Service Inquiry Email via Resend Service

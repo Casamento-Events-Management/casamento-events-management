@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  logging: {
+    serverFunctions: false,
+  },
   images: {
     remotePatterns: [
       {
@@ -24,6 +27,9 @@ const nextConfig: NextConfig = {
   },
 
   async headers() {
+    const isDev = process.env.NODE_ENV === 'development';
+    const devEval = isDev ? " 'unsafe-eval'" : '';
+
     const studioPermissiveCSP = [
       "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: *",
       "img-src * data: blob:",
@@ -38,8 +44,8 @@ const nextConfig: NextConfig = {
 
     const publicCSP = [
       "default-src 'self' https://www.google.com https://www.gstatic.com",
-      // Scripts: self + Next.js inline chunks + Sanity + Google reCAPTCHA
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com",
+      // Scripts: self + Next.js inline chunks + Google reCAPTCHA (unsafe-eval enabled strictly in dev for React DevTools/HMR)
+      `script-src 'self' 'unsafe-inline'${devEval} https://www.google.com https://www.gstatic.com`,
       "script-src-elem 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com",
       // Styles: self + inline (Next.js injects critical CSS) + Google Fonts
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com",
@@ -50,10 +56,27 @@ const nextConfig: NextConfig = {
       // Media: self + Sanity CDN (native video assets)
       "media-src 'self' https://cdn.sanity.io https://*.supabase.co",
       // Frames: youtube-nocookie.com, youtube.com, player.vimeo.com, and Google reCAPTCHA
-      "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://youtube.com https://player.vimeo.com https://www.google.com https://recaptcha.google.com https://www.gstatic.com",
+      "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://youtube.com https://player.vimeo.com https://www.google.com https://recaptcha.google.com https://www.gstatic.com https://*.supabase.co",
       // Connections: self + Sanity API + Supabase + Google fonts + Google reCAPTCHA
       "connect-src 'self' https://*.sanity.io https://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com https://www.google.com https://www.gstatic.com",
-      // Disable browser features not needed
+      // Framing & injection hardening
+      "frame-ancestors 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join('; ');
+
+    const adminCSP = [
+      "default-src 'self' https://www.google.com https://www.gstatic.com",
+      `script-src 'self' 'unsafe-inline'${devEval} https://www.google.com https://www.gstatic.com`,
+      "script-src-elem 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https://cdn.sanity.io https://*.supabase.co https://www.google.com https://www.gstatic.com",
+      "media-src 'self' https://cdn.sanity.io https://*.supabase.co",
+      "frame-src 'self' https://*.supabase.co https://www.google.com https://recaptcha.google.com https://www.gstatic.com",
+      "connect-src 'self' https://*.sanity.io https://*.supabase.co https://www.google.com https://www.gstatic.com",
+      "frame-ancestors 'none'",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
@@ -83,9 +106,22 @@ const nextConfig: NextConfig = {
           ...sharedSecurityHeaders,
         ],
       },
+      // ── Admin Portal: strict no-store caching, anti-clickjacking & noindex ──
+      {
+        source: '/admin/:path*',
+        headers: [
+          { key: 'Content-Security-Policy', value: adminCSP },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Cache-Control', value: 'private, no-store, no-cache, must-revalidate, max-age=0' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive, nosnippet' },
+          ...sharedSecurityHeaders,
+        ],
+      },
       // ── Public routes: strict CSP + SAMEORIGIN frame protection ─────────────
       {
-        source: '/((?!studio).*)',
+        source: '/((?!studio|admin).*)',
         headers: [
           { key: 'Content-Security-Policy', value: publicCSP },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },

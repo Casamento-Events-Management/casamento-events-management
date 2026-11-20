@@ -95,6 +95,9 @@ export async function recordExportAuditAction(
   if (!currentAdmin) {
     return { success: false, error: 'Unauthorized. Admin session required.' };
   }
+  if (currentAdmin.profile.role === 'staff') {
+    return { success: false, error: 'Forbidden: Staff viewer accounts cannot export audit logs.' };
+  }
 
   try {
     await logAudit({

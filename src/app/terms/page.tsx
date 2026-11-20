@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { getContactSectionContent } from '@/lib/services/contactService';
 import { ConnectSection } from '@/components/layout/connect-section';
 import { TermsContent } from '@/components/terms/terms-content';
+import { safeJsonLd } from '@/lib/utils/securityUtils';
 
 export const metadata: Metadata = {
   title: 'Terms of Service | Casamento Events Management',
@@ -50,7 +51,7 @@ export default async function TermsOfServicePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       <main className="bg-[#F7F3E8] text-[#2A3A14] min-h-screen">

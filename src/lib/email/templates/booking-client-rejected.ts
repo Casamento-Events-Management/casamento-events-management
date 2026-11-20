@@ -21,7 +21,7 @@ export function buildBookingClientRejectedEmail(
   const subject = `Update Regarding Your Booking Request: ${booking.service_title} [${booking.booking_reference}]`;
 
   const dataTableHtml = renderDataTable([
-    { label: 'Booking Reference', value: `<strong>${booking.booking_reference}</strong>`, isHtml: true },
+    { label: 'Booking Reference', value: `<strong>${escapeHtml(booking.booking_reference)}</strong>`, isHtml: true },
     { label: 'Requested Service', value: `${booking.service_title} (${booking.category_title})` },
     { label: 'Requested Date', value: booking.event_date },
     { label: 'Location', value: `${booking.venue_city}${booking.venue_address ? `, ${booking.venue_address}` : ''}` },

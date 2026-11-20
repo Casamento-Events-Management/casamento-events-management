@@ -5,9 +5,9 @@
 // =============================================================================
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LogOut, Shield, Loader2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 import { logoutAdminAction } from '@/lib/services/admin-auth-actions';
 import type { AdminProfile } from '@/types/admin-auth';
 
@@ -16,15 +16,22 @@ interface AdminHeaderProps {
 }
 
 export function AdminHeader({ admin }: AdminHeaderProps) {
-  const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
+      // 1. Revoke sessions globally on server and expire auth cookies
       const result = await logoutAdminAction();
-      router.push(result.redirectUrl || '/admin/login');
-      router.refresh();
+      // 2. Tear down the cached browser Supabase singleton and its auto-refresh timers
+      try {
+        const browserSupabase = createClient();
+        await browserSupabase.auth.signOut({ scope: 'local' });
+      } catch {
+        // Ignore if browser client already cleared
+      }
+      // 3. Hard navigation to purge Next.js client cache and JS memory
+      window.location.replace(result.redirectUrl || '/admin/login');
     } catch (err) {
       console.error('[Header Logout Error]:', err);
       setIsLoggingOut(false);

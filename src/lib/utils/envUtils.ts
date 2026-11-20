@@ -19,10 +19,7 @@ export function parseEmailList(envValue?: string, fallback: string[] = []): stri
  * Parses admin recipients for Feedback notifications from FEEDBACK_EMAIL_RECIPIENTS.
  */
 export function parseFeedbackEmailRecipients(): string[] {
-  return parseEmailList(
-    process.env.FEEDBACK_EMAIL_RECIPIENTS,
-    process.env.NODE_ENV === 'development' ? ['benjicanones6@gmail.com'] : []
-  );
+  return parseEmailList(process.env.FEEDBACK_EMAIL_RECIPIENTS, []);
 }
 
 /**
@@ -38,10 +35,7 @@ export function parseFeedbackEmailCC(): string[] | undefined {
  * Supports single email or comma-separated list of multiple recipients.
  */
 export function parseContactEmailRecipients(): string[] {
-  return parseEmailList(
-    process.env.CONTACT_EMAIL_TO,
-    process.env.NODE_ENV === 'development' ? ['benjicanones6@gmail.com'] : ['onboarding@resend.dev']
-  );
+  return parseEmailList(process.env.CONTACT_EMAIL_TO, []);
 }
 
 /**

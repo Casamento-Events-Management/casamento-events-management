@@ -4,16 +4,8 @@ import React, { useState } from 'react';
 import Script from 'next/script';
 import { Button } from '@/components/ui/button';
 import { contactFormSchema, type ContactFormData } from '@/lib/schemas/contact';
+import { executeRecaptcha } from '@/lib/utils/recaptchaClient';
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-
-declare global {
-  interface Window {
-    grecaptcha?: {
-      ready: (cb: () => void) => void;
-      execute: (siteKey: string, options: { action: string }) => Promise<string>;
-    };
-  }
-}
 
 interface FormErrors {
   name?: string;
@@ -47,25 +39,6 @@ export function ContactForm() {
     }
   };
 
-  const getRecaptchaToken = async (): Promise<string | undefined> => {
-    if (!recaptchaSiteKey) return undefined;
-    try {
-      if (typeof window !== 'undefined' && window.grecaptcha) {
-        return await new Promise<string>((resolve) => {
-          window.grecaptcha?.ready(() => {
-            window.grecaptcha
-              ?.execute(recaptchaSiteKey, { action: 'contact_submit' })
-              .then((token: string) => resolve(token))
-              .catch(() => resolve(''));
-          });
-        });
-      }
-    } catch {
-      // Graceful fallback if script fails to execute
-    }
-    return undefined;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitStatus(null);
@@ -90,7 +63,7 @@ export function ContactForm() {
 
     try {
       // Execute reCAPTCHA v3
-      const recaptchaToken = await getRecaptchaToken();
+      const recaptchaToken = await executeRecaptcha('contact_submit');
 
       const payload = {
         action: 'contact_submit',

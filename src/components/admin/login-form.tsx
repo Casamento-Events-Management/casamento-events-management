@@ -9,15 +9,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Lock, Mail, Loader2, AlertCircle } from 'lucide-react';
 import { loginAdminAction } from '@/lib/services/admin-auth-actions';
-
-declare global {
-  interface Window {
-    grecaptcha?: {
-      ready: (callback: () => void) => void;
-      execute: (siteKey: string, options: { action: string }) => Promise<string>;
-    };
-  }
-}
+import { executeRecaptcha } from '@/lib/utils/recaptchaClient';
 
 export function LoginForm() {
   const router = useRouter();
@@ -30,33 +22,13 @@ export function LoginForm() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const getRecaptchaToken = async (): Promise<string | undefined> => {
-    const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
-    if (!siteKey || typeof window === 'undefined' || !window.grecaptcha) {
-      return undefined;
-    }
-
-    try {
-      return await new Promise<string>((resolve) => {
-        window.grecaptcha?.ready(() => {
-          window.grecaptcha
-            ?.execute(siteKey, { action: 'admin_login' })
-            .then((token: string) => resolve(token))
-            .catch(() => resolve(''));
-        });
-      });
-    } catch {
-      return undefined;
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setIsLoading(true);
 
     try {
-      const recaptchaToken = await getRecaptchaToken();
+      const recaptchaToken = await executeRecaptcha('admin_login');
       const result = await loginAdminAction({
         email,
         password,

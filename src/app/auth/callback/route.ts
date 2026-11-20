@@ -2,33 +2,41 @@
 // app/auth/callback/route.ts — Supabase Auth Code Exchange & OTP Handler
 //
 // Handles PKCE code exchanges and direct token_hash OTP verifications.
-// Attaches refreshed session cookies directly to the redirect response.
+// Enforces canonical trusted origin, strict redirect path validation, and no-store headers.
 // =============================================================================
 
 import { type EmailOtpType } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { getTrustedSiteUrl, isSafeAdminRedirectPath } from '@/lib/utils/securityUtils';
 
 export const dynamic = 'force-dynamic';
 
+const NO_STORE_HEADERS: Record<string, string> = {
+  'Cache-Control': 'private, no-store, no-cache, must-revalidate, max-age=0',
+  Pragma: 'no-cache',
+  Expires: '0',
+};
+
+function applyNoStoreHeaders(response: NextResponse): NextResponse {
+  for (const [key, value] of Object.entries(NO_STORE_HEADERS)) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
+
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const token_hash = searchParams.get('token_hash');
   const type = searchParams.get('type') as EmailOtpType | null;
   const code = searchParams.get('code');
-  const next = searchParams.get('next') || '/admin/dashboard';
+  const rawNext = searchParams.get('next');
 
-  // Support forwarded headers if behind reverse proxy or in development
-  const forwardedHost = request.headers.get('x-forwarded-host') || request.headers.get('host');
-  const forwardedProto =
-    request.headers.get('x-forwarded-proto') ||
-    (forwardedHost && (forwardedHost.includes('localhost') || forwardedHost.includes('127.0.0.1'))
-      ? 'http'
-      : 'https');
-  const effectiveOrigin = forwardedHost ? `${forwardedProto}://${forwardedHost}` : origin;
-
-  const destination = next.startsWith('/') ? `${effectiveOrigin}${next}` : `${effectiveOrigin}/admin/dashboard`;
-  const response = NextResponse.redirect(destination);
+  // Always derive redirect origin from trusted server configuration (never untrusted headers)
+  const trustedOrigin = getTrustedSiteUrl();
+  const safeNext = isSafeAdminRedirectPath(rawNext) ? rawNext : '/admin/dashboard';
+  const destination = `${trustedOrigin}${safeNext}`;
+  const response = applyNoStoreHeaders(NextResponse.redirect(destination));
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey =
@@ -36,17 +44,31 @@ export async function GET(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    return NextResponse.redirect(`${effectiveOrigin}/admin/login?error=config_missing`);
+    return applyNoStoreHeaders(
+      NextResponse.redirect(`${trustedOrigin}/admin/login?error=config_missing`)
+    );
   }
 
+  const isProd = process.env.NODE_ENV === 'production';
+
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: {
+      path: '/',
+      sameSite: 'lax',
+      secure: isProd,
+    },
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, {
+            ...options,
+            path: options?.path ?? '/',
+            sameSite: options?.sameSite ?? 'lax',
+            secure: isProd ? true : options?.secure,
+          });
         });
       },
     },
@@ -78,5 +100,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Fallback to admin login if code exchange fails or expired
-  return NextResponse.redirect(`${effectiveOrigin}/admin/login?error=link_expired`);
+  return applyNoStoreHeaders(
+    NextResponse.redirect(`${trustedOrigin}/admin/login?error=link_expired`)
+  );
 }

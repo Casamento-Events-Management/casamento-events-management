@@ -5,6 +5,7 @@ import { X, CheckCircle2, Send, Loader2, Sparkles, ShieldCheck } from 'lucide-re
 import type { ServiceItem } from '@/types';
 import { Button } from '@/components/ui/button';
 import { useScrollLock } from '@/lib/hooks/useScrollLock';
+import { executeRecaptcha } from '@/lib/utils/recaptchaClient';
 
 interface ServiceInquiryModalProps {
   isOpen: boolean;
@@ -75,6 +76,8 @@ export function ServiceInquiryModal({
     setIsSubmitting(true);
 
     try {
+      const recaptchaToken = await executeRecaptcha('service_inquiry');
+
       // Prepare payload with client inputs + service specifications
       const payload = {
         action: 'service_inquiry',
@@ -83,6 +86,7 @@ export function ServiceInquiryModal({
         clientPhone: clientPhone.trim() || undefined,
         clientAddress: clientAddress.trim() || undefined,
         message: message.trim(),
+        recaptchaToken,
 
         // Attached service item details for email notification
         serviceId: service.id,

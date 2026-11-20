@@ -15,14 +15,17 @@ export async function verifyRecaptchaToken(
   const secretKey = process.env.RECAPTCHA_SECRET_KEY;
 
   if (!secretKey) {
-    // If secret key is not set, log warning in dev mode and bypass
+    // Only bypass in local development when secret key is intentionally unset.
+    // Fail CLOSED in production so misconfiguration can never disable anti-bot protection.
     if (process.env.NODE_ENV === 'development') {
       console.warn('[recaptchaService] RECAPTCHA_SECRET_KEY not set. Bypassing verification in dev mode.');
+      return { success: true, score: 1.0 };
     }
-    return { success: true, score: 1.0 };
+    console.error('[recaptchaService] RECAPTCHA_SECRET_KEY is missing in non-development environment.');
+    return { success: false, error: 'Security verification is currently unavailable.' };
   }
 
-  if (!token) {
+  if (!token || token.trim().length === 0) {
     return { success: false, error: 'reCAPTCHA token is missing.' };
   }
 
@@ -46,13 +49,15 @@ export async function verifyRecaptchaToken(
 
     const data = await res.json();
 
-    console.log('[recaptchaService] Google siteverify response:', data);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[recaptchaService] Google siteverify response:', data);
+    }
 
     if (!data.success) {
       console.warn('[recaptchaService] Verification failed error-codes:', data['error-codes']);
       return {
         success: false,
-        error: `reCAPTCHA verification failed: ${data['error-codes']?.join(', ') || 'Invalid token'}`,
+        error: 'reCAPTCHA verification failed. Please try again.',
       };
     }
 
@@ -62,7 +67,7 @@ export async function verifyRecaptchaToken(
       return {
         success: false,
         score: data.score,
-        error: `Bot risk score too low (${data.score}). Request blocked.`,
+        error: 'Bot risk score too low. Request blocked.',
       };
     }
 
@@ -70,7 +75,7 @@ export async function verifyRecaptchaToken(
     if (data.action && expectedAction && data.action !== expectedAction) {
       return {
         success: false,
-        error: `Action mismatch: expected "${expectedAction}", got "${data.action}".`,
+        error: 'Security verification action mismatch.',
       };
     }
 

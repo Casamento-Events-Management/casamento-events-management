@@ -20,7 +20,7 @@ export function buildBookingClientPreviewEmail(
 
   const dataTableHtml = renderDataTable([
     ...(bookingReference
-      ? [{ label: 'Booking Reference', value: `<strong>${bookingReference}</strong>`, isHtml: true }]
+      ? [{ label: 'Booking Reference', value: `<strong>${escapeHtml(bookingReference)}</strong>`, isHtml: true }]
       : []),
     { label: 'Client Name', value: payload.clientFullName },
     { label: 'Email Address', value: payload.clientEmail },

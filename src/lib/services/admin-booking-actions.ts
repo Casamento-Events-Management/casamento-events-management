@@ -98,8 +98,8 @@ async function dispatchClientEmail(
       body: JSON.stringify({
         from: `Casamento Events <${process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to: [clientEmail],
-        cc: combinedCC.length > 0 ? combinedCC : undefined,
-        reply_to: teamRecipients[0] || process.env.CONTACT_EMAIL_FROM,
+        bcc: combinedCC.length > 0 ? combinedCC : undefined,
+        reply_to: process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev',
         subject,
         html,
       }),

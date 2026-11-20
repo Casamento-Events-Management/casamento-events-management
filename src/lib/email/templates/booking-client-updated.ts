@@ -26,10 +26,10 @@ export function buildBookingClientUpdatedEmail(
       : 'None selected';
 
   const dataTableHtml = renderDataTable([
-    { label: 'Booking Reference', value: `<strong>${booking.booking_reference}</strong>`, isHtml: true },
+    { label: 'Booking Reference', value: `<strong>${escapeHtml(booking.booking_reference)}</strong>`, isHtml: true },
     { label: 'Service', value: `${booking.service_title} (${booking.category_title})` },
     { label: 'Add-ons', value: addOnsDisplay },
-    { label: 'Event Date', value: `<strong>${booking.event_date}</strong>`, isHtml: true },
+    { label: 'Event Date', value: `<strong>${escapeHtml(booking.event_date)}</strong>`, isHtml: true },
     { label: 'Venue Location', value: `${booking.venue_city}${booking.venue_address ? `, ${booking.venue_address}` : ''}` },
     ...(booking.special_notes ? [{ label: 'Special Notes', value: booking.special_notes }] : []),
   ]);

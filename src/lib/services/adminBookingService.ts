@@ -5,6 +5,7 @@
 import 'server-only';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
+import { sanitizePostgrestSearch } from '@/lib/utils/securityUtils';
 import type { BookingRecord, AdminBookingFilters } from '@/types/booking';
 
 export interface AdminBookingsResponse {
@@ -52,10 +53,13 @@ export async function getAdminBookings(
   }
 
   if (filters.search && filters.search.trim().length > 0) {
-    const term = `%${filters.search.trim()}%`;
-    query = query.or(
-      `booking_reference.ilike.${term},client_full_name.ilike.${term},client_email.ilike.${term},service_title.ilike.${term},venue_city.ilike.${term}`
-    );
+    const clean = sanitizePostgrestSearch(filters.search);
+    if (clean.length > 0) {
+      const term = `%${clean}%`;
+      query = query.or(
+        `booking_reference.ilike.${term},client_full_name.ilike.${term},client_email.ilike.${term},service_title.ilike.${term},venue_city.ilike.${term}`
+      );
+    }
   }
 
   const { data, count, error } = await query.range(from, to);

@@ -26,10 +26,10 @@ export function buildBookingClientAcceptedEmail(
       : 'None selected';
 
   const dataTableHtml = renderDataTable([
-    { label: 'Booking Reference', value: `<strong>${booking.booking_reference}</strong>`, isHtml: true },
+    { label: 'Booking Reference', value: `<strong>${escapeHtml(booking.booking_reference)}</strong>`, isHtml: true },
     { label: 'Confirmed Service', value: `${booking.service_title} (${booking.category_title})` },
     { label: 'Add-ons', value: addOnsDisplay },
-    { label: 'Confirmed Event Date', value: `<strong>${booking.event_date}</strong>`, isHtml: true },
+    { label: 'Confirmed Event Date', value: `<strong>${escapeHtml(booking.event_date)}</strong>`, isHtml: true },
     { label: 'Venue Location', value: `${booking.venue_city}${booking.venue_address ? `, ${booking.venue_address}` : ''}` },
     ...(booking.special_notes ? [{ label: 'Special Notes', value: booking.special_notes }] : []),
   ]);
@@ -57,7 +57,7 @@ export function buildBookingClientAcceptedEmail(
     </p>
 
     <p style="margin: 0 0 16px 0; font-size: 14px; color: #3A4F1C; line-height: 1.6;">
-      Your booking reference is: <span style="font-size: 16px; font-weight: 700; color: #3A4F1C; letter-spacing: 0.05em;">${booking.booking_reference}</span>
+      Your booking reference is: <span style="font-size: 16px; font-weight: 700; color: #3A4F1C; letter-spacing: 0.05em;">${escapeHtml(booking.booking_reference)}</span>
     </p>
 
     ${customMessageBlock}

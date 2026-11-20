@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Mail, Loader2, CheckCircle2, AlertCircle, RefreshCw, Edit3, X, HelpCircle } from 'lucide-react';
 import type { BookingFormData } from '@/types/bookingForm';
+import { executeRecaptcha } from '@/lib/utils/recaptchaClient';
 
 interface EmailValidationModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ export function EmailValidationModal({
   const [currentEmail, setCurrentEmail] = useState<string>(formData.clientEmail);
   const [editEmailInput, setEditEmailInput] = useState<string>(formData.clientEmail);
   const [activeReference, setActiveReference] = useState<string>('');
+  const [verificationToken, setVerificationToken] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const triggerSendPreview = useCallback(async (emailToSend: string) => {
@@ -34,6 +36,7 @@ export function EmailValidationModal({
     setEditEmailInput(emailToSend);
 
     try {
+      const recaptchaToken = await executeRecaptcha('booking_preview');
       const res = await fetch('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -44,7 +47,7 @@ export function EmailValidationModal({
             clientEmail: emailToSend,
           },
           verifiedEmail: emailToSend,
-          bookingReference: activeReference || undefined,
+          recaptchaToken,
         }),
       });
 
@@ -58,6 +61,9 @@ export function EmailValidationModal({
       if (data.bookingReference) {
         setActiveReference(data.bookingReference);
       }
+      if (data.verificationToken) {
+        setVerificationToken(data.verificationToken);
+      }
 
       // Transition directly to prompt as soon as the email is dispatched
       setStep('prompt');
@@ -66,7 +72,7 @@ export function EmailValidationModal({
       setStep('error');
       setErrorMessage('Network connection error. Please check your internet connection and retry.');
     }
-  }, [formData, activeReference]);
+  }, [formData]);
 
   // Sync email when modal opens or formData changes
   useEffect(() => {
@@ -83,6 +89,7 @@ export function EmailValidationModal({
     setErrorMessage(null);
 
     try {
+      const recaptchaToken = await executeRecaptcha('booking_confirm');
       const res = await fetch('/api/booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,7 +100,8 @@ export function EmailValidationModal({
             clientEmail: currentEmail,
           },
           verifiedEmail: currentEmail,
-          bookingReference: activeReference || undefined,
+          verificationToken,
+          recaptchaToken,
         }),
       });
 

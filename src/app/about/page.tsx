@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/utils/securityUtils';
 import {
   Heart,
   Sparkles,
@@ -165,7 +166,7 @@ export default async function AboutPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
 
       <article className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">

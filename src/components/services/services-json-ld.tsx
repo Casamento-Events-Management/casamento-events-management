@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ServiceItem } from '@/types';
+import { safeJsonLd } from '@/lib/utils/securityUtils';
 
 interface ServicesJsonLdProps {
     services: ServiceItem[];
@@ -37,7 +38,7 @@ export function ServicesJsonLd({ services }: ServicesJsonLdProps) {
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
+            dangerouslySetInnerHTML={{ __html: safeJsonLd(schemaData) }}
         />
     );
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logAudit } from '@/lib/services/auditService';
+import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
 import { client } from '@/sanity/lib/client';
 import { revalidatePath } from 'next/cache';
 
@@ -8,10 +9,26 @@ export const runtime = 'nodejs';
 /**
  * Domain API Route Handler for Articles & Editorial Vlog Auditing (`/api/articles`).
  *
- * Captures lifecycle events triggered by Sanity Studio document actions or webhooks.
+ * Strictly requires an authenticated active admin operator session ('admin' or 'super_admin')
+ * to prevent unauthenticated audit log forgery and cache-busting abuse.
  */
 export async function POST(request: Request) {
   try {
+    const adminData = await getCurrentActiveAdmin();
+    if (!adminData) {
+      return NextResponse.json(
+        { error: 'Unauthorized: Active administrative session required.' },
+        { status: 401 }
+      );
+    }
+
+    if (adminData.profile.role === 'staff') {
+      return NextResponse.json(
+        { error: 'Forbidden: Operator permissions required.' },
+        { status: 403 }
+      );
+    }
+
     const ipAddress =
       request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
       request.headers.get('x-real-ip') ||
@@ -23,7 +40,7 @@ export async function POST(request: Request) {
 
     switch (action) {
       case 'admin_article_lifecycle':
-        return await handleAdminArticleLifecycle(body, ipAddress, userAgent);
+        return await handleAdminArticleLifecycle(body, adminData, ipAddress, userAgent);
 
       default:
         return NextResponse.json(
@@ -42,17 +59,21 @@ export async function POST(request: Request) {
 
 async function handleAdminArticleLifecycle(
   body: Record<string, unknown>,
+  adminData: { user: { id: string; email: string }; profile: { full_name: string; user_code?: string | null } },
   ipAddress: string | null,
   userAgent: string | null
 ) {
-  const documentId = (body.documentId as string) || (body._id as string);
-  let title = (body.title as string) || '';
-  const slug = (body.slug as string) || '';
-  const mediaType = (body.mediaType as string) || '';
+  const documentId =
+    (typeof body.documentId === 'string' && body.documentId.trim()) ||
+    (typeof body._id === 'string' && body._id.trim()) ||
+    '';
+  let title = typeof body.title === 'string' ? body.title.trim().slice(0, 200) : '';
+  const slug = typeof body.slug === 'string' ? body.slug.trim().slice(0, 200) : '';
+  const mediaType = typeof body.mediaType === 'string' ? body.mediaType.trim().slice(0, 50) : '';
 
-  if (!documentId) {
+  if (!documentId || documentId.length > 200) {
     return NextResponse.json(
-      { error: 'Missing documentId in lifecycle payload.' },
+      { error: 'Missing or invalid documentId in lifecycle payload.' },
       { status: 400 }
     );
   }
@@ -81,9 +102,11 @@ async function handleAdminArticleLifecycle(
     severity: 'Info',
     outcome: 'Success',
     summary: `Article Vlog "${finalTitle}" published in Sanity Studio`,
+    actorUserId: adminData.user.id,
     actorType: 'admin',
-    actorCode: 'ADM-STU',
-    actorName: 'Sanity Studio Admin',
+    actorCode: adminData.profile.user_code || 'ADM-STU',
+    actorName: adminData.profile.full_name || 'Sanity Studio Admin',
+    actorEmail: adminData.user.email,
     entityType: 'articleVlog',
     entityId: documentId,
     entityRef: finalTitle || slug || documentId,

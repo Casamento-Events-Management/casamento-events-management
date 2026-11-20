@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { feedbackFormSchema } from '@/lib/schemas/feedback';
 import { verifyRecaptchaToken } from '@/lib/services/recaptchaService';
 import { sendAdminFeedbackNotificationEmail } from '@/lib/services/feedbackService';
+import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { client } from '@/sanity/lib/client';
 import { logAudit } from '@/lib/services/auditService';
 
@@ -68,34 +70,36 @@ async function handleFeedbackSubmit(
 
   const formData = validationResult.data;
 
-  // 2. Anti-bot reCAPTCHA v3 verification
-  if (formData.recaptchaToken) {
-    const recaptchaResult = await verifyRecaptchaToken(formData.recaptchaToken, 'feedback_submit');
-    if (!recaptchaResult.success) {
-      void logAudit({
-        category: 'Security',
-        action: 'Anti-Bot Security Blocked',
-        severity: 'Warning',
-        outcome: 'Blocked',
-        summary: `Anti-bot check failed for feedback submission from ${formData.email || 'unknown'}`,
-        actorType: 'client',
-        actorCode: 'USR-BOT',
-        actorName: formData.name,
-        actorEmail: formData.email,
-        entityRef: formData.email,
-        metadata: { form: 'feedback_submit', reason: recaptchaResult.error },
-        ipAddress,
-        userAgent,
-      });
+  // 2. Anti-bot reCAPTCHA v3 verification (unconditional)
+  const recaptchaResult = await verifyRecaptchaToken(
+    formData.recaptchaToken || '',
+    'feedback_submit'
+  );
+  if (!recaptchaResult.success) {
+    void logAudit({
+      category: 'Security',
+      action: 'Anti-Bot Security Blocked',
+      severity: 'Warning',
+      outcome: 'Blocked',
+      summary: `Anti-bot check failed for feedback submission from ${formData.email || 'unknown'}`,
+      actorType: 'client',
+      actorCode: 'USR-BOT',
+      actorName: formData.name,
+      actorEmail: formData.email,
+      entityRef: formData.email,
+      metadata: { form: 'feedback_submit', reason: recaptchaResult.error },
+      ipAddress,
+      userAgent,
+    });
 
-      return NextResponse.json(
-        { error: recaptchaResult.error || 'Anti-bot verification failed. Please try again.' },
-        { status: 403 }
-      );
-    }
+    return NextResponse.json(
+      { error: recaptchaResult.error || 'Anti-bot verification failed. Please try again.' },
+      { status: 403 }
+    );
   }
 
-  // 3. Create pending document in Sanity CMS
+  // 3. Create pending document in Sanity CMS (WITHOUT private client PII email/phone)
+  // Private contact fields are isolated in RLS-protected Supabase `public.client_feedback_contacts`.
   const writeToken = process.env.SANITY_API_WRITE_TOKEN || process.env.SANITY_API_TOKEN;
   let createdDocumentId = `doc-${Date.now()}`;
 
@@ -109,8 +113,6 @@ async function handleFeedbackSubmit(
       const newDoc = await writeClient.create({
         _type: 'clientFeedback',
         name: formData.name,
-        email: formData.email,
-        phone: formData.phone || undefined,
         eventType: formData.eventType,
         rating: formData.rating,
         message: formData.message,
@@ -146,6 +148,28 @@ async function handleFeedbackSubmit(
         '[API /api/feedback] SANITY_WRITE_TOKEN not set. Mocking CMS creation for local dev.'
       );
     }
+  }
+
+  // Persist private client contact details (email, phone) in RLS-protected Supabase table
+  try {
+    const supabaseAdmin = createAdminClient();
+    const { error: contactErr } = await supabaseAdmin
+      .from('client_feedback_contacts')
+      .upsert(
+        {
+          sanity_document_id: createdDocumentId,
+          client_name: formData.name,
+          client_email: formData.email.trim().toLowerCase(),
+          client_phone: formData.phone?.trim() || null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'sanity_document_id' }
+      );
+    if (contactErr) {
+      console.warn('[API /api/feedback] Private contact storage notice:', contactErr.message);
+    }
+  } catch (contactEx) {
+    console.warn('[API /api/feedback] Private contact storage skipped:', contactEx);
   }
 
   // 4. Log successful feedback submission audit trail event
@@ -207,22 +231,39 @@ async function handleFeedbackSubmit(
 
 /**
  * Action Handler: Admin Feedback Lifecycle Auditing (Approved / Rejected / Pending)
- * Triggered by Sanity Studio document actions or admin endpoints.
+ * Strictly requires an authenticated active admin operator session ('admin' or 'super_admin').
  */
 async function handleAdminFeedbackLifecycle(
   body: Record<string, unknown>,
   ipAddress: string | null,
   userAgent: string | null
 ) {
-  const documentId = (body.documentId as string) || (body._id as string);
-  const status = ((body.status as string) || 'pending').toLowerCase();
-  const name = (body.name as string) || 'Client';
-  const email = (body.email as string) || '';
-  const eventType = (body.eventType as string) || '';
-
-  if (!documentId) {
+  const adminData = await getCurrentActiveAdmin();
+  if (!adminData) {
     return NextResponse.json(
-      { error: 'Missing documentId in lifecycle payload.' },
+      { error: 'Unauthorized: Active administrative session required.' },
+      { status: 401 }
+    );
+  }
+  if (adminData.profile.role === 'staff') {
+    return NextResponse.json(
+      { error: 'Forbidden: Operator permissions required.' },
+      { status: 403 }
+    );
+  }
+
+  const documentId =
+    (typeof body.documentId === 'string' && body.documentId.trim()) ||
+    (typeof body._id === 'string' && body._id.trim()) ||
+    '';
+  const status = (typeof body.status === 'string' ? body.status : 'pending').toLowerCase();
+  const name = typeof body.name === 'string' ? body.name.trim().slice(0, 120) : 'Client';
+  const email = typeof body.email === 'string' ? body.email.trim().slice(0, 150) : '';
+  const eventType = typeof body.eventType === 'string' ? body.eventType.trim().slice(0, 100) : '';
+
+  if (!documentId || documentId.length > 200) {
+    return NextResponse.json(
+      { error: 'Missing or invalid documentId in lifecycle payload.' },
       { status: 400 }
     );
   }
@@ -251,9 +292,11 @@ async function handleAdminFeedbackLifecycle(
     severity,
     outcome: 'Success',
     summary: summaryText,
+    actorUserId: adminData.user.id,
     actorType: 'admin',
-    actorCode: 'ADM-STU',
-    actorName: 'Sanity Studio Admin',
+    actorCode: adminData.profile.user_code || 'ADM-STU',
+    actorName: adminData.profile.full_name || 'Sanity Studio Admin',
+    actorEmail: adminData.user.email,
     entityType: 'clientFeedback',
     entityId: documentId,
     entityRef: email || documentId,

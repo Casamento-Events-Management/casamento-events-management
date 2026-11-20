@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Play } from 'lucide-react';
 import { PortableText, type PortableTextComponents } from 'next-sanity';
 import { urlFor } from '@/sanity/lib/image';
+import { sanitizeHref, sanitizeVideoEmbedUrl } from '@/lib/utils/securityUtils';
 
 interface CustomPortableTextProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -26,11 +27,11 @@ function ClickToPlayVideoEmbed({
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
 
-  let embedUrl = url;
+  let embedUrl: string | null = null;
   let thumbnailSrc = '';
 
   // Auto-extract YouTube video ID and high-res thumbnail
-  const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&?/]+)/);
+  const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{6,20})/);
   if (ytMatch) {
     const videoId = ytMatch[1];
     embedUrl = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
@@ -41,6 +42,14 @@ function ClickToPlayVideoEmbed({
   if (vimeoMatch) {
     const videoId = vimeoMatch[1];
     embedUrl = `https://player.vimeo.com/video/${videoId}?autoplay=1`;
+  }
+
+  if (!embedUrl) {
+    embedUrl = sanitizeVideoEmbedUrl(url);
+  }
+
+  if (!embedUrl) {
+    return null;
   }
 
   if (isPlaying) {
@@ -213,7 +222,7 @@ const components: PortableTextComponents = {
       </code>
     ),
     link: ({ value, children }) => {
-      const href = value?.href || '#';
+      const href = sanitizeHref(value?.href);
       const isExternal = href.startsWith('http');
       return (
         <a

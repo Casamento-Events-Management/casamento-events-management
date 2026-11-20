@@ -11,6 +11,7 @@
 
 import React from 'react';
 import type { PortfolioItem } from '@/types';
+import { safeJsonLd } from '@/lib/utils/securityUtils';
 
 interface PortfolioJsonLdProps {
     items: PortfolioItem[];
@@ -162,11 +163,11 @@ export function PortfolioJsonLd({
         <>
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(itemListSchema) }}
             />
             <script
                 type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+                dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbSchema) }}
             />
         </>
     );

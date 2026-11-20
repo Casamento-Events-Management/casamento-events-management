@@ -18,7 +18,7 @@ export function buildBookingClientConfirmationEmail(
       : 'None selected';
 
   const dataTableHtml = renderDataTable([
-    { label: 'Booking Reference', value: `<strong>${bookingReference}</strong>`, isHtml: true },
+    { label: 'Booking Reference', value: `<strong>${escapeHtml(bookingReference)}</strong>`, isHtml: true },
     { label: 'Selected Service', value: `${payload.serviceTitle} (${payload.categoryTitle})` },
     { label: 'Optional Add-ons', value: addOnsDisplay },
     { label: 'Target Event Date', value: `${payload.eventDate}${payload.isHolidayDate && payload.holidayName ? ` [Holiday: ${payload.holidayName}]` : ''}` },
@@ -36,7 +36,7 @@ export function buildBookingClientConfirmationEmail(
     </p>
 
     <p style="margin: 0 0 16px 0; font-size: 14px; color: #3A4F1C; line-height: 1.6;">
-      Your official reference number is: <span style="font-size: 16px; font-weight: 700; color: #BC6F07; letter-spacing: 0.05em;">${bookingReference}</span>
+      Your official reference number is: <span style="font-size: 16px; font-weight: 700; color: #BC6F07; letter-spacing: 0.05em;">${escapeHtml(bookingReference)}</span>
     </p>
 
     ${dataTableHtml}

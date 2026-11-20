@@ -1,4 +1,5 @@
 import type { BookingRecord } from '@/types/booking';
+import { escapeHtml } from '@/lib/utils/securityUtils';
 import { renderBaseEmailLayout } from './layouts/base';
 import { renderDataTable } from './blocks/dataTable';
 
@@ -17,9 +18,9 @@ export function buildBookingAdminReminderEmail(
       : 'None';
 
   const dataTableHtml = renderDataTable([
-    { label: 'Booking Reference', value: `<strong>${booking.booking_reference}</strong>`, isHtml: true },
+    { label: 'Booking Reference', value: `<strong>${escapeHtml(booking.booking_reference)}</strong>`, isHtml: true },
     { label: 'Event Service', value: `${booking.service_title} (${booking.category_title})` },
-    { label: 'Event Date', value: `<strong style="color: #3A4F1C; font-size: 15px;">${booking.event_date}</strong>`, isHtml: true },
+    { label: 'Event Date', value: `<strong style="color: #3A4F1C; font-size: 15px;">${escapeHtml(booking.event_date)}</strong>`, isHtml: true },
     { label: 'Days Remaining', value: `<strong style="color: #BC6F07;">${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}</strong>`, isHtml: true },
     { label: 'Client Name', value: booking.client_full_name },
     { label: 'Client Contact', value: `${booking.client_email}${booking.client_phone ? ` • ${booking.client_phone}` : ''}` },
@@ -30,7 +31,7 @@ export function buildBookingAdminReminderEmail(
 
   const contentHtml = `
     <p style="margin: 0 0 16px 0; font-size: 15px; color: #3A4F1C; line-height: 1.6;">
-      <strong>Team Notice:</strong> The following confirmed event is scheduled in <strong>${daysLeft} days</strong> (${booking.event_date}).
+      <strong>Team Notice:</strong> The following confirmed event is scheduled in <strong>${daysLeft} days</strong> (${escapeHtml(booking.event_date)}).
     </p>
 
     <p style="margin: 0 0 16px 0; font-size: 14px; color: #3A4F1C; line-height: 1.6;">

@@ -23,10 +23,10 @@ export function buildBookingClientRescheduledEmail(
   const subject = `Event Rescheduled: ${booking.service_title} [${booking.booking_reference}]`;
 
   const dataTableHtml = renderDataTable([
-    { label: 'Booking Reference', value: `<strong>${booking.booking_reference}</strong>`, isHtml: true },
+    { label: 'Booking Reference', value: `<strong>${escapeHtml(booking.booking_reference)}</strong>`, isHtml: true },
     { label: 'Confirmed Service', value: `${booking.service_title} (${booking.category_title})` },
-    { label: 'Previous Date', value: `<span style="text-decoration: line-through; color: #888;">${oldDate}</span>`, isHtml: true },
-    { label: 'New Event Date', value: `<strong style="color: #3A4F1C; font-size: 15px;">${newDate}</strong>`, isHtml: true },
+    { label: 'Previous Date', value: `<span style="text-decoration: line-through; color: #888;">${escapeHtml(oldDate)}</span>`, isHtml: true },
+    { label: 'New Event Date', value: `<strong style="color: #3A4F1C; font-size: 15px;">${escapeHtml(newDate)}</strong>`, isHtml: true },
     { label: 'Venue Location', value: `${booking.venue_city}${booking.event_country_name ? `, ${booking.event_country_name}` : ''}` },
   ]);
 

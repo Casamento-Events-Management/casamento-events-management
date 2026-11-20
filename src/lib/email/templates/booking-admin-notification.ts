@@ -21,7 +21,7 @@ export function buildBookingAdminNotificationEmail(
   const dashboardUrl = `${siteUrl}/admin/dashboard`;
 
   const dataTableHtml = renderDataTable([
-    { label: 'Booking Reference', value: `<strong>${bookingReference}</strong>`, isHtml: true },
+    { label: 'Booking Reference', value: `<strong>${escapeHtml(bookingReference)}</strong>`, isHtml: true },
     { label: 'Client Full Name', value: payload.clientFullName },
     {
       label: 'Email Address',

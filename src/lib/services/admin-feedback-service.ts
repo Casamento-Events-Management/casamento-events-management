@@ -1,95 +1,27 @@
 // =============================================================================
-// lib/services/admin-feedback-service.ts — Server Service & Actions for Feedback Review
+// lib/services/admin-feedback-service.ts — Server Actions for Feedback Review
+//
+// Every exported function in this 'use server' module strictly enforces
+// authenticated admin operator (admin / super_admin) authorization.
 // =============================================================================
 
 'use server';
 
 import { revalidateTag, revalidatePath } from 'next/cache';
-import { client } from '@/sanity/lib/client';
 import { getCurrentActiveAdmin } from '@/lib/services/adminProfileService';
 import { logAudit } from '@/lib/services/auditService';
 import { sendClientApprovalConfirmationEmail } from '@/lib/services/feedbackService';
+import {
+  fetchPendingFeedbacksInternal,
+  getAuthenticatedSanityClient,
+  resolveFeedbackContactEmails,
+  type SanityPendingFeedbackRaw,
+} from '@/lib/services/admin-feedback-queries';
 import type { OverviewPendingFeedback } from '@/types/admin-overview';
 
 /**
- * Returns an authenticated Sanity write client using server-isolated SANITY_API_WRITE_TOKEN.
- */
-function getAuthenticatedSanityClient() {
-  const writeToken = process.env.SANITY_API_WRITE_TOKEN || process.env.SANITY_API_TOKEN;
-  if (!writeToken) {
-    throw new Error('SANITY_API_WRITE_TOKEN is not configured on the server.');
-  }
-
-  return client.withConfig({
-    token: writeToken,
-    useCdn: false,
-  });
-}
-
-const GROQ_PENDING_FEEDBACKS = `
-  *[_type == "clientFeedback" && status == "pending"] | order(submittedAt desc, _createdAt desc)[0...15] {
-    _id,
-    name,
-    email,
-    eventType,
-    rating,
-    message,
-    submittedAt,
-    _createdAt,
-    photo {
-      "url": asset->url
-    }
-  }
-`;
-
-interface SanityPendingFeedbackRaw {
-  _id: string;
-  name: string;
-  email: string;
-  eventType: string;
-  rating?: number;
-  message: string;
-  submittedAt?: string;
-  _createdAt: string;
-  photo?: { url?: string } | null;
-}
-
-/**
- * Fetches pending client feedbacks from Sanity CMS.
- * Server-only helper (never exposed to browser bundles).
- */
-export async function fetchPendingFeedbacks(): Promise<OverviewPendingFeedback[]> {
-  try {
-    const sanityClient = getAuthenticatedSanityClient();
-    const rawItems = await sanityClient.fetch<SanityPendingFeedbackRaw[]>(
-      GROQ_PENDING_FEEDBACKS,
-      {},
-      { cache: 'no-store' }
-    );
-
-    if (!Array.isArray(rawItems)) {
-      return [];
-    }
-
-    return rawItems.map((item) => ({
-      id: item._id,
-      name: item.name || 'Anonymous Client',
-      email: item.email || '',
-      eventType: item.eventType || 'Event',
-      rating: typeof item.rating === 'number' ? item.rating : 5,
-      message: item.message || '',
-      submittedAt: item.submittedAt || item._createdAt,
-      photoUrl: item.photo?.url || null,
-    }));
-  } catch (err) {
-    console.error('[admin-feedback-service] Failed to fetch pending feedbacks from Sanity:', err);
-    return [];
-  }
-}
-
-/**
  * Server Action: Fetches pending feedbacks for client-side overview polling.
- * Enforces admin authorization.
+ * Enforces admin operator authorization.
  */
 export async function getPendingFeedbacksAction(): Promise<{
   success: boolean;
@@ -105,7 +37,7 @@ export async function getPendingFeedbacksAction(): Promise<{
     return { success: false, error: 'Forbidden: Staff cannot access feedback reviews.' };
   }
 
-  const feedbacks = await fetchPendingFeedbacks();
+  const feedbacks = await fetchPendingFeedbacksInternal();
   return { success: true, feedbacks };
 }
 
@@ -126,6 +58,10 @@ export async function approveFeedbackAction(feedbackId: string): Promise<{
     return { success: false, error: 'Forbidden: Only Admins can approve feedbacks.' };
   }
 
+  if (!feedbackId || typeof feedbackId !== 'string') {
+    return { success: false, error: 'Invalid feedback identifier.' };
+  }
+
   try {
     const sanityClient = getAuthenticatedSanityClient();
 
@@ -134,6 +70,9 @@ export async function approveFeedbackAction(feedbackId: string): Promise<{
     if (!existingDoc) {
       return { success: false, error: 'Feedback document not found in CMS.' };
     }
+
+    const emailMap = await resolveFeedbackContactEmails([feedbackId]);
+    const resolvedEmail = emailMap.get(feedbackId) || existingDoc.email || '';
 
     // 2. Patch status in Sanity
     await sanityClient
@@ -167,7 +106,7 @@ export async function approveFeedbackAction(feedbackId: string): Promise<{
       actorEmail: adminData.profile.email,
       entityType: 'clientFeedback',
       entityId: feedbackId,
-      entityRef: existingDoc.email || feedbackId,
+      entityRef: resolvedEmail || feedbackId,
       metadata: {
         documentId: feedbackId,
         clientName: existingDoc.name,
@@ -177,9 +116,9 @@ export async function approveFeedbackAction(feedbackId: string): Promise<{
     });
 
     // 5. Send approval email to client if email exists
-    if (existingDoc.email) {
+    if (resolvedEmail) {
       void sendClientApprovalConfirmationEmail(
-        existingDoc.email,
+        resolvedEmail,
         existingDoc.name,
         existingDoc.eventType || 'Event'
       );
@@ -190,7 +129,7 @@ export async function approveFeedbackAction(feedbackId: string): Promise<{
     console.error('[admin-feedback-service Approve Error]:', err);
     return {
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to approve feedback in Sanity.',
+      error: 'Failed to approve feedback in CMS.',
     };
   }
 }
@@ -211,6 +150,10 @@ export async function rejectFeedbackAction(feedbackId: string): Promise<{
     return { success: false, error: 'Forbidden: Only Admins can reject feedbacks.' };
   }
 
+  if (!feedbackId || typeof feedbackId !== 'string') {
+    return { success: false, error: 'Invalid feedback identifier.' };
+  }
+
   try {
     const sanityClient = getAuthenticatedSanityClient();
 
@@ -218,6 +161,9 @@ export async function rejectFeedbackAction(feedbackId: string): Promise<{
     if (!existingDoc) {
       return { success: false, error: 'Feedback document not found in CMS.' };
     }
+
+    const emailMap = await resolveFeedbackContactEmails([feedbackId]);
+    const resolvedEmail = emailMap.get(feedbackId) || existingDoc.email || '';
 
     // Patch status to 'rejected'
     await sanityClient
@@ -248,7 +194,7 @@ export async function rejectFeedbackAction(feedbackId: string): Promise<{
       actorEmail: adminData.profile.email,
       entityType: 'clientFeedback',
       entityId: feedbackId,
-      entityRef: existingDoc.email || feedbackId,
+      entityRef: resolvedEmail || feedbackId,
       metadata: {
         documentId: feedbackId,
         clientName: existingDoc.name,
@@ -261,7 +207,7 @@ export async function rejectFeedbackAction(feedbackId: string): Promise<{
     console.error('[admin-feedback-service Reject Error]:', err);
     return {
       success: false,
-      error: err instanceof Error ? err.message : 'Failed to reject feedback in Sanity.',
+      error: 'Failed to reject feedback in CMS.',
     };
   }
 }

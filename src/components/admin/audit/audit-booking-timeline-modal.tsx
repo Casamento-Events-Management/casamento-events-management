@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { AuditLogEntry } from '@/types/admin-auth';
+import { isValidBookingReference } from '@/lib/utils/securityUtils';
 
 interface AuditBookingTimelineModalProps {
   bookingReference: string | null;
@@ -52,13 +53,18 @@ export function AuditBookingTimelineModal({
 
     let isMounted = true;
     async function fetchTimeline() {
+      if (!bookingReference || !isValidBookingReference(bookingReference)) {
+        setLogs([]);
+        return;
+      }
+      const safeRef = bookingReference.trim();
       setIsLoading(true);
       try {
         const supabase = createClient();
         const { data, error } = await supabase
           .from('audit_logs')
           .select('*, audit_log_acknowledgments(*)')
-          .or(`entity_ref.eq.${bookingReference},metadata->>booking_reference.eq.${bookingReference}`)
+          .or(`entity_ref.eq.${safeRef},metadata->>booking_reference.eq.${safeRef}`)
           .order('created_at', { ascending: true });
 
         if (error) {

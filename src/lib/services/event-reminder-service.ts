@@ -20,7 +20,6 @@ async function sendEmail(
   cc?: string[]
 ): Promise<{ success: boolean; error?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
-  const teamRecipients = parseContactEmailRecipients();
 
   if (!apiKey) {
     if (process.env.NODE_ENV === 'development') {
@@ -40,7 +39,7 @@ async function sendEmail(
         from: `Casamento Events <${process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to,
         cc: cc && cc.length > 0 ? cc : undefined,
-        reply_to: teamRecipients[0] || process.env.CONTACT_EMAIL_FROM,
+        reply_to: process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev',
         subject,
         html,
       }),

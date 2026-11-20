@@ -221,7 +221,7 @@ async function dispatchOfficialBookingEmails(
     .map((e) => e.trim())
     .filter((e) => e.length > 0 && e.toLowerCase() !== clientClean);
 
-  // 1. Client Confirmation Receipt (with Casamento team CC'd on the same thread)
+  // 1. Client Confirmation Receipt (team BCC'd so internal admin emails are never exposed in Cc/Reply-To)
   try {
     const clientEmailData = buildBookingClientConfirmationEmail(formData, bookingReference);
 
@@ -234,8 +234,8 @@ async function dispatchOfficialBookingEmails(
       body: JSON.stringify({
         from: `Casamento Events <${process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev'}>`,
         to: [formData.clientEmail],
-        cc: combinedCC.length > 0 ? combinedCC : undefined,
-        reply_to: teamRecipients[0] || process.env.CONTACT_EMAIL_FROM,
+        bcc: combinedCC.length > 0 ? combinedCC : undefined,
+        reply_to: process.env.CONTACT_EMAIL_FROM || 'onboarding@resend.dev',
         subject: clientEmailData.subject,
         html: clientEmailData.html,
       }),

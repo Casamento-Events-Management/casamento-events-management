@@ -31,6 +31,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import type { AuditLogEntry } from '@/types/admin-auth';
 import { recordExportAuditAction } from '@/lib/services/admin-audit-actions';
+import { escapeCsvCell, sanitizePostgrestSearch } from '@/lib/utils/securityUtils';
 import { AuditDiffModal } from './audit-diff-modal';
 import { AuditMetadataModal } from './audit-metadata-modal';
 import { AuditBookingTimelineModal } from './audit-booking-timeline-modal';
@@ -158,12 +159,14 @@ export function AuditTable() {
           query = query.gte('created_at', d30.toISOString());
         }
 
-        // Free-text Search
+        // Free-text Search (sanitized against PostgREST filter syntax injection)
         if (searchQuery.trim()) {
-          const term = searchQuery.trim();
-          query = query.or(
-            `summary.ilike.%${term}%,entity_ref.ilike.%${term}%,actor_code.ilike.%${term}%,actor_name.ilike.%${term}%`
-          );
+          const term = sanitizePostgrestSearch(searchQuery);
+          if (term.length > 0) {
+            query = query.or(
+              `summary.ilike.%${term}%,entity_ref.ilike.%${term}%,actor_code.ilike.%${term}%,actor_name.ilike.%${term}%`
+            );
+          }
         }
 
         // Pagination & Ordering
@@ -304,11 +307,7 @@ export function AuditTable() {
           'User Agent',
         ];
 
-        const escapeCsv = (str: unknown): string => {
-          if (str === null || str === undefined) return '""';
-          const val = String(str).replace(/"/g, '""');
-          return `"${val}"`;
-        };
+        const escapeCsv = escapeCsvCell;
 
         const csvLines = [headers.join(',')];
         for (const row of rows) {
