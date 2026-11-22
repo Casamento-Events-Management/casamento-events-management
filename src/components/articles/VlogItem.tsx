@@ -7,6 +7,7 @@ import { Play } from 'lucide-react';
 import type { VlogItemProps } from '@/types';
 import { SocialIcon } from '@/components/ui/social-icon';
 import { ShareDropdown } from '@/components/ui/share-dropdown';
+import { formatDisplayDate } from '@/lib/utils/dateUtils';
 
 export function VlogItem({ item, onPlayVideo }: VlogItemProps) {
   const thumbnailUrl = item.thumbnail?.asset?.url;
@@ -20,9 +21,7 @@ export function VlogItem({ item, onPlayVideo }: VlogItemProps) {
   };
 
   const publishedDate = item.publishedAt
-    ? new Intl.DateTimeFormat('en-PH', { year: 'numeric', month: 'long', day: 'numeric' }).format(
-      new Date(item.publishedAt)
-    )
+    ? formatDisplayDate(item.publishedAt, 'long')
     : null;
 
   return (

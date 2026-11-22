@@ -118,6 +118,7 @@ export function PendingFeedbackList({
       return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
+        timeZone: 'Asia/Manila',
       });
     } catch {
       return '';
@@ -189,7 +190,10 @@ export function PendingFeedbackList({
                   </div>
 
                   {/* Relative Timestamp (Pushed right) */}
-                  <span className="sm:ml-auto text-[10px] font-mono text-stone-400">
+                  <span
+                    suppressHydrationWarning
+                    className="sm:ml-auto text-[10px] font-mono text-stone-400"
+                  >
                     {formatRelativeTime(item.submittedAt)}
                   </span>
                 </div>

@@ -358,8 +358,24 @@ export function BookingDetailInspector({
         )}
 
         <div className="text-[10px] sm:text-[11px] text-stone-400 flex items-center gap-4 pt-1">
-          <span>Created: {new Date(booking.created_at).toLocaleDateString()}</span>
-          <span>Updated: {new Date(booking.updated_at).toLocaleDateString()}</span>
+          <span>
+            Created:{' '}
+            {new Intl.DateTimeFormat('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              timeZone: 'Asia/Manila',
+            }).format(new Date(booking.created_at))}
+          </span>
+          <span>
+            Updated:{' '}
+            {new Intl.DateTimeFormat('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+              timeZone: 'Asia/Manila',
+            }).format(new Date(booking.updated_at))}
+          </span>
         </div>
       </div>
 

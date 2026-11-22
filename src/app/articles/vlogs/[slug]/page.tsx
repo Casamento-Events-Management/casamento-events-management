@@ -9,6 +9,7 @@ import {
   getRelatedArticleVlogs,
 } from '@/lib/services/articleVlogService';
 import { CustomPortableText } from '@/components/ui/portable-text';
+import { formatDisplayDate } from '@/lib/utils/dateUtils';
 import { parseVideoSource } from '@/lib/utils/videoUtils';
 import { SocialIcon } from '@/components/ui/social-icon';
 import { ArticleVlogJsonLd } from '@/components/articles/article-vlog-json-ld';
@@ -81,11 +82,7 @@ export default async function VlogDetailPage({ params }: PageProps) {
   const thumbnailUrl = item.thumbnail?.asset?.url;
 
   const publishedDate = item.publishedAt
-    ? new Intl.DateTimeFormat('en-PH', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }).format(new Date(item.publishedAt))
+    ? formatDisplayDate(item.publishedAt, 'long')
     : null;
 
   return (

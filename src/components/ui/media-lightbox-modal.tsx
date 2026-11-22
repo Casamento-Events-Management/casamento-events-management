@@ -12,6 +12,7 @@ import {
   Film,
   Image as ImageIcon,
 } from 'lucide-react';
+import { formatDisplayDate } from '@/lib/utils/dateUtils';
 
 export interface MediaLightboxImage {
   url: string;
@@ -209,13 +210,7 @@ export function MediaLightboxModal({
     };
   }, [onClose, requestAnimatedClose]);
 
-  const formattedDate = eventDate
-    ? new Date(eventDate).toLocaleDateString('en-US', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    : null;
+  const formattedDate = eventDate ? formatDisplayDate(eventDate, 'long') : null;
 
   const hasMeta = Boolean(clientName || location || formattedDate);
   const hasTags = Boolean(tags && tags.length > 0);

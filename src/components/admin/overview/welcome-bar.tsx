@@ -24,6 +24,7 @@ export function WelcomeBar({
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    timeZone: 'Asia/Manila',
   }).format(new Date());
 
   const firstName = profile.full_name.split(' ')[0] || profile.full_name;
@@ -38,7 +39,7 @@ export function WelcomeBar({
           </h1>
           <div className="flex items-center gap-2 text-[11px] text-[#2B3817]/70">
             <Calendar className="h-3.5 w-3.5 text-[#3A4F1C]" />
-            <span>{todayFormatted}</span>
+            <span suppressHydrationWarning>{todayFormatted}</span>
             <span>·</span>
             <span>Casamento Operations</span>
           </div>

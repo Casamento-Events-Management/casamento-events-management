@@ -7,6 +7,7 @@ import type { UpcomingEvent } from '@/types';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { Badge } from '@/components/ui/badge';
 import { PaginationDots } from '@/components/ui/pagination-dots';
+import { formatDisplayDate } from '@/lib/utils/dateUtils';
 
 interface UpcomingEventsSectionProps {
   events: UpcomingEvent[];
@@ -16,16 +17,7 @@ interface UpcomingEventsSectionProps {
 }
 
 function formatEventDate(dateString: string): string {
-  try {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    }).format(date);
-  } catch {
-    return dateString;
-  }
+  return formatDisplayDate(dateString, 'long');
 }
 
 export function UpcomingEventsSection({

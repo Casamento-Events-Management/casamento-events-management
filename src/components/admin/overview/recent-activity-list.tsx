@@ -34,6 +34,7 @@ export function RecentActivityList({ activities = [] }: RecentActivityListProps)
       return date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
+        timeZone: 'Asia/Manila',
       });
     } catch {
       return '';
@@ -108,7 +109,10 @@ export function RecentActivityList({ activities = [] }: RecentActivityListProps)
               </div>
 
               {/* Timestamp (Right Side) */}
-              <div className="shrink-0 ml-auto pt-0.5 text-[10px] font-mono text-stone-400">
+              <div
+                suppressHydrationWarning
+                className="shrink-0 ml-auto pt-0.5 text-[10px] font-mono text-stone-400"
+              >
                 {formatRelativeTime(item.created_at)}
               </div>
             </div>

@@ -87,7 +87,7 @@ export function Footer() {
 
         {/* Bottom Legal Bar */}
         <div className="mt-16 pt-8 border-t border-[#F7F3E8]/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#F7F3E8]/60">
-          <p>© {currentYear} Casamento Events Management. All rights reserved.</p>
+          <p suppressHydrationWarning>© {currentYear} Casamento Events Management. All rights reserved.</p>
           <div className="flex items-center space-x-6">
             <Link href="/privacy" className="hover:text-[#F7F3E8] transition-colors" target="_blank" rel="noopener noreferrer">
               Privacy Policy

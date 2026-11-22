@@ -16,7 +16,10 @@ interface MonthlyStatsBarProps {
 }
 
 export function MonthlyStatsBar({ stats }: MonthlyStatsBarProps) {
-  const currentMonthName = new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date());
+  const currentMonthName = new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    timeZone: 'Asia/Manila',
+  }).format(new Date());
 
   return (
     <div className="rounded-2xl border border-stone-200/90 bg-white p-4 sm:p-5 shadow-2xs space-y-3">
@@ -24,7 +27,7 @@ export function MonthlyStatsBar({ stats }: MonthlyStatsBarProps) {
       <div className="flex items-center pb-2 border-b border-stone-100">
         <div className="flex items-center gap-2">
           <CalendarDays className="h-4 w-4 text-[#3A4F1C]" />
-          <h2 className="text-sm font-semibold text-stone-900">
+          <h2 className="text-sm font-semibold text-stone-900" suppressHydrationWarning>
             {currentMonthName} Numbers
           </h2>
         </div>

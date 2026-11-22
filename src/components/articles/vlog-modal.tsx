@@ -9,6 +9,7 @@ import { ShareDropdown } from '@/components/ui/share-dropdown';
 import { SocialIcon } from '@/components/ui/social-icon';
 import { parseVideoSource } from '@/lib/utils/videoUtils';
 import { useScrollLock } from '@/lib/hooks/useScrollLock';
+import { formatDisplayDate } from '@/lib/utils/dateUtils';
 
 interface VlogModalProps {
   item: ArticleVlogItem | null;
@@ -47,11 +48,7 @@ export function VlogModal({ item, isOpen, onClose }: VlogModalProps) {
   };
 
   const publishedDate = item.publishedAt
-    ? new Intl.DateTimeFormat('en-PH', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }).format(new Date(item.publishedAt))
+    ? formatDisplayDate(item.publishedAt, 'long')
     : null;
 
   const renderMediaContent = () => {

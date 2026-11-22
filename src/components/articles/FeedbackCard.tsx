@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { urlFor } from '@/sanity/lib/image';
+import { formatDisplayDate } from '@/lib/utils/dateUtils';
 import type { FeedbackCardProps } from '@/types';
 
 /** Safe helper to resolve image URL from projected GROQ object, string, or Sanity reference */
@@ -46,11 +47,7 @@ export function FeedbackCard({ feedback, compact = false }: FeedbackCardProps) {
   const initial = feedback.name ? feedback.name.charAt(0).toUpperCase() : 'C';
 
   const formattedDate = feedback.submittedAt
-    ? new Intl.DateTimeFormat('en-PH', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      }).format(new Date(feedback.submittedAt))
+    ? formatDisplayDate(feedback.submittedAt, 'short')
     : null;
 
   // Fixed card height — same for all cards

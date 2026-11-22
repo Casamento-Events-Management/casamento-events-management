@@ -208,7 +208,14 @@ export function PendingBookingsMasterList({
                     <span title="Received Date">
                       <Clock className="h-3 w-3" />
                     </span>
-                    <span>{new Date(booking.created_at).toLocaleDateString()}</span>
+                    <span>
+                      {new Intl.DateTimeFormat('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        timeZone: 'Asia/Manila',
+                      }).format(new Date(booking.created_at))}
+                    </span>
                   </div>
                 </div>
               </div>
