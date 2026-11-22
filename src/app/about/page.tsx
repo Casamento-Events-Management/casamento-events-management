@@ -75,6 +75,7 @@ export default async function AboutPage() {
           eyebrow={hero.eyebrow}
           title={hero.title}
           description={hero.description}
+          bannerImages={hero.bannerImages}
         />
 
         {/* Section 1: Our Story */}

@@ -119,10 +119,10 @@ export function PaginationDots({
             aria-selected={isActive}
             aria-label={`Go to slide ${idx + 1}`}
             onClick={() => onSelect(idx)}
-            className="flex items-center justify-center p-0.5 rounded-full cursor-pointer transition-transform hover:scale-110 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#BC6F07]"
+            className="flex items-center justify-center p-1 rounded-full cursor-pointer transition-colors duration-200 active:scale-95 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#BC6F07]"
           >
             <span
-              className={`rounded-full transition-all duration-300 block ${dotDimensions} ${dotBg}`}
+              className={`rounded-full transition-[width,background-color,opacity] duration-200 block ${dotDimensions} ${dotBg}`}
             />
           </button>
         );

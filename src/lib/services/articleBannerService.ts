@@ -14,6 +14,10 @@ export const GROQ_ARTICLE_VLOG_BANNER = `
     _rev,
     title,
     description,
+    bannerImages[] {
+      "url": asset->url,
+      alt
+    },
     backgroundImage {
       "asset": {
         "_ref": asset._ref,
@@ -42,8 +46,24 @@ export async function getArticleVlogBanner(): Promise<ArticleVlogBanner> {
       { next: { revalidate: 3600, tags: ['articleVlogBanner'] } }
     );
 
-    if (cmsData && cmsData.backgroundImage?.asset?.url) {
-      return cmsData;
+    if (cmsData) {
+      const normalizedSlides = [
+        ...(Array.isArray(cmsData.bannerImages)
+          ? cmsData.bannerImages.filter((img): img is { url: string; alt?: string } =>
+              Boolean(img?.url)
+            )
+          : []),
+        ...(cmsData.backgroundImage?.asset?.url
+          ? [{ url: cmsData.backgroundImage.asset.url, alt: cmsData.backgroundImage.alt }]
+          : []),
+      ];
+
+      if (normalizedSlides.length > 0 || cmsData.title || cmsData.description) {
+        return {
+          ...cmsData,
+          bannerImages: normalizedSlides.length > 0 ? normalizedSlides : null,
+        };
+      }
     }
   } catch (err) {
     console.warn('[articleBannerService] Failed to fetch articleVlogBanner from Sanity, using mock fallback:', err);

@@ -6,23 +6,25 @@ export const articleVlogBanner = defineType({
   type: 'document',
   fields: [
     defineField({
-      name: 'backgroundImage',
-      title: 'Background Image',
-      type: 'image',
-      description: 'Full-width banner background image. High resolution recommended.',
-      options: {
-        hotspot: true,
-      },
-      fields: [
-        defineField({
-          name: 'alt',
-          title: 'Alternative Text',
-          type: 'string',
-          description: 'Accessibility label for screen readers.',
-          validation: (Rule) => Rule.required(),
-        }),
+      name: 'bannerImages',
+      title: 'Hero Banner Images (Optional Carousel)',
+      type: 'array',
+      description:
+        'Upload one or more full-width banner images. Multiple images crossfade automatically every 2 seconds. Leave empty to use the brand cream surface.',
+      of: [
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            defineField({
+              name: 'alt',
+              title: 'Alternative Text',
+              type: 'string',
+              description: 'Descriptive alt text for accessibility and SEO.',
+            }),
+          ],
+        },
       ],
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'title',
@@ -59,7 +61,7 @@ export const articleVlogBanner = defineType({
   preview: {
     select: {
       title: 'title',
-      media: 'backgroundImage',
+      media: 'bannerImages.0',
     },
     prepare({ title, media }) {
       return {

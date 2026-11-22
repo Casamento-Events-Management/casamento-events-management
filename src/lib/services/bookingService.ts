@@ -14,7 +14,15 @@ export const GROQ_BOOKING_HERO = `
   *[_type == "bookingHero" && _id == "bookingHero"][0] {
     eyebrow,
     title,
-    description
+    description,
+    bannerImages[] {
+      "url": asset->url,
+      alt
+    },
+    backgroundImage {
+      "url": asset->url,
+      alt
+    }
   }
 `;
 
@@ -34,10 +42,25 @@ export async function getBookingHeroContent(): Promise<BookingHeroContent> {
     );
 
     if (data?.title && data?.description) {
+      const validBannerImages = Array.isArray(data.bannerImages)
+        ? data.bannerImages.filter((img): img is { url: string; alt?: string } => Boolean(img?.url))
+        : [];
+      const fallbackSingle = data.backgroundImage?.url
+        ? { url: data.backgroundImage.url, alt: data.backgroundImage.alt }
+        : null;
+      const mergedImages =
+        validBannerImages.length > 0
+          ? validBannerImages
+          : fallbackSingle
+            ? [fallbackSingle]
+            : null;
+
       return {
         eyebrow: data.eyebrow || BOOKING_HERO_FALLBACK.eyebrow,
         title: data.title,
         description: data.description,
+        bannerImages: mergedImages,
+        backgroundImage: mergedImages?.[0] ?? null,
       };
     }
   } catch (err) {

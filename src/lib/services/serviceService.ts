@@ -196,6 +196,14 @@ export const GROQ_SERVICES_HERO = `
   *[_type == "servicesHero" && _id == "servicesHero"][0] {
     title,
     description,
+    bannerImages[] {
+      "url": asset->url,
+      alt
+    },
+    backgroundImage {
+      "url": asset->url,
+      alt
+    },
     servicesEyebrow,
     servicesTitle,
     servicesDescription
@@ -229,9 +237,24 @@ export async function getServicesHeroContent(): Promise<ServicesHeroContent> {
         );
 
         if (data?.title && data?.description) {
+            const validBannerImages = Array.isArray(data.bannerImages)
+                ? data.bannerImages.filter((img): img is { url: string; alt?: string } => Boolean(img?.url))
+                : [];
+            const fallbackSingle = data.backgroundImage?.url
+                ? { url: data.backgroundImage.url, alt: data.backgroundImage.alt }
+                : null;
+            const mergedImages =
+                validBannerImages.length > 0
+                    ? validBannerImages
+                    : fallbackSingle
+                      ? [fallbackSingle]
+                      : null;
+
             return {
                 title: data.title,
                 description: data.description,
+                bannerImages: mergedImages,
+                backgroundImage: mergedImages?.[0] ?? null,
                 servicesEyebrow: data.servicesEyebrow || SERVICES_HERO_FALLBACK.servicesEyebrow,
                 servicesTitle: data.servicesTitle || SERVICES_HERO_FALLBACK.servicesTitle,
                 servicesDescription: data.servicesDescription || SERVICES_HERO_FALLBACK.servicesDescription,

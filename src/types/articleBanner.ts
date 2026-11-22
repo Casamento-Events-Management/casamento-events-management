@@ -16,8 +16,10 @@ export interface ArticleBannerCTA {
  * Article Vlog Banner Document model from Sanity CMS.
  */
 export interface ArticleVlogBanner extends SanityDocument {
-  /** Full-width background banner image (LCP priority asset). Required. */
-  backgroundImage: SanityImageWithPriority;
+  /** Optional carousel of banner images (crossfades every 2 seconds). */
+  bannerImages?: Array<{ url: string; alt?: string }> | null;
+  /** Legacy single full-width background banner image (backwards compatibility). */
+  backgroundImage?: SanityImageWithPriority;
   /** Optional headline text overlay. If omitted, banner renders as image-only. */
   title?: string;
   /** Optional summary description text overlay. */

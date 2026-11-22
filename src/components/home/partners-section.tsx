@@ -19,24 +19,25 @@ function ClientLogo({ client }: { client: ClientBrand | Partner }) {
   const logoUrl = client.logo?.asset?.url;
 
   const inner = !imageError && logoUrl ? (
-    <div className="relative w-full h-full cursor-pointer">
+    <div className="relative w-full h-full">
       <Image
         src={logoUrl}
         alt={client.logo.alt || client.name}
         fill
-        sizes="(max-width: 640px) 120px, 220px"
+        loading="lazy"
+        sizes="(max-width: 640px) 120px, 210px"
         className="object-contain"
         onError={() => setImageError(true)}
       />
     </div>
   ) : (
-    <span className="text-xs sm:text-base font-serif font-semibold tracking-wide text-[#3A4F1C]/70 text-center leading-snug px-2">
+    <span className="text-xs sm:text-base font-medium tracking-wide text-[#3A4F1C]/75 text-center leading-snug px-2">
       {client.name}
     </span>
   );
 
-  const sharedClass =
-    'flex items-center justify-center w-[120px] h-[56px] sm:w-[210px] sm:h-[92px] transition-opacity duration-300 hover:opacity-100 opacity-80 cursor-default';
+  const baseClass =
+    'flex items-center justify-center w-[120px] h-[56px] sm:w-[210px] sm:h-[92px]';
 
   if (client.url) {
     return (
@@ -44,15 +45,15 @@ function ClientLogo({ client }: { client: ClientBrand | Partner }) {
         href={client.url}
         target="_blank"
         rel="noopener noreferrer"
-        className={sharedClass}
-        title={client.name}
+        className={`${baseClass} opacity-80 hover:opacity-100 transition-opacity duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07] rounded-md`}
+        aria-label={`Visit ${client.name}`}
       >
         {inner}
       </a>
     );
   }
 
-  return <div className={sharedClass}>{inner}</div>;
+  return <div className={`${baseClass} opacity-85 cursor-default`}>{inner}</div>;
 }
 
 export function ClientsSection({

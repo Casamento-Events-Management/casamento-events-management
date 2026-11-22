@@ -197,6 +197,16 @@ export interface SanityServicesHero extends SanityDocument {
     title: string;
     /** Introductory paragraph shown beneath the headline. */
     description: string;
+    /** Optional hero carousel banner images. */
+    bannerImages?: Array<{
+        url?: string;
+        alt?: string;
+    }> | null;
+    /** Optional legacy single hero background banner image. */
+    backgroundImage?: {
+        url?: string;
+        alt?: string;
+    } | null;
     /** Section Eyebrow tagline displayed above the section title. */
     servicesEyebrow?: string;
     /** Section title displayed above the collapsible service categories. */
@@ -212,6 +222,14 @@ export interface SanityServicesHero extends SanityDocument {
 export interface ServicesHeroContent {
     title: string;
     description: string;
+    bannerImages?: Array<{
+        url: string;
+        alt?: string;
+    }> | null;
+    backgroundImage?: {
+        url: string;
+        alt?: string;
+    } | null;
     servicesEyebrow?: string;
     servicesTitle?: string;
     servicesDescription?: string;

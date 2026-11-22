@@ -11,6 +11,7 @@
   --gold-accent: #BC6F07;
   --gold-hover: #9E5B04;
   --surface-card: #FFFFFF;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @theme inline {
@@ -118,6 +119,92 @@ body {
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Native <dialog> Media Modal — Top-layer entry/exit & scroll containment */
+dialog.casamento-media-dialog {
+  margin: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  max-width: min(56rem, calc(100vw - 1.5rem));
+  max-height: 90dvh;
+  width: 100%;
+  opacity: 0;
+  transition-property: opacity, transform, display, overlay;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog.casamento-media-dialog {
+    transform: scale(0.96);
+  }
+}
+
+dialog.casamento-media-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+dialog.casamento-media-dialog[open]:not([data-closing]) {
+  opacity: 1;
+  transition-duration: 240ms;
+}
+
+@starting-style {
+  dialog.casamento-media-dialog[open]:not([data-closing]) {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog.casamento-media-dialog[open]:not([data-closing]) {
+    transform: scale(1);
+  }
+
+  @starting-style {
+    dialog.casamento-media-dialog[open]:not([data-closing]) {
+      transform: scale(0.96);
+    }
+  }
+}
+
+dialog.casamento-media-dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog.casamento-media-dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgb(26 35 16 / 0);
+  backdrop-filter: blur(0px);
+  transition-property: background-color, backdrop-filter, display, overlay;
+  transition-duration: 200ms;
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+}
+
+dialog.casamento-media-dialog[open]:not([data-closing])::backdrop {
+  background-color: rgb(26 35 16 / 0.82);
+  backdrop-filter: blur(6px);
+  transition-duration: 240ms;
+}
+
+@starting-style {
+  dialog.casamento-media-dialog[open]:not([data-closing])::backdrop {
+    background-color: rgb(26 35 16 / 0);
+    backdrop-filter: blur(0px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.casamento-media-dialog,
+  dialog.casamento-media-dialog::backdrop {
+    transition-duration: 100ms;
+  }
+}
+
 
 
 

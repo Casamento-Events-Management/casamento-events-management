@@ -386,6 +386,14 @@ export const GROQ_PORTFOLIO_HERO = `
   *[_type == "portfolioHero" && _id == "portfolioHero"][0] {
     title,
     description,
+    bannerImages[] {
+      "url": asset->url,
+      alt
+    },
+    backgroundImage {
+      "url": asset->url,
+      alt
+    },
     galleryEyebrow,
     galleryTitle,
     galleryDescription
@@ -396,7 +404,7 @@ export const GROQ_PORTFOLIO_HERO = `
 const PORTFOLIO_HERO_FALLBACK: PortfolioHeroContent = MOCK_PORTFOLIO_HERO;
 
 /**
- * Returns the Portfolio Hero `title` and `description` from Sanity CMS.
+ * Returns the Portfolio Hero `title`, `description`, and optional carousel `bannerImages` from Sanity CMS.
  */
 export async function getPortfolioHeroContent(): Promise<PortfolioHeroContent> {
     try {
@@ -407,9 +415,24 @@ export async function getPortfolioHeroContent(): Promise<PortfolioHeroContent> {
         );
 
         if (data?.title && data?.description) {
+            const validBannerImages = Array.isArray(data.bannerImages)
+                ? data.bannerImages.filter((img): img is { url: string; alt?: string } => Boolean(img?.url))
+                : [];
+            const fallbackSingle = data.backgroundImage?.url
+                ? { url: data.backgroundImage.url, alt: data.backgroundImage.alt }
+                : null;
+            const mergedImages =
+                validBannerImages.length > 0
+                    ? validBannerImages
+                    : fallbackSingle
+                      ? [fallbackSingle]
+                      : null;
+
             return {
                 title: data.title,
                 description: data.description,
+                bannerImages: mergedImages,
+                backgroundImage: mergedImages?.[0] ?? null,
                 galleryEyebrow: data.galleryEyebrow || PORTFOLIO_HERO_FALLBACK.galleryEyebrow,
                 galleryTitle: data.galleryTitle || PORTFOLIO_HERO_FALLBACK.galleryTitle,
                 galleryDescription: data.galleryDescription || PORTFOLIO_HERO_FALLBACK.galleryDescription,

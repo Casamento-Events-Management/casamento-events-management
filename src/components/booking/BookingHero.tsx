@@ -1,66 +1,71 @@
 import React from 'react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHero, type PageHeroBannerImage } from '@/components/ui/page-hero';
 
 interface BookingHeroProps {
   eyebrow?: string;
   title?: string;
   description?: string;
+  bannerImage?: PageHeroBannerImage | null;
+  bannerImages?: PageHeroBannerImage[] | null;
 }
 
 /**
  * BookingHero Component
  *
- * Renders the primary editorial hero banner for the /book-now page.
- * Uses design system styling consistent with ServicesHero (font-serif, #3A4F1C, #BC6F07).
- * Features two hardcoded CTA buttons: "Browse Our Services" (primary) and "Contact Us" (secondary).
+ * Delegates to the normalized reusable PageHero component for the /book-now route,
+ * adapting CTA button contrast automatically when a photo banner/carousel is active.
  */
 export function BookingHero({
-  eyebrow = 'SERVICE BOOKING',
+  eyebrow = 'Service Booking',
   title = 'Plan Your Event with Casamento',
   description = 'Schedule a personalized consultation or begin your inquiry for corporate events, brand activations, roadshows, social celebrations, livestreaming, creative production, and more across the Philippines.',
+  bannerImage,
+  bannerImages,
 }: BookingHeroProps) {
+  const hasBanner = Boolean(
+    bannerImage?.url?.trim() ||
+      (Array.isArray(bannerImages) && bannerImages.some((img) => Boolean(img?.url?.trim())))
+  );
+
   return (
-    <section className="relative overflow-hidden bg-[#F7F3E8] pt-24 pb-12 sm:pt-28 sm:pb-16 md:pt-32 md:pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {eyebrow && (
-          <span className="inline-block text-xs sm:text-sm font-semibold tracking-widest text-[#BC6F07] uppercase mb-3 sm:mb-4">
-            {eyebrow}
-          </span>
-        )}
-
-        {title && (
-          <h1 className="text-4xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-semibold tracking-tight text-[#3A4F1C] mb-4 sm:mb-6 leading-tight [text-wrap:balance]">
-            {title}
-          </h1>
-        )}
-
-        <div className="w-12 h-0.5 bg-[#BC6F07]/60 mx-auto mb-6 sm:mb-8" />
-
-        {description && (
-          <p className="text-sm sm:text-base md:text-lg text-[#3A4F1C]/80 max-w-3xl sm:max-w-4xl mx-auto leading-relaxed font-light [text-wrap:balance] mb-8">
-            {description}
-          </p>
-        )}
-
-        <div className="flex flex-row items-center justify-center gap-2.5 sm:gap-4">
+    <PageHero
+      eyebrow={eyebrow}
+      title={title}
+      description={description}
+      bannerImage={bannerImage}
+      bannerImages={bannerImages}
+      intervalMs={2000}
+      actions={
+        <>
           <Button
             href="/services"
             variant="primary"
             size="sm"
-            className="px-3.5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm whitespace-nowrap"
+            className={
+              hasBanner
+                ? 'bg-[#BC6F07] hover:bg-[#9E5B04] text-[#F7F3E8] border-[#BC6F07] inline-flex items-center gap-2 active:scale-[0.98]'
+                : 'inline-flex items-center gap-2 active:scale-[0.98]'
+            }
           >
-            View Our Services
+            <span>View Our Services</span>
+            <ArrowRight className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
           </Button>
           <Button
             href="#contact-form"
             variant="secondary"
             size="sm"
-            className="px-3.5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm whitespace-nowrap"
+            className={
+              hasBanner
+                ? 'bg-[#F7F3E8]/10 hover:bg-[#F7F3E8]/20 text-[#F7F3E8] border-[#F7F3E8]/30 active:scale-[0.98]'
+                : 'active:scale-[0.98]'
+            }
           >
             Contact Us
           </Button>
-        </div>
-      </div>
-    </section>
+        </>
+      }
+    />
   );
 }

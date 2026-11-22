@@ -107,6 +107,7 @@ export default async function BookNowPage() {
         eyebrow={heroContent.eyebrow}
         title={heroContent.title}
         description={heroContent.description}
+        bannerImages={heroContent.bannerImages}
       />
       <Suspense fallback={<div className="p-12 text-center text-xs text-[#3A4F1C]/70">Loading Booking System...</div>}>
         <BookingView availableServices={availableServices} />

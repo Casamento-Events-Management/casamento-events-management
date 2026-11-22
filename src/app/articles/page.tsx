@@ -30,10 +30,13 @@ import {
 export async function generateMetadata(): Promise<Metadata> {
   const bannerData = await getArticleVlogBanner();
   const canonicalUrl = buildCanonicalUrl('/articles');
-  const ogImages = buildOpenGraphImages(
-    bannerData?.backgroundImage?.asset?.url,
-    bannerData?.backgroundImage?.alt || `Event Planning Guides & Vlogs — ${SITE_NAME}`
-  );
+  const primaryBanner = bannerData?.bannerImages?.[0];
+  const ogImageUrl = primaryBanner?.url || bannerData?.backgroundImage?.asset?.url;
+  const ogImageAlt =
+    primaryBanner?.alt ||
+    bannerData?.backgroundImage?.alt ||
+    `Event Planning Guides & Vlogs — ${SITE_NAME}`;
+  const ogImages = buildOpenGraphImages(ogImageUrl, ogImageAlt);
 
   return {
     title: 'Event Planning Guides, Production Insights & Vlogs',
@@ -95,7 +98,7 @@ export default async function ArticlesPage() {
   ]);
 
   const showViewMore = totalCount > 6;
-  const hasBannerHeading = Boolean(bannerData?.backgroundImage?.asset?.url && bannerData?.title);
+  const hasBannerHeading = Boolean(bannerData?.title?.trim());
 
   const siteUrl = getSiteUrl();
   const collectionSchema = {
@@ -119,7 +122,7 @@ export default async function ArticlesPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-[#F7F3E8] pt-20">
+    <div className="min-h-screen bg-[#F7F3E8]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: safeJsonLd(collectionSchema) }}

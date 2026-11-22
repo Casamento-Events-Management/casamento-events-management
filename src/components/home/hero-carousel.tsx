@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Play, X } from 'lucide-react';
 import type { HeroSection, VideoSource } from '@/types';
 import { PaginationDots } from '@/components/ui/pagination-dots';
 
@@ -221,10 +221,10 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
             <div>
               <Link
                 href={targetLink}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#BC6F07] hover:bg-[#9E5B04] text-[#F7F3E8] font-medium text-xs sm:text-sm tracking-wider uppercase transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 cursor-pointer"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-[#BC6F07] hover:bg-[#9E5B04] text-[#F7F3E8] font-medium text-xs sm:text-sm tracking-wider uppercase transition-colors duration-200 active:scale-[0.98] shadow-sm cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F7F3E8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#2A3A14]"
               >
                 <span>{currentSlide.ctaText || 'Explore Service'}</span>
-                <ChevronRight size={16} />
+                <ArrowRight className="w-4 h-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
               </Link>
             </div>
           </div>
@@ -278,13 +278,14 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
               >
                 {/* 1. INLINE VIDEO PLAYBACK MODE (Plays directly inside media pane) */}
                 {isInlinePlaying && slide.video ? (
-                  <div className="relative w-full h-full bg-black">
+                  <div className="relative w-full h-full bg-[#161E0B]">
                     <button
+                      type="button"
                       onClick={() => setInlinePlayingKey(null)}
-                      className="absolute top-4 right-4 z-40 p-2.5 rounded-full bg-black/70 text-white hover:bg-red-600 transition-colors shadow-lg cursor-pointer"
-                      title="Stop Video & Return to Slide"
+                      aria-label="Stop video and return to slide"
+                      className="absolute top-4 right-4 z-40 w-10 h-10 rounded-full inline-flex items-center justify-center bg-[#2A3A14]/90 text-[#F7F3E8] hover:bg-[#BC6F07] border border-[#F7F3E8]/20 transition-colors duration-200 active:scale-[0.97] shadow-md cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07]"
                     >
-                      <X size={18} />
+                      <X className="w-4 h-4" strokeWidth={1.75} aria-hidden="true" />
                     </button>
                     {(() => {
                       const info = getVideoEmbedInfo(slide.video);
@@ -311,7 +312,7 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
                     })()}
                   </div>
                 ) : (
-                  /* 2. POSTER / IMAGE MODE */
+                  /* 2. POSTER / IMAGE MODE — zero hover zoom */
                   <>
                     {imageUrl && (
                       <Image
@@ -319,26 +320,30 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
                         alt={altText}
                         fill
                         priority={idx === 0}
+                        fetchPriority={idx === 0 ? 'high' : 'low'}
                         sizes="(max-width: 1024px) 100vw, 70vw"
-                        className="object-cover transition-transform duration-1000 ease-out hover:scale-105"
+                        className="object-cover"
                       />
                     )}
 
                     {/* Dark gradient overlay for contrast */}
-                    <div className="absolute inset-0 bg-black/40 lg:bg-gradient-to-t lg:from-black/60 lg:via-black/20 lg:to-transparent" />
+                    <div className="absolute inset-0 bg-[#171f0f]/35 lg:bg-gradient-to-t lg:from-[#171f0f]/60 lg:via-[#171f0f]/15 lg:to-transparent" />
 
                     {/* Video Play Button Overlay if mediaType === 'video' (Desktop layout) */}
                     {slide.mediaType === 'video' && slide.video && (
                       <div className="hidden lg:flex absolute inset-0 items-center justify-center z-20">
                         <button
+                          type="button"
                           onClick={() => setInlinePlayingKey(slideKey)}
-                          className="group flex items-center gap-3 px-6 py-3.5 rounded-full bg-black/50 hover:bg-black/75 border border-white/30 backdrop-blur-md transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                          className="group inline-flex items-center gap-2.5 px-5 py-3 rounded-full bg-[#2A3A14]/85 hover:bg-[#BC6F07] text-[#F7F3E8] border border-[#F7F3E8]/25 hover:border-[#BC6F07] backdrop-blur-sm transition-colors duration-200 active:scale-[0.98] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07]"
                         >
-                          <span className="flex items-center justify-center w-10 h-10 rounded-full bg-[#BC6F07] text-[#F7F3E8] shadow-md group-hover:bg-[#9E5B04] transition-colors">
-                            <Play size={18} className="ml-0.5" fill="currentColor" />
-                          </span>
-                          <span className="text-xs sm:text-sm font-medium tracking-wider uppercase text-white">
-                            Play Video Inline
+                          <Play
+                            className="w-4 h-4 fill-current shrink-0"
+                            strokeWidth={1.75}
+                            aria-hidden="true"
+                          />
+                          <span className="text-xs font-medium tracking-[0.14em] uppercase">
+                            Play Video
                           </span>
                         </button>
                       </div>
@@ -374,19 +379,20 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
                 <div className="pt-2 sm:pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5 sm:gap-5">
                   <Link
                     href={targetLink}
-                    className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 sm:px-8 sm:py-4 rounded-full bg-[#BC6F07] hover:bg-[#9E5B04] text-[#F7F3E8] font-medium text-xs sm:text-sm md:text-base tracking-wider uppercase transition-all duration-300 shadow-xl cursor-pointer"
+                    className="inline-flex items-center justify-center gap-2 px-7 py-3.5 sm:px-8 sm:py-4 rounded-full bg-[#BC6F07] hover:bg-[#9E5B04] text-[#F7F3E8] font-medium text-xs sm:text-sm tracking-wider uppercase transition-colors duration-200 active:scale-[0.98] shadow-md cursor-pointer"
                   >
                     <span>{currentSlide.ctaText || 'Explore Service'}</span>
-                    <ChevronRight size={18} />
+                    <ArrowRight className="w-4 h-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
                   </Link>
 
                   {/* Inline Video Play button on mobile/tablet if slide is a video */}
                   {currentSlide.mediaType === 'video' && currentSlide.video && (
                     <button
+                      type="button"
                       onClick={() => setInlinePlayingKey(currentSlideKey)}
-                      className="inline-flex items-center justify-center gap-2.5 px-6 py-3 sm:px-7 sm:py-3.5 rounded-full bg-black/60 hover:bg-black/80 border border-white/30 text-white font-medium text-xs sm:text-sm md:text-base tracking-wider uppercase transition-all shadow-lg cursor-pointer"
+                      className="inline-flex items-center justify-center gap-2 px-6 py-3 sm:px-7 sm:py-3.5 rounded-full bg-[#2A3A14]/85 hover:bg-[#BC6F07] border border-[#F7F3E8]/25 hover:border-[#BC6F07] text-[#F7F3E8] font-medium text-xs sm:text-sm tracking-wider uppercase transition-colors duration-200 active:scale-[0.98] cursor-pointer"
                     >
-                      <Play size={16} fill="currentColor" className="text-[#BC6F07]" />
+                      <Play className="w-3.5 h-3.5 fill-current shrink-0" strokeWidth={1.75} aria-hidden="true" />
                       <span>Play Video</span>
                     </button>
                   )}
@@ -416,18 +422,20 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
                 {/* Left/Right Chevrons */}
                 <div className="flex items-center gap-2">
                   <button
+                    type="button"
                     onClick={handlePrev}
-                    className="p-2.5 sm:p-3 rounded-full border border-[#F7F3E8]/20 text-[#F7F3E8] active:bg-[#BC6F07] transition-all cursor-pointer"
-                    title="Previous Slide"
+                    aria-label="Previous slide"
+                    className="w-10 h-10 inline-flex items-center justify-center rounded-full border border-[#F7F3E8]/25 text-[#F7F3E8] hover:border-[#BC6F07] hover:bg-[#BC6F07] transition-colors duration-200 active:scale-[0.97] cursor-pointer"
                   >
-                    <ChevronLeft size={18} />
+                    <ChevronLeft className="w-4 h-4" strokeWidth={1.75} aria-hidden="true" />
                   </button>
                   <button
+                    type="button"
                     onClick={handleNext}
-                    className="p-2.5 sm:p-3 rounded-full border border-[#F7F3E8]/20 text-[#F7F3E8] active:bg-[#BC6F07] transition-all cursor-pointer"
-                    title="Next Slide"
+                    aria-label="Next slide"
+                    className="w-10 h-10 inline-flex items-center justify-center rounded-full border border-[#F7F3E8]/25 text-[#F7F3E8] hover:border-[#BC6F07] hover:bg-[#BC6F07] transition-colors duration-200 active:scale-[0.97] cursor-pointer"
                   >
-                    <ChevronRight size={18} />
+                    <ChevronRight className="w-4 h-4" strokeWidth={1.75} aria-hidden="true" />
                   </button>
                 </div>
               </div>

@@ -115,11 +115,23 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         notFound();
     }
 
+    const categoryItems = items.filter((item) => item.category.slug === categorySlug);
+    const categoryCarouselImages = categoryItems
+        .slice(0, 5)
+        .filter((item) => Boolean(item.thumbnail?.url))
+        .map((item) => ({
+            url: item.thumbnail.url,
+            alt: item.thumbnail.alt || `${category.title} — ${item.title}`,
+        }));
+    const resolvedBannerImages =
+        categoryCarouselImages.length > 0 ? categoryCarouselImages : heroContent.bannerImages;
+
     return (
         <div className="min-h-screen bg-[#F7F3E8] text-[#3A4F1C]">
             <PortfolioHero
                 categoryTitle={category.title}
                 description={category.description}
+                bannerImages={resolvedBannerImages}
             />
             <UpcomingEventsSection
                 events={upcomingEventsData.upcomingEvents}
@@ -136,7 +148,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 galleryDescription={heroContent.galleryDescription}
             />
             <PortfolioJsonLd
-                items={items.filter((item) => item.category.slug === categorySlug)}
+                items={categoryItems}
                 categorySlug={categorySlug}
                 categoryTitle={category.title}
             />

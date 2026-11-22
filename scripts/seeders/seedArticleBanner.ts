@@ -30,11 +30,14 @@ export async function seedArticleBanner(dryRun: boolean): Promise<void> {
     title: mock.title,
     description: mock.description,
     ...(bgImageRef && {
-      backgroundImage: {
-        _type: 'image',
-        asset: bgImageRef,
-        alt: mock.backgroundImage.alt || 'Casamento Events Article Vlog Banner',
-      },
+      bannerImages: [
+        {
+          _key: 'article-banner-slide-1',
+          _type: 'image',
+          asset: bgImageRef,
+          alt: mock.backgroundImage?.alt || 'Casamento Events Article Vlog Banner',
+        },
+      ],
     }),
     ...(mock.ctaButton && {
       ctaButton: {

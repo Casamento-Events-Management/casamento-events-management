@@ -85,6 +85,7 @@ export default async function PortfolioPage() {
             <PortfolioHero
                 title={heroContent.title}
                 description={heroContent.description}
+                bannerImages={heroContent.bannerImages}
             />
 
             <UpcomingEventsSection

@@ -32,6 +32,26 @@ export const aboutHero = defineType({
       description: 'Editorial introductory line shown below the title and divider.',
       validation: (Rule) => Rule.required().min(20).max(400),
     }),
+    defineField({
+      name: 'bannerImages',
+      title: 'Hero Banner Images (Optional Carousel)',
+      type: 'array',
+      description: 'Upload one or more full-width banner images. Multiple images crossfade automatically every 2 seconds. Leave empty to use the brand cream surface.',
+      of: [
+        {
+          type: 'image',
+          options: { hotspot: true },
+          fields: [
+            defineField({
+              name: 'alt',
+              title: 'Alternative Text',
+              type: 'string',
+              description: 'Descriptive alt text for accessibility and SEO.',
+            }),
+          ],
+        },
+      ],
+    }),
   ],
   preview: {
     select: {

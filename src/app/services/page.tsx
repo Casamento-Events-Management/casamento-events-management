@@ -76,6 +76,7 @@ export default async function ServicesPage() {
             <ServicesHero
                 title={heroContent.title}
                 description={heroContent.description}
+                bannerImages={heroContent.bannerImages}
             />
             <ServicesView
                 categories={categories}

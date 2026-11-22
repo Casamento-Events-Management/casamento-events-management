@@ -193,6 +193,14 @@ export interface SanityPortfolioHero extends SanityDocument {
   _type: 'portfolioHero';
   title: string;
   description: string;
+  bannerImages?: Array<{
+    url?: string;
+    alt?: string;
+  }> | null;
+  backgroundImage?: {
+    url?: string;
+    alt?: string;
+  } | null;
   galleryEyebrow?: string;
   galleryTitle?: string;
   galleryDescription?: string;
@@ -205,6 +213,14 @@ export interface SanityPortfolioHero extends SanityDocument {
 export interface PortfolioHeroContent {
   title: string;
   description: string;
+  bannerImages?: Array<{
+    url: string;
+    alt?: string;
+  }> | null;
+  backgroundImage?: {
+    url: string;
+    alt?: string;
+  } | null;
   galleryEyebrow?: string;
   galleryTitle?: string;
   galleryDescription?: string;

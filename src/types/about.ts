@@ -45,6 +45,14 @@ export interface AboutHeroContent extends Partial<SanityDocument> {
   eyebrow?: string;
   title: string;
   description: string;
+  bannerImages?: Array<{
+    url: string;
+    alt?: string;
+  }> | null;
+  backgroundImage?: {
+    url: string;
+    alt?: string;
+  } | null;
 }
 
 /**

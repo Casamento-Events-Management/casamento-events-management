@@ -13,6 +13,14 @@ export interface SanityBookingHero extends SanityDocument {
   eyebrow?: string;
   title?: string;
   description?: string;
+  bannerImages?: Array<{
+    url?: string;
+    alt?: string;
+  }> | null;
+  backgroundImage?: {
+    url?: string;
+    alt?: string;
+  } | null;
 }
 
 /**
@@ -22,6 +30,14 @@ export interface BookingHeroContent {
   eyebrow?: string;
   title: string;
   description: string;
+  bannerImages?: Array<{
+    url: string;
+    alt?: string;
+  }> | null;
+  backgroundImage?: {
+    url: string;
+    alt?: string;
+  } | null;
 }
 
 export type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
