@@ -124,6 +124,57 @@ export const structure: StructureResolver = (S) =>
         ),
       S.divider(),
 
+      // 8. About Us Section Documents
+      S.listItem()
+        .title('About Us Page Hero')
+        .id('aboutHeroSingleton')
+        .child(
+          S.document()
+            .schemaType('aboutHero')
+            .documentId('aboutHero')
+        ),
+      S.listItem()
+        .title('About Us — Our Story')
+        .id('aboutStorySingleton')
+        .child(
+          S.document()
+            .schemaType('aboutStory')
+            .documentId('aboutStory')
+        ),
+      S.listItem()
+        .title('About Us — Mission & Vision')
+        .id('aboutMissionVisionSingleton')
+        .child(
+          S.document()
+            .schemaType('aboutMissionVision')
+            .documentId('aboutMissionVision')
+        ),
+      S.listItem()
+        .title('About Us — Core Values')
+        .id('aboutCoreValuesSingleton')
+        .child(
+          S.document()
+            .schemaType('aboutCoreValues')
+            .documentId('aboutCoreValues')
+        ),
+      S.listItem()
+        .title('About Us — Why Choose Us')
+        .id('aboutWhyChooseSingleton')
+        .child(
+          S.document()
+            .schemaType('aboutWhyChoose')
+            .documentId('aboutWhyChoose')
+        ),
+      S.listItem()
+        .title('About Us — Call to Action')
+        .id('aboutCtaSingleton')
+        .child(
+          S.document()
+            .schemaType('aboutCta')
+            .documentId('aboutCta')
+        ),
+      S.divider(),
+
       // Filter out explicitly listed documents from default list
       ...S.documentTypeListItems().filter(
         (listItem) =>
@@ -144,6 +195,12 @@ export const structure: StructureResolver = (S) =>
             'articleVlog',
             'clientFeedback',
             'bookingHero',
+            'aboutHero',
+            'aboutStory',
+            'aboutMissionVision',
+            'aboutCoreValues',
+            'aboutWhyChoose',
+            'aboutCta',
             'homePage',
           ].includes(listItem.getId() || '')
       ),

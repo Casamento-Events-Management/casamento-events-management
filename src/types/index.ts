@@ -56,6 +56,19 @@ export type {
     ContactSectionContent,
 } from './contact';
 
+// About Us page types
+export type {
+    AboutIconName,
+    AboutCardItem,
+    AboutHeroContent,
+    AboutStoryContent,
+    AboutMissionVisionContent,
+    AboutCoreValuesContent,
+    AboutWhyChooseContent,
+    AboutCtaContent,
+    AboutPageContent,
+} from './about';
+
 // Portfolio types
 export type {
     SanityPortfolioCategory,

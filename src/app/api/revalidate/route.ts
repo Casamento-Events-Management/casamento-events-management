@@ -125,6 +125,14 @@ export async function POST(req: NextRequest) {
       case 'bookingHero':
         revalidatePath('/book-now');
         break;
+      case 'aboutHero':
+      case 'aboutStory':
+      case 'aboutMissionVision':
+      case 'aboutCoreValues':
+      case 'aboutWhyChoose':
+      case 'aboutCta':
+        revalidatePath('/about');
+        break;
       case 'articleVlogBanner':
       case 'articlesHero':
         revalidatePath('/articles');

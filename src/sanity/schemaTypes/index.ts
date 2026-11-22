@@ -1,6 +1,12 @@
 import { type SchemaTypeDefinition } from 'sanity'
 
 // Documents
+import { aboutCoreValues } from './documents/aboutCoreValues'
+import { aboutCta } from './documents/aboutCta'
+import { aboutHero } from './documents/aboutHero'
+import { aboutMissionVision } from './documents/aboutMissionVision'
+import { aboutStory } from './documents/aboutStory'
+import { aboutWhyChoose } from './documents/aboutWhyChoose'
 import { articleVlogBanner } from './documents/articleVlogBanner'
 import { articlesHero } from './documents/articlesHero'
 import { articleVlog } from './documents/articleVlog'
@@ -19,6 +25,7 @@ import { serviceItem } from './documents/serviceItem'
 import { clientFeedback } from './documents/clientFeedback'
 
 // Objects
+import { aboutCardItem } from './objects/aboutCardItem'
 import { heroSection } from './objects/heroSection'
 import { heroSlide } from './objects/heroSlide'
 import { partner } from './objects/partner'
@@ -34,6 +41,12 @@ import { videoFile } from './objects/videoFile'
 export const schema: { types: SchemaTypeDefinition[] } = {
   types: [
     // Documents
+    aboutHero,
+    aboutStory,
+    aboutMissionVision,
+    aboutCoreValues,
+    aboutWhyChoose,
+    aboutCta,
     articleVlogBanner,
     articlesHero,
     articleVlog,
@@ -52,6 +65,7 @@ export const schema: { types: SchemaTypeDefinition[] } = {
     serviceItem,
 
     // Reusable Objects
+    aboutCardItem,
     heroSection,
     heroSlide,
     partner,
