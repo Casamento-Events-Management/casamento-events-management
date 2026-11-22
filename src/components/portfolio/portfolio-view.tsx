@@ -56,8 +56,8 @@ function PortfolioViewContent({
     const categoryParam = searchParams.get('category');
     const resolvedInitialCategory: ActiveCategoryFilter =
         !shouldSyncRoute &&
-        categoryParam &&
-        (categoryParam === 'all' || categories.some((c) => c.slug === categoryParam))
+            categoryParam &&
+            (categoryParam === 'all' || categories.some((c) => c.slug === categoryParam))
             ? categoryParam
             : initialActiveCategory;
 
@@ -158,42 +158,41 @@ function PortfolioViewContent({
                     onSelectCategory={handleSelectCategory}
                 />
 
-            {/* Portfolio Masonry Layout (Display Whole Item) */}
-            {filteredItems.length > 0 ? (
-                <div className="mt-6 sm:mt-8 columns-2 sm:columns-2 lg:columns-3 xl:columns-4 gap-3 sm:gap-6">
-                    {filteredItems.map((item, index) => (
-                        <PortfolioCard
-                            key={item.id || item.slug || `portfolio-card-${index}`}
-                            item={item}
-                            priority={index < 4}
-                            onSelect={handleOpenModal}
-                        />
-                    ))}
-                </div>
-            ) : (
-                <div className="mt-12 py-16 text-center rounded-2xl bg-[#EFEAD8]/60 border border-[#3A4F1C]/15 shadow-xs">
-                    <p className="text-[#3A4F1C]/80 text-base sm:text-lg font-medium">No portfolio showcase found in this category yet.</p>
-                </div>
-            )}
+                {/* Portfolio Masonry Layout (Display Whole Item) */}
+                {filteredItems.length > 0 ? (
+                    <div className="mt-6 sm:mt-8 columns-2 sm:columns-2 lg:columns-3 xl:columns-4 gap-3 sm:gap-6">
+                        {filteredItems.map((item, index) => (
+                            <PortfolioCard
+                                key={item.id || item.slug || `portfolio-card-${index}`}
+                                item={item}
+                                priority={index < 4}
+                                onSelect={handleOpenModal}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="mt-12 py-16 text-center rounded-2xl bg-[#EFEAD8]/60 border border-[#3A4F1C]/15 shadow-xs">
+                        <p className="text-[#3A4F1C]/80 text-base sm:text-lg font-medium">No portfolio showcase found in this category yet.</p>
+                    </div>
+                )}
 
-            {/* View More Gallery CTA */}
-            {showViewMore && activeCategory === 'all' && (
-                <div className="flex justify-center mt-14 pb-4">
-                    <Link
-                        href="/portfolio/gallery"
-                        className="text-sm font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
-                    >
-                        View More Gallery →
-                    </Link>
-                </div>
-            )}
+                {/* View More Gallery CTA */}
+                {showViewMore && activeCategory === 'all' && (
+                    <div className="flex justify-center mt-14 pb-4">
+                        <Link
+                            href="/portfolio/gallery"
+                            className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-[#3A4F1C] hover:text-[#BC6F07] transition-colors group mt-1"
+                        >View More Gallery →
+                        </Link>
+                    </div>
+                )}
 
-            {/* Video Lightbox Modal */}
-            <PortfolioModal
-                item={selectedItem}
-                isOpen={Boolean(selectedItem)}
-                onClose={handleCloseModal}
-            />
+                {/* Video Lightbox Modal */}
+                <PortfolioModal
+                    item={selectedItem}
+                    isOpen={Boolean(selectedItem)}
+                    onClose={handleCloseModal}
+                />
             </div>
         </section>
     );

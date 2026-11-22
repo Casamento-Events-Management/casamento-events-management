@@ -2,7 +2,7 @@
 // lib/schemas/payment.ts — Zod Validation Schemas for Payment Operations
 // =============================================================================
 
-import { z } from 'zod';
+import { z } from './zod';
 
 /**
  * Validates setting or modifying the agreed contract price for a booking.

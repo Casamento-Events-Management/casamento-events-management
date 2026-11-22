@@ -299,7 +299,7 @@ export default async function VlogDetailPage({ params }: PageProps) {
                           fill
                           loading="lazy"
                           sizes="(max-width: 640px) 100vw, 280px"
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="object-cover"
                         />
                       </div>
                     )}

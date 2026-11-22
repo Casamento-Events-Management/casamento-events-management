@@ -6,6 +6,11 @@ interface AboutStorySectionProps {
   mantras?: string[];
 }
 
+/**
+ * Editorial narrative section for /about.
+ * Uses an asymmetric 12-column magazine layout with a sticky pull-quote rail,
+ * airy prose column, and an open 3-column hairline mantra strip — zero wrapper cards.
+ */
 export function AboutStorySection({
   paragraphs,
   closingStatement,
@@ -15,27 +20,67 @@ export function AboutStorySection({
     return null;
   }
 
+  const [leadParagraph, ...bodyParagraphs] = paragraphs;
+
   return (
-    <section className="py-12 md:py-16 px-6 max-w-4xl mx-auto">
-      <div className="bg-white/80 backdrop-blur-xs rounded-3xl p-8 sm:p-12 md:p-14 border border-[#3A4F1C]/10 shadow-xs space-y-6 text-[#3A4F1C]/85 text-base sm:text-lg leading-relaxed font-light">
-        {paragraphs.map((paragraph, index) => (
-          <p key={`story-p-${index}`}>{paragraph}</p>
-        ))}
+    <section
+      aria-labelledby="about-story-heading"
+      className="py-16 sm:py-24 md:py-28 bg-[#F7F3E8]"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+          {/* Left Sticky Rail: Section Kicker & Editorial Pull-Quote */}
+          <div className="lg:col-span-4 lg:sticky lg:top-28 space-y-5">
+            <div>
+              <span className="inline-block text-xs font-semibold tracking-[0.2em] text-[#BC6F07] uppercase">
+                Our Story
+              </span>
+              <h2
+                id="about-story-heading"
+                className="mt-2.5 text-2xl sm:text-3xl font-semibold tracking-tight text-[#3A4F1C] leading-tight [text-wrap:balance]"
+              >
+                Rooted in Family, Built for Every Stage
+              </h2>
+              <div className="mt-4 w-12 h-0.5 bg-[#BC6F07]" aria-hidden="true" />
+            </div>
 
-        {closingStatement && (
-          <p className="text-[#3A4F1C] font-normal">{closingStatement}</p>
-        )}
+            {closingStatement && (
+              <blockquote className="border-l-2 border-[#BC6F07] pl-5 py-1 text-base sm:text-lg font-medium text-[#3A4F1C] leading-relaxed">
+                {closingStatement}
+              </blockquote>
+            )}
+          </div>
 
+          {/* Right Narrative Column: Clean Editorial Prose */}
+          <div className="lg:col-span-8 max-w-2xl space-y-6">
+            {leadParagraph && (
+              <p className="text-lg sm:text-xl text-[#3A4F1C] font-normal leading-relaxed">
+                {leadParagraph}
+              </p>
+            )}
+
+            {bodyParagraphs.map((paragraph, index) => (
+              <p
+                key={`story-p-${index}`}
+                className="text-base sm:text-lg text-[#3A4F1C]/80 font-light leading-[1.8]"
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </div>
+
+        {/* Open 3-Column Hairline Mantra Cadence */}
         {mantras.length > 0 && (
-          <div className="pt-6 border-t border-[#3A4F1C]/10 grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div className="mt-14 sm:mt-20 pt-10 sm:pt-12 border-t border-[#3A4F1C]/15 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-0 md:divide-x md:divide-[#3A4F1C]/15">
             {mantras.map((mantra, index) => (
               <div
                 key={`mantra-${index}`}
-                className="p-5 rounded-2xl bg-[#F7F3E8] border border-[#BC6F07]/20"
+                className="pt-4 first:pt-0 border-t border-[#3A4F1C]/10 first:border-t-0 md:pt-0 md:border-t-0 md:px-8 md:first:pl-0 md:last:pr-0"
               >
-                <span className="block font-serif text-lg font-semibold text-[#3A4F1C]">
+                <p className="text-lg sm:text-xl font-medium tracking-tight text-[#3A4F1C] leading-snug">
                   {mantra}
-                </span>
+                </p>
               </div>
             ))}
           </div>

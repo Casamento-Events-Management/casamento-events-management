@@ -41,16 +41,16 @@ export function VlogItem({ item, onPlayVideo }: VlogItemProps) {
             src={thumbnailUrl}
             alt={item.thumbnail.alt || item.title}
             fill
-            className="object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            className="object-cover object-center"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         )}
 
         {/* Play overlay — video items only */}
         {isVideo && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/35 transition-colors duration-300">
-            <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-white/30">
-              <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/35 transition-colors duration-200">
+            <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-[#BC6F07]/90 transition-colors duration-200 border border-white/30">
+              <Play className="w-5 h-5 text-white fill-white ml-0.5" strokeWidth={1.75} aria-hidden="true" />
             </div>
           </div>
         )}

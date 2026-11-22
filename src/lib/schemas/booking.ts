@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from './zod';
 
 const selectedAddOnSchema = z.object({
   id: z.string().trim().min(1).max(100),

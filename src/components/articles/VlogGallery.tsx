@@ -66,9 +66,8 @@ export function VlogGallery({ items, categories, totalCount, onSelectVideo, show
         <div className="flex justify-center mt-14 pb-14">
           <Link
             href="/articles/vlogs"
-            className="text-sm font-medium text-[#3A4F1C] underline underline-offset-4 hover:text-[#BC6F07] transition-colors duration-200 tracking-wider uppercase"
-          >
-            View More Vlogs →
+            className="inline-flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-[#3A4F1C] hover:text-[#BC6F07] transition-colors group mt-1"
+          >Read More Vlogs →
           </Link>
         </div>
       )}

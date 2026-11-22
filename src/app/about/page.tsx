@@ -91,9 +91,8 @@ export default async function AboutPage() {
           title={missionVision.title}
           description={missionVision.description}
           items={[missionVision.mission, missionVision.vision]}
-          columns={2}
-          surface="plain"
-          cardSize="large"
+          variant="split"
+          surface="tinted"
         />
 
         {/* Section 3: Our Core Values */}
@@ -102,8 +101,8 @@ export default async function AboutPage() {
           title={coreValues.title}
           description={coreValues.description}
           items={coreValues.items}
-          columns={3}
-          surface="tinted"
+          variant="ledger"
+          surface="plain"
         />
 
         {/* Section 4: Why Choose Casamento? */}
@@ -112,8 +111,8 @@ export default async function AboutPage() {
           title={whyChoose.title}
           description={whyChoose.description}
           items={whyChoose.items}
-          columns={3}
-          surface="plain"
+          variant="rows"
+          surface="tinted"
         />
 
         {/* Section 5: Call to Action */}

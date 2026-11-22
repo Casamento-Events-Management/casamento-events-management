@@ -1,6 +1,5 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
-import { SectionHeading } from '@/components/ui/section-heading';
 import { Button } from '@/components/ui/button';
 import { sanitizeHref } from '@/lib/utils/securityUtils';
 
@@ -15,8 +14,8 @@ interface AboutCtaSectionProps {
 }
 
 /**
- * Call-to-Action section for the /about route, reusing the shared
- * `SectionHeading` and `Button` UI primitives.
+ * Editorial Call-to-Action band for /about, aligned to the site's max-w-7xl grid
+ * on the warm cream base directly above the deep-olive ConnectSection.
  */
 export function AboutCtaSection({
   eyebrow = 'Begin Your Journey',
@@ -31,35 +30,51 @@ export function AboutCtaSection({
   const safePrimaryLink = primaryCtaLink ? sanitizeHref(primaryCtaLink) : '';
 
   return (
-    <section className="py-16 md:py-24 px-6 bg-[#EFEAD8]/50 border-y border-[#3A4F1C]/10 text-center relative overflow-hidden">
-      <div className="relative z-10 max-w-3xl mx-auto">
-        <SectionHeading
-          eyebrow={eyebrow}
-          title={title}
-          description={description}
-          className="mb-8 md:mb-10"
-        />
-
-        {(secondaryCtaText || primaryCtaText) && (
-          <div className="flex flex-wrap items-center justify-center gap-4">
-            {secondaryCtaText && safeSecondaryLink && (
-              <Button href={safeSecondaryLink} variant="outline" size="md">
-                {secondaryCtaText}
-              </Button>
+    <section className="py-16 sm:py-24 bg-[#F7F3E8]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 lg:gap-12">
+          <div className="max-w-2xl">
+            {eyebrow && (
+              <span className="inline-block text-xs font-semibold tracking-[0.2em] text-[#BC6F07] uppercase">
+                {eyebrow}
+              </span>
             )}
-            {primaryCtaText && safePrimaryLink && (
-              <Button
-                href={safePrimaryLink}
-                variant="primary"
-                size="md"
-                className="inline-flex items-center gap-2 shadow-md"
-              >
-                <span>{primaryCtaText}</span>
-                <ArrowRight className="w-4 h-4" aria-hidden="true" />
-              </Button>
+            <h2 className="mt-2.5 text-3xl sm:text-4xl font-semibold tracking-tight text-[#3A4F1C] leading-[1.15] [text-wrap:balance]">
+              {title}
+            </h2>
+            {description && (
+              <p className="mt-4 text-sm sm:text-base text-[#3A4F1C]/75 font-light leading-relaxed">
+                {description}
+              </p>
             )}
           </div>
-        )}
+
+          {(secondaryCtaText || primaryCtaText) && (
+            <div className="flex flex-wrap items-center gap-3 shrink-0">
+              {secondaryCtaText && safeSecondaryLink && (
+                <Button
+                  href={safeSecondaryLink}
+                  variant="outline"
+                  size="sm"
+                  className="active:scale-[0.98]"
+                >
+                  {secondaryCtaText}
+                </Button>
+              )}
+              {primaryCtaText && safePrimaryLink && (
+                <Button
+                  href={safePrimaryLink}
+                  variant="primary"
+                  size="sm"
+                  className="inline-flex items-center gap-2 active:scale-[0.98]"
+                >
+                  <span>{primaryCtaText}</span>
+                  <ArrowRight className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
