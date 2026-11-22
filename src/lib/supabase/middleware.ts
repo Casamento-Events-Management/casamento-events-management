@@ -50,13 +50,19 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     return redirectRes;
   }
 
+  // Skip Supabase client setup and auth verification for non-admin routes
+  // (e.g. /auth/callback handles its own code/OTP exchange, and public routes do not use auth)
+  if (!isAdminArea) {
+    return NextResponse.next({
+      request,
+    });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  if (isAdminArea) {
-    applyAdminSecurityHeaders(supabaseResponse);
-  }
+  applyAdminSecurityHeaders(supabaseResponse);
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey =
@@ -65,13 +71,10 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
 
   if (!supabaseUrl || !supabaseAnonKey) {
     // Fail closed for protected admin routes if Supabase configuration is missing
-    if (isAdminArea) {
-      return new NextResponse('Service Unavailable: Authentication service not configured.', {
-        status: 503,
-        headers: ADMIN_NO_CACHE_HEADERS,
-      });
-    }
-    return supabaseResponse;
+    return new NextResponse('Service Unavailable: Authentication service not configured.', {
+      status: 503,
+      headers: ADMIN_NO_CACHE_HEADERS,
+    });
   }
 
   const isProd = process.env.NODE_ENV === 'production';

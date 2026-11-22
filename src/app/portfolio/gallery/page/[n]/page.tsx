@@ -86,6 +86,7 @@ export default async function PortfolioGalleryPageN({ params }: PageProps) {
           categories={categories}
           activeCategory="all"
           showViewMore={false}
+          syncCategoryWithRoute={false}
           galleryHeadingLevel="h1"
           galleryEyebrow={heroContent.galleryEyebrow}
           galleryTitle={heroContent.galleryTitle}

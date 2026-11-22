@@ -25,6 +25,13 @@ interface PortfolioViewProps {
     galleryDescription?: string;
     galleryHeadingLevel?: 'h1' | 'h2';
     showViewMore?: boolean;
+    /**
+     * When true (default on /portfolio and /portfolio/[category]), selecting a category
+     * navigates to /portfolio or /portfolio/{slug}.
+     * When false (e.g. on /portfolio/gallery and paginated gallery routes), filtering stays
+     * in-place on the current route without redirecting back to /portfolio/{slug}.
+     */
+    syncCategoryWithRoute?: boolean;
 }
 
 function PortfolioViewContent({
@@ -36,13 +43,27 @@ function PortfolioViewContent({
     galleryDescription = 'Browse our curated portfolio of corporate events, brand activations, roadshows, stage production designs, broadcast livestreams, and social celebrations.',
     galleryHeadingLevel = 'h2',
     showViewMore = false,
+    syncCategoryWithRoute,
 }: PortfolioViewProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const [, startTransition] = useTransition();
 
-    const [activeCategory, setActiveCategory] = useState<ActiveCategoryFilter>(initialActiveCategory);
+    const shouldSyncRoute =
+        syncCategoryWithRoute ?? !pathname.startsWith('/portfolio/gallery');
+
+    const categoryParam = searchParams.get('category');
+    const resolvedInitialCategory: ActiveCategoryFilter =
+        !shouldSyncRoute &&
+        categoryParam &&
+        (categoryParam === 'all' || categories.some((c) => c.slug === categoryParam))
+            ? categoryParam
+            : initialActiveCategory;
+
+    const [activeCategory, setActiveCategory] = useState<ActiveCategoryFilter>(
+        resolvedInitialCategory
+    );
     const [selectedItem, setSelectedItem] = useState<PortfolioItem | null>(null);
 
     const itemParam = searchParams.get('item');
@@ -88,12 +109,29 @@ function PortfolioViewContent({
     const handleSelectCategory = (slug: ActiveCategoryFilter) => {
         setActiveCategory(slug);
 
-        // Update URL shallowly so link sharing works without full page refresh
-        const targetPath = slug === 'all' ? '/portfolio' : `/portfolio/${slug}`;
-        if (pathname !== targetPath) {
-            startTransition(() => {
-                router.push(targetPath, { scroll: false });
-            });
+        if (shouldSyncRoute) {
+            // On /portfolio & /portfolio/[category], sync to the dedicated SEO category route
+            const targetPath = slug === 'all' ? '/portfolio' : `/portfolio/${slug}`;
+            if (pathname !== targetPath) {
+                startTransition(() => {
+                    router.push(targetPath, { scroll: false });
+                });
+            }
+            return;
+        }
+
+        // On /portfolio/gallery (and paginated gallery routes), filter in-place and
+        // update only the ?category= query parameter without leaving the gallery page
+        if (typeof window !== 'undefined') {
+            const newParams = new URLSearchParams(window.location.search);
+            if (slug === 'all') {
+                newParams.delete('category');
+            } else {
+                newParams.set('category', slug);
+            }
+            const queryStr = newParams.toString();
+            const newUrl = queryStr ? `${pathname}?${queryStr}` : pathname;
+            window.history.replaceState(null, '', newUrl);
         }
     };
 

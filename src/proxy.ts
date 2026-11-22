@@ -13,12 +13,22 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images/media public static files
+     * Scope Proxy execution strictly to routes that require Supabase Auth:
+     * 1. /admin and all nested admin routes (including admin Server Actions)
+     * 2. /auth routes
+     * 3. Any non-static route carrying a stray Supabase PKCE `?code=` query param
+     *    so it is redirected to /auth/callback
+     *
+     * Public pages (/, /about, /services, /portfolio, /articles, /book-now,
+     * /sitemap.xml, /robots.txt, /api/*) bypass Proxy completely for optimal
+     * TTFB and Edge/ISR cache hits.
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/admin/:path*',
+    '/auth/:path*',
+    {
+      source:
+        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+      has: [{ type: 'query', key: 'code' }],
+    },
   ],
 };
