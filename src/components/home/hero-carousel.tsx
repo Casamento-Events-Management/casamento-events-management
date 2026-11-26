@@ -4,68 +4,12 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Play, X } from 'lucide-react';
-import type { HeroSection, VideoSource } from '@/types';
+import type { HeroSection } from '@/types';
 import { PaginationDots } from '@/components/ui/pagination-dots';
+import { parseVideoSource } from '@/lib/utils/videoUtils';
 
 interface HeroCarouselProps {
   hero: HeroSection;
-}
-
-type VideoEmbedInfo =
-  | { type: 'native'; url: string }
-  | { type: 'youtube'; url: string }
-  | { type: 'vimeo'; url: string };
-
-function getVideoEmbedInfo(source?: VideoSource): VideoEmbedInfo {
-  if (!source) return { type: 'native', url: '' };
-  if (source._type === 'sanity') {
-    return { type: 'native', url: source.asset?.url ?? '' };
-  }
-
-  const rawUrl = source.url ?? '';
-  if (
-    rawUrl.endsWith('.mp4') ||
-    rawUrl.endsWith('.webm') ||
-    rawUrl.endsWith('.mov') ||
-    rawUrl.includes('.mp4?') ||
-    rawUrl.includes('gtv-videos-bucket')
-  ) {
-    return { type: 'native', url: rawUrl };
-  }
-
-  if (
-    rawUrl.includes('youtube.com') ||
-    rawUrl.includes('youtu.be') ||
-    rawUrl.includes('youtube-nocookie.com')
-  ) {
-    let videoId = '';
-    if (rawUrl.includes('embed/')) {
-      videoId = rawUrl.split('embed/')[1]?.split('?')[0] ?? '';
-    } else if (rawUrl.includes('watch?v=')) {
-      videoId = rawUrl.split('watch?v=')[1]?.split('&')[0] ?? '';
-    } else if (rawUrl.includes('youtu.be/')) {
-      videoId = rawUrl.split('youtu.be/')[1]?.split('?')[0] ?? '';
-    }
-    const embedUrl = videoId
-      ? `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&controls=1`
-      : rawUrl;
-    return { type: 'youtube', url: embedUrl };
-  }
-
-  if (rawUrl.includes('vimeo.com')) {
-    let videoId = '';
-    if (rawUrl.includes('player.vimeo.com/video/')) {
-      videoId = rawUrl.split('player.vimeo.com/video/')[1]?.split('?')[0] ?? '';
-    } else if (rawUrl.includes('vimeo.com/')) {
-      videoId = rawUrl.split('vimeo.com/')[1]?.split('?')[0] ?? '';
-    }
-    const embedUrl = videoId
-      ? `https://player.vimeo.com/video/${videoId}?autoplay=1&color=BC6F07`
-      : rawUrl;
-    return { type: 'vimeo', url: embedUrl };
-  }
-
-  return { type: 'native', url: rawUrl };
 }
 
 export function HeroCarousel({ hero }: HeroCarouselProps) {
@@ -255,7 +199,11 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
               >
                 {/* 1. INLINE VIDEO PLAYBACK MODE (Plays directly inside media pane) */}
                 {isInlinePlaying && slide.video ? (
-                  <div className="relative w-full h-full bg-[#161E0B]">
+                  <div
+                    className="relative w-full h-full bg-[#161E0B]"
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                  >
                     <button
                       type="button"
                       onClick={() => setInlinePlayingKey(null)}
@@ -265,26 +213,42 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
                       <X className="w-4 h-4" strokeWidth={1.75} aria-hidden="true" />
                     </button>
                     {(() => {
-                      const info = getVideoEmbedInfo(slide.video);
-                      if (info.type === 'native') {
+                      const parsed = parseVideoSource(slide.video, true);
+                      if (parsed.sourceType === 'sanity' || parsed.sourceType === 'native') {
+                        if (!parsed.directUrl) {
+                          return (
+                            <div className="w-full h-full flex items-center justify-center text-[#EFEAD8]/70 text-sm">
+                              <span>Video preview unavailable</span>
+                            </div>
+                          );
+                        }
                         return (
                           <video
-                            src={info.url}
+                            key={parsed.directUrl}
+                            src={parsed.directUrl}
+                            poster={imageUrl}
                             controls
                             autoPlay
                             playsInline
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain bg-[#161E0B]"
+                          />
+                        );
+                      }
+                      if (parsed.embedUrl) {
+                        return (
+                          <iframe
+                            src={parsed.embedUrl}
+                            title={slide.heading}
+                            className="w-full h-full border-0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                            allowFullScreen
                           />
                         );
                       }
                       return (
-                        <iframe
-                          src={info.url}
-                          title={slide.heading}
-                          className="w-full h-full border-0"
-                          allow="autoplay; picture-in-picture; fullscreen"
-                          allowFullScreen
-                        />
+                        <div className="w-full h-full flex items-center justify-center text-[#EFEAD8]/70 text-sm">
+                          <span>Video preview unavailable</span>
+                        </div>
                       );
                     })()}
                   </div>

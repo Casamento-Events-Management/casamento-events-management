@@ -246,6 +246,8 @@ export function MediaLightboxModal({
         return (
           <div className="relative aspect-video w-full bg-[#161E0B]">
             <video
+              key={video.directUrl}
+              src={video.directUrl}
               controls
               autoPlay
               playsInline
@@ -253,7 +255,6 @@ export function MediaLightboxModal({
               className="w-full h-full object-contain bg-[#161E0B]"
               title={title}
             >
-              <source src={video.directUrl} type={video.mimeType || 'video/mp4'} />
               Your browser does not support HTML5 video streaming.
             </video>
           </div>

@@ -8,7 +8,7 @@
 'use client';
 
 import React from 'react';
-import type { PortfolioItem, SanityVideoSource } from '@/types';
+import type { PortfolioItem } from '@/types';
 import { MediaLightboxModal } from '@/components/ui/media-lightbox-modal';
 import { ShareDropdown } from '@/components/ui/share-dropdown';
 import type { SharePayload } from '@/lib/utils/shareUtils';
@@ -25,14 +25,9 @@ export function PortfolioModal({ item, isOpen, onClose }: PortfolioModalProps) {
   const isNativeVideo =
     parsedVideo?.sourceType === 'sanity' || parsedVideo?.sourceType === 'native';
 
-  const directVideoUrl =
-    parsedVideo?.directUrl ||
-    (item?.video?._type === 'sanity' ? item.video.asset?.url : undefined);
-
-  const mimeType =
-    item?.video?._type === 'sanity'
-      ? (item.video as SanityVideoSource).mimeType
-      : undefined;
+  const rawVideo = item?.video as { asset?: { url?: string }; mimeType?: string } | undefined;
+  const directVideoUrl = parsedVideo?.directUrl || rawVideo?.asset?.url;
+  const mimeType = rawVideo?.mimeType;
 
   const sharePayload: SharePayload | null = item
     ? {
