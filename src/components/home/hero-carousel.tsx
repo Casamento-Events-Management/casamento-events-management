@@ -228,7 +228,7 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
           - Desktop (xl+): Current 30/70 split-pane layout (left deep-olive info pane + right media pane)
           - iPad / Laptop (md–lg) & Mobile (< md): Adapts to PageHero's bottom-left editorial overlay layout
       */}
-      <div className="relative flex flex-col justify-end xl:flex-row xl:justify-normal w-full min-h-[340px] sm:min-h-[380px] md:min-h-[420px] lg:min-h-[480px] xl:min-h-[680px]">
+      <div className="relative flex flex-col justify-end xl:flex-row xl:justify-normal w-full min-h-[580px] md:min-h-[420px] lg:min-h-[480px] xl:min-h-[680px]">
         {/* ── MEDIA PANE (Full-bleed background on Mobile/iPad/Laptop; 68-70% Right Pane on Desktop) ── */}
         <div className="absolute inset-0 z-0 xl:relative xl:inset-auto xl:order-2 xl:w-[68%] 2xl:w-[70%] bg-[#161E0B] overflow-hidden xl:flex-1">
           {slides.map((slide, idx) => {
@@ -365,22 +365,22 @@ export function HeroCarousel({ hero }: HeroCarouselProps) {
             </p>
 
             {/* Actions Row (CTA + inline Play Video on Mobile/iPad/Laptop) */}
-            <div className="pt-2 sm:pt-3 xl:pt-0 flex flex-wrap items-center gap-3">
+            <div className="pt-2 sm:pt-3 xl:pt-0 flex flex-wrap items-center gap-2 md:gap-3">
               <Link
                 href={targetLink}
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 xl:px-6 xl:py-3.5 rounded-full bg-[#BC6F07] hover:bg-[#9E5B04] text-[#F7F3E8] border border-[#BC6F07] font-medium text-xs xl:text-sm tracking-wider uppercase transition-colors duration-200 active:scale-[0.98] shadow-sm cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F7F3E8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#2A3A14]"
+                className="inline-flex items-center justify-center gap-1.5 md:gap-2 px-3.5 py-2 md:px-5 md:py-2.5 xl:px-6 xl:py-3.5 rounded-full bg-[#BC6F07] hover:bg-[#9E5B04] text-[#F7F3E8] border border-[#BC6F07] font-medium text-[11px] md:text-xs xl:text-sm tracking-wider uppercase transition-colors duration-200 active:scale-[0.98] shadow-sm cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#F7F3E8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#2A3A14]"
               >
                 <span>{currentSlide.ctaText || 'Explore Service'}</span>
-                <ArrowRight className="w-3.5 h-3.5 xl:w-4 xl:h-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+                <ArrowRight className="w-3 h-3 md:w-3.5 md:h-3.5 xl:w-4 xl:h-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
               </Link>
 
               {currentSlide.mediaType === 'video' && currentSlide.video && (
                 <button
                   type="button"
                   onClick={() => setInlinePlayingKey(currentSlideKey)}
-                  className="xl:hidden inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#F7F3E8]/10 hover:bg-[#F7F3E8]/20 border border-[#F7F3E8]/30 text-[#F7F3E8] font-medium text-xs tracking-wider uppercase transition-colors duration-200 active:scale-[0.98] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07]"
+                  className="xl:hidden inline-flex items-center justify-center gap-1.5 md:gap-2 px-3.5 py-2 md:px-5 md:py-2.5 rounded-full bg-[#F7F3E8]/10 hover:bg-[#F7F3E8]/20 border border-[#F7F3E8]/30 text-[#F7F3E8] font-medium text-[11px] md:text-xs tracking-wider uppercase transition-colors duration-200 active:scale-[0.98] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BC6F07]"
                 >
-                  <Play className="w-3.5 h-3.5 fill-current shrink-0" strokeWidth={1.75} aria-hidden="true" />
+                  <Play className="w-3 h-3 md:w-3.5 md:h-3.5 fill-current shrink-0" strokeWidth={1.75} aria-hidden="true" />
                   <span>Play Video</span>
                 </button>
               )}

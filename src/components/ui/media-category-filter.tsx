@@ -34,8 +34,8 @@ export function MediaCategoryFilter({
   );
 
   const allTabs = [
-    { id: 'all', title: allLabel, slug: 'all', priority: 999 },
     ...sortedCategories,
+    { id: 'all', title: allLabel, slug: 'all', priority: -1 },
   ];
 
   const handleTabClick = (slug: string, e: React.MouseEvent<HTMLButtonElement>) => {
